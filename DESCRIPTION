@@ -32,13 +32,17 @@ Imports:
   lme4,
   GUniFrac,
   vegan,
-  ape
+  ape,
+  ggrepel,
+  stringr,
+  ggbeeswarm,
+  DescTools,
+  multcompView,
+  caret,
+  data.table,
+  fgsea,
+  pairwiseAdonis
 Suggests:
-    caret,
-    ggrepel,
-    ggbeeswarm,
-    DescTools,
-    multcompView,
     testthat (>= 3.0.0),
     knitr,
     rmarkdown

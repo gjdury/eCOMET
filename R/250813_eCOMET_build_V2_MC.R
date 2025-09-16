@@ -8,6 +8,7 @@
 #'
 #' @param mzmine_dir Path to the mzmine feature data CSV file
 #' @param metadata_dir Path to the metadata CSV file. The metadata file should contain columns: sample, group, mass
+#' @param group_col Column name in the metadata file used for grouping samples
 #' @return A mmo object containing the feature data and metadata
 
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col){
@@ -259,7 +260,7 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
     
     # Build mapping
     clusters <- unique(c(sim$cluster1, sim$cluster2))
-    cluster_index <- setNames(seq_along(clusters), clusters)
+    cluster_index <- stats::setNames(seq_along(clusters), clusters)
     
     # Map clusters to integer indices
     i <- cluster_index[sim$cluster1]
@@ -538,7 +539,7 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
   .require_pkg("pairwiseAdonis")
   #Perform PERMANOVA
   if (mode == 'data'){
-    dist_mat <- dist(data)
+    dist_mat <- stats::dist(data)
   } else if (mode == 'distance'){
     dist_mat <- as.dist(data)
   } else {
@@ -565,8 +566,8 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
   rownames(pairwise_matrix) <- unique(metadata$group)
   colnames(pairwise_matrix) <- unique(metadata$group)
   for (i in 2:length(pairwise_permanova)){
-    group1 <- str_split(names(pairwise_permanova)[i], '_vs_')[[1]][1]
-    group2 <- str_split(names(pairwise_permanova)[i], '_vs_')[[1]][2]
+    group1 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][1]
+    group2 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][2]
     pval <- pairwise_permanova[[i]][1,6]
     pairwise_matrix[group2, group1] <- pval
   }
@@ -745,7 +746,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #'
 PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE){
   .require_pkg("ggrepel")
-
+  .require_pkg("stats")
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
   if (filter_feature == TRUE){
@@ -754,7 +755,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
   # Perform PCA on normalized feature data
   feature_data_pca <- feature[, -(1:2)]
   feature_data_pca <- t(feature_data_pca) # samples as rows, features as columns
-  pca_res <- prcomp(feature_data_pca, scale. = TRUE)
+  pca_res <- stats::prcomp(feature_data_pca, scale. = TRUE)
   pca_df <- as.data.frame(pca_res$x)
   pca_df$group <- metadata$group[match(rownames(pca_df), metadata$sample)]
 
@@ -762,21 +763,21 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
     pca_df <- pca_df |> filter(.data$group %in% group_list)
   }
   if (label == TRUE){
-    plot <- ggplot(pca_df, aes(x = PC1, y = PC2, color = group, label = rownames(pca_df))) +
+    plot <- ggplot(pca_df, aes(x = .data$PC1, y = .data$PC2, color = .data$group, label = rownames(pca_df))) +
       geom_point(size = 3) +
-      geom_label_repel(aes(label = rownames(pca_df)), size = 3) +
+      ggrepel::geom_label_repel(aes(label = rownames(pca_df)), size = 3) +
       theme_classic() +
       labs(x = "PC1", y = "PC2") +
-      scale_color_manual(values = custom_colors)+
-      stat_ellipse(aes(group = group), level = 0.90)
+      scale_color_manual(values = color)+
+      stat_ellipse(aes(group = .data$group), level = 0.90)
   } else {
-    plot <- ggplot(pca_df, aes(x = PC1, y = PC2, color = group)) +
+    plot <- ggplot(pca_df, aes(x = .data$PC1, y = .data$PC2, color = .data$group)) +
       geom_point(size = 3) +
       # geom_label_repel(aes(label = rownames(pca_df)), size = 3) +
       theme_classic() +
       labs(x = "PC1", y = "PC2") +
-      scale_color_manual(values = custom_colors)+
-      stat_ellipse(aes(group = group), level = 0.90)
+      scale_color_manual(values = color)+
+      stat_ellipse(aes(group = .data$group), level = 0.90)
   }
   plot
   ggsave(paste0(outdir, '.pdf'), width = 6, height = 6)
@@ -1243,6 +1244,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' @param sig A logical value indicating whether to return only significant terms (default: FALSE)
 MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA', width = 8, height = 12, sig = FALSE){
   # Create a named vector of feature scores
+  .require_pkg("fgsea")
   ranked_list <- feature_score
   names(ranked_list) <- feature_name
   ranked_list <- sort(ranked_list, decreasing = TRUE)
@@ -1272,13 +1274,13 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
                        minSize  = 5,   # minimum number of features in a class
                        maxSize  = 1500,
                        nPermSimple = 10000)
-  msea_res <- msea_res |> arrange(padj)
+  msea_res <- msea_res |> arrange(.data$padj)
   readr::write_csv(msea_res, paste0(prefix,'_', term_level,'_results.csv'))
   if (sig) {
-    msea_res <- msea_res |> filter(padj < pthr)
+    msea_res <- msea_res |> filter(.data$padj < pthr)
   }
-  ggplot(msea_res, aes(x = reorder(pathway, NES), y = NES)) +
-    geom_point(shape = 21, aes(color = padj < 0.05, size = size, fill = -log(padj)), stroke = 1) +
+  ggplot(msea_res, aes(x = reorder(.data$pathway, .data$NES), y = .data$NES)) +
+    geom_point(shape = 21, aes(color = .data$padj < 0.05, size = .data$size, fill = -log(.data$padj)), stroke = 1) +
     coord_flip() +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey") +
     scale_fill_gradient(low = "grey", high = "red") +
@@ -1817,14 +1819,14 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 
   # All feature or filtered feature
   if (filter_feature == TRUE){
-    feature <- feature %>% filter(feature %in% filter_list)
+    feature <- feature |> filter(feature %in% feature_list)
   }
   if (filter_group == TRUE){
     samples <- c()
     for (group in group_list){
-      samples <- append(samples, metadata %>% filter(group == !!group) %>% pull(sample))
+      samples <- append(samples, metadata |> filter(.data$group == !!group) |> pull(.data$sample))
     }
-    feature <- feature %>% select(id, feature, all_of(samples))
+    feature <- feature |> select(.data$id, .data$feature, all_of(samples))
   }
 
   # Get frequency matrix
@@ -1864,8 +1866,10 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
 #' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
 #' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
+#' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
+#' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
 #' @return A distance matrix of beta diversity values
-GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_feature = FALSE, feature_list = NULL) {
+GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL){
   # Get compound distance and build tree for UniFrac
   scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
   if (filter_feature == TRUE) {
