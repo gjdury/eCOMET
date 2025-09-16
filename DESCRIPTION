@@ -46,5 +46,5 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
-URL: https://dlforrister.github.io/ecoMET_webpage/
+URL: https://phytoecia.github.io/eCOMET/
 VignetteBuilder: knitr
