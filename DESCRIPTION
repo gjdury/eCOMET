@@ -46,5 +46,7 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
+Remotes:
+    pmartinezarbizu/pairwiseAdonis
 URL: https://phytoecia.github.io/eCOMET/
 VignetteBuilder: knitr
