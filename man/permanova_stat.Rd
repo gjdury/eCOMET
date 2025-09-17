@@ -32,4 +32,16 @@ A list containing the PERMANOVA results, raw pairwise comparison results, and a 
 \description{
 This function performs PERMANOVA on the given data and metadata, with options for filtering groups.
 It also conducts post-hoc pairwise comparisons and adjusts p-values for multiple testing.
+The function returns the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values of pairwise comparisons.
+}
+\examples{
+permanova_results <- permanova_stat(
+ data = feature_data, metadata = mmo$metadata, 
+ mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"), 
+ permutations = 5000
+)
+permanova_results <- permanova_stat(
+ data = betadiv, metadata = mmo$metadata, 
+ mode = 'distance', permutations = 10000
+)
 }

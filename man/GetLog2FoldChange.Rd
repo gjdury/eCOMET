@@ -15,5 +15,9 @@ GetLog2FoldChange(group_means, control_group)
 A data frame with log2 fold change values for each group compared to the control group
 }
 \description{
-This function calculates the log2 fold change for each group compared to a specified control group.
+This function calculates and returns a dataframe of log2 fold change values for each group compared to a specified control group.
+Takes inputs from GetGroupMeans() function.
+}
+\examples{
+fold_change <- GetLog2FoldChange(GetGroupMeans(mmo, normalization = 'Log'), control_group = 'Control')
 }

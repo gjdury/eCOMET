@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{PLSDAplot}
 \alias{PLSDAplot}
-\title{PLSDAplot}
+\title{PLS-DA plot with feature loadings}
 \usage{
 PLSDAplot(
   mmo,
@@ -19,7 +19,7 @@ PLSDAplot(
 \arguments{
 \item{mmo}{The mmo object with feature data and metadata}
 
-\item{color}{A vector of colors for the groups in the plot}
+\item{color}{A vector of colors for the groups in the plot. Make sure the names correspond to the group names in metadata}
 
 \item{topk}{The number of top features to display in the plot (default: 10)}
 
@@ -36,5 +36,18 @@ PLSDAplot(
 \item{group_list}{A vector of group names to filter (default: NULL)}
 }
 \description{
-PLSDAplot
+PLS-DA plot with feature loadings
+}
+\examples{
+PLSDAplot(
+ mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
+ topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z', 
+ filter_feature = FALSE, filter_group = FALSE
+)
+PLSDAplot(
+ mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
+ topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log', 
+ filter_feature = TRUE, feature_list = Glucosinolates, 
+ filter_group = TRUE, group_list = c("Control", "Treatment1")
+)
 }

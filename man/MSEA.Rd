@@ -2,10 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{MSEA}
 \alias{MSEA}
-\title{Metabolite Set Enrichment Analysis (MSEA)
-This function performs Metabolite Set Enrichment Analysis (MSEA) using the fgsea package.
-It takes a ranked list of feature scores and tests for enrichment of metabolite sets based on Canopus-predicted terms.
-The results are saved as a CSV file and a PDF plot.}
+\title{Metabolite Set Enrichment Analysis (MSEA)}
 \usage{
 MSEA(
   mmo,
@@ -42,8 +39,15 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 \item{sig}{A logical value indicating whether to return only significant terms (default: FALSE)}
 }
 \description{
-Metabolite Set Enrichment Analysis (MSEA)
 This function performs Metabolite Set Enrichment Analysis (MSEA) using the fgsea package.
 It takes a ranked list of feature scores and tests for enrichment of metabolite sets based on Canopus-predicted terms.
 The results are saved as a CSV file and a PDF plot.
+}
+\examples{
+# Perform MSEA using NPC_class level
+MSEA(
+ mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange, 
+ term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class', 
+ width = 8, height = 12, sig = FALSE
+)
 }

@@ -14,4 +14,8 @@ The mmo object with log-normalized feature data (mmo$log)
 }
 \description{
 This function applies log2 transformation to the peak area in the feature data of the mmo object.
+Run ReplaceZero() before this function to avoid -Inf values.
+}
+\examples{
+mmo <- LogNormalization(mmo)
 }

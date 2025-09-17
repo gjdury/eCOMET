@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{MassNormalization}
 \alias{MassNormalization}
-\title{Use mass in the metadata file to normalize the peak area}
+\title{Use sample mass in the metadata file to normalize the peak area}
 \usage{
 MassNormalization(mmo)
 }
@@ -15,4 +15,7 @@ The mmo object with normalized feature data (mmo$feature_data)
 \description{
 This function normalizes the peak area in the feature data of the mmo object by the mass of each sample, provided in the metadata.
 The feature data is replaced by (original value * mean mass) / sample mass.
+}
+\examples{
+mmo <- MassNormalization(mmo)
 }

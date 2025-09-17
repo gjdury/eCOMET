@@ -39,3 +39,24 @@ CanopusAllLevelEnrichmentPlot(
 This function generates a plot for enrichment analysis of Canopus-predicted terms across all levels,
 showing fold enrichment, p-value, and subset count for each term level.
 }
+\examples{
+comp.list <- list(
+  comparison1 = DAMs_up$control_vs_treatment1.up,
+  comparison2 = DAMs_up$control_vs_treatment2.up
+)
+CanopusAllLevelEnrichmentPlot(
+ mmo, comp.list = comp.list, terms = 'all_terms', 
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels', 
+ height = 10, width = 8
+)
+CanopusAllLevelEnrichmentPlot(
+ mmo, comp.list = comp.list, terms = 'NPC', 
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_NPC_levels', 
+ height = 10, width = 8
+)
+CanopusAllLevelEnrichmentPlot(
+ mmo, comp.list = comp.list, terms = 'ClassyFire', 
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels', 
+ height = 10, width = 8
+)
+}

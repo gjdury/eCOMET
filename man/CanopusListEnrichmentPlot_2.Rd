@@ -33,3 +33,10 @@ CanopusListEnrichmentPlot_2(
 This function generates a plot for enrichment analysis of Canopus-predicted terms across multiple levels,
 showing fold enrichment, p-value, and subset count for each term level.
 }
+\examples{
+CanopusListEnrichmentPlot_2(
+ mmo, feature_list = DAMs_up$control_vs_treatment1.up, 
+ pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf', 
+ height = 5, width = 5, topn = 5
+)
+}

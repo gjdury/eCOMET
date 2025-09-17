@@ -20,3 +20,9 @@ The mmo object with SIRIUS annotations added
 This function reads SIRIUS structure identification and formula summary files,
 and adds the annotations to the mmo object.
 }
+\examples{
+mmo <- AddSiriusAnnot(mmo, 
+ canopus_structuredir = "path/to/structure_identification.tsv", 
+ canopus_formuladir = "path/to/canopus_formula_summary.tsv"
+)
+}

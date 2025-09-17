@@ -18,3 +18,8 @@ ExportFeaturesToCSV(mmo, feature_list, normalization = "None", output_dir)
 \description{
 This function exports selected features, their annotations, and pairwise comparisons to a CSV file.
 }
+\examples{
+ExportFeaturesToCSV(mmo, feature_list = Glucosinolates, normalization = 'Z', output_dir = 'output.csv')
+ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up, normalization = 'None', output_dir = 'output.csv')
+
+}

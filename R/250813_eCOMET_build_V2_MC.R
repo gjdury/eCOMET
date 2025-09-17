@@ -70,7 +70,10 @@ SwitchGroup <- function(mmo, new_group_col) {
 #' @return The mmo object with SIRIUS annotations added
 #' @export
 #' @examples
-#' mmo <- AddSiriusAnnot(mmo, canopus_structuredir = "path/to/structure_identification.tsv", canopus_formuladir = "path/to/canopus_formula_summary.tsv")
+#' mmo <- AddSiriusAnnot(mmo, 
+#'  canopus_structuredir = "path/to/structure_identification.tsv", 
+#'  canopus_formuladir = "path/to/canopus_formula_summary.tsv"
+#' )
 AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
   structure_identifications <- readr::read_tsv(canopus_structuredir, show_col_types = FALSE)
   structure_identifications$mappingFeatureId <- gsub(" ", "", structure_identifications$mappingFeatureId)
@@ -275,7 +278,11 @@ ZNormalization <- function(mmo){
 #' @return The mmo object with dissimilarity matrices added (mmo$cos.dissim, mmo$dreams.dissim, mmo$m2ds.dissim)
 #' @export
 #' @examples
-#' mmo <- AddChemDist(mmo, cos_dir = "path/to/cosine_similarity.csv", dreams_dir = "path/to/dreams_similarity.csv", m2ds_dir = "path/to/ms2deepscore_similarity.csv")
+#' mmo <- AddChemDist(mmo, 
+#'  cos_dir = "path/to/cosine_similarity.csv", 
+#'  dreams_dir = "path/to/dreams_similarity.csv", 
+#'  m2ds_dir = "path/to/ms2deepscore_similarity.csv"
+#' )
 AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL) {
   .require_pkg("data.table")
   add_dissim_matrix <- function(mmo, sim_dir, slot_name) {
@@ -424,7 +431,9 @@ GetDistanceMat <- function(mmo, distance = 'dreams'){
 #' @examples
 #' feature_ids <- FeatureToID(mmo, feature_names = c("100.0_5.0", "150.0_10.0"))
 #' feature_ids <- FeatureToID(mmo, feature_names = mmo$feature_data$feature[1:10])
-#' feature_ids <- FeatureToID(mmo, feature_names = Glucosinolates) # if Glucosinolates is a vector of feature names
+#' feature_ids <- FeatureToID(mmo, 
+#'  feature_names = Glucosinolates
+#' ) # if Glucosinolates is a vector of feature names
 FeatureToID <- function(mmo, feature_names) {
   feature_data <- mmo$feature_data
   feature_ids <- feature_data |>
@@ -446,7 +455,9 @@ FeatureToID <- function(mmo, feature_names) {
 #' @examples
 #' feature_names <- IDToFeature(mmo, feature_ids = c("1219", "2250", "3360"))
 #' feature_names <- IDToFeature(mmo, feature_ids = mmo$feature_data$id[1:10])
-#' feature_names <- IDToFeature(mmo, feature_ids = FeatureToID(mmo, feature_names = Glucosinolates)) # if Glucosinolates is a vector of feature names
+#' feature_names <- IDToFeature(mmo, 
+#'  feature_ids = FeatureToID(mmo, feature_names = Glucosinolates)
+#' ) # if Glucosinolates is a vector of feature names
 IDToFeature <- function(mmo, feature_ids) {
   feature_data <- mmo$feature_data
   feature_names <- feature_data |>
@@ -472,9 +483,20 @@ IDToFeature <- function(mmo, feature_ids) {
 #' @export
 #' @examples
 #' group_means <- GetGroupMeans(mmo, normalization = 'Log')
-#' group_means <- GetGroupMeans(mmo, normalization = 'None', filter_feature = TRUE, feature_list = Glucosinolates) # if Glucosinolates is a vector of feature names
-#' group_means <- GetGroupMeans(mmo, normalization = 'Z', filter_group = TRUE, group_list = c("Control", "Treatment1"))
-#' group_means <- GetGroupMeans(mmo, normalization = 'Meancentered', filter_feature = TRUE, feature_list = Glucosinolates, filter_group = TRUE, group_list = c("Control", "Treatment1"))
+#' group_means <- GetGroupMeans(mmo, 
+#'  normalization = 'None', 
+#'  filter_feature = TRUE, feature_list = Glucosinolates
+#' ) # if Glucosinolates is a vector of feature names
+#' group_means <- GetGroupMeans(mmo, 
+#'  normalization = 'Z', 
+#'  filter_group = TRUE, 
+#'  group_list = c("Control", "Treatment1")
+#' )
+#' group_means <- GetGroupMeans(mmo, 
+#'  normalization = 'Meancentered', 
+#'  filter_feature = TRUE, feature_list = Glucosinolates, 
+#'  filter_group = TRUE, group_list = c("Control", "Treatment1")
+#' ) # if Glucosinolates is a vector of feature names   
 GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL) {
   feature_data <- GetNormFeature(mmo, normalization = normalization)
   metadata <- mmo$metadata
@@ -605,8 +627,15 @@ write_anova <- function(anova_data, outdir, way='oneway'){
 #' @return A list containing the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values
 #' @export
 #' @examples
-#' permanova_results <- permanova_stat(data = feature_data, metadata = mmo$metadata, mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"), permutations = 5000)
-#' permanova_results <- permanova_stat(data = betadiv, metadata = mmo$metadata, mode = 'distance', permutations = 10000)
+#' permanova_results <- permanova_stat(
+#'  data = feature_data, metadata = mmo$metadata, 
+#'  mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"), 
+#'  permutations = 5000
+#' )
+#' permanova_results <- permanova_stat(
+#'  data = betadiv, metadata = mmo$metadata, 
+#'  mode = 'distance', permutations = 10000
+#' )
 permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_list = NULL, permutations = 5000){ 
   .require_pkg("vegan")
   .require_pkg("stringr")
@@ -767,7 +796,11 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
 #' @param width The width of the output plot in inches (default: 5)
 #' @export 
 #' @examples
-#' VolcanoPlot(mmo, comp = 'Control_vs_Treatment1', topk = 10, pthr = 0.05, outdir = 'volcano_con_tre1.png', height = 5, width = 5)
+#' VolcanoPlot(
+#'  mmo, comp = 'Control_vs_Treatment1', 
+#'  topk = 10, pthr = 0.05, 
+#'  outdir = 'volcano_con_tre1.png', height = 5, width = 5
+#' )
 VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png', height = 5, width = 5){
   .require_pkg("ggrepel")
   VolData <- mmo$pairwise |> select(.data$feature,all_of(c(paste(comp, 'log2FC', sep = '_'), paste(comp, 'padj', sep = '_'))))
@@ -826,8 +859,17 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #' @param label Boolean to indicate whether to label points with sample names (default: TRUE)
 #' @export 
 #' @examples
-#' PCAplot(mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), outdir = 'PCA_plot', normalization = 'None', filter_feature = FALSE, filter_group = FALSE, label = FALSE)
-#' PCAplot(mmo, color = c("Control" = "blue", "Treatment1" = "red"), outdir = 'PCA_plot', normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates, filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE)
+#' PCAplot(
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
+#'  outdir = 'PCA_plot', normalization = 'None', 
+#'  filter_feature = FALSE, filter_group = FALSE, label = FALSE
+#' )
+#' PCAplot(
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
+#'  outdir = 'PCA_plot', normalization = 'Z', 
+#'  filter_feature = TRUE, feature_list = Glucosinolates, 
+#'  filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
+#' )
 PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE){
   .require_pkg("ggrepel")
   .require_pkg("stats")
@@ -890,8 +932,17 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @export 
 #' @examples
-#' PLSDAplot(mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z', filter_feature = FALSE, filter_group = FALSE)
-#' PLSDAplot(mmo, color = c("Control" = "blue", "Treatment1" = "red"), topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log', filter_feature = TRUE, feature_list = Glucosinolates, filter_group = TRUE, group_list = c("Control", "Treatment1"))
+#' PLSDAplot(
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
+#'  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z', 
+#'  filter_feature = FALSE, filter_group = FALSE
+#' )
+#' PLSDAplot(
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
+#'  topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log', 
+#'  filter_feature = TRUE, feature_list = Glucosinolates, 
+#'  filter_group = TRUE, group_list = c("Control", "Treatment1")
+#' )
 PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL) {
   .require_pkg("caret")
   .require_pkg("ggrepel")
@@ -986,14 +1037,21 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #' @export
 #' @examples
 #' # Generate heatmap inputs to visualize fold change values with log normalization and dreams distance
-#' heatmap_inputs <- GenerateHeatmapInputs(mmo, summarize = 'fold_change', control_group = 'Control', normalization = 'None', distance = 'dreams')
+#' heatmap_inputs <- GenerateHeatmapInputs(
+#'  mmo, summarize = 'fold_change', control_group = 'Control', 
+#'  normalization = 'None', distance = 'dreams'
+#' )
 #' # Generate heatmap inputs to visualize mean values
-#' heatmap_inputs <- GenerateHeatmapInputs(mmo, summarize = 'mean', normalization = 'None', distance = 'dreams')
+#' heatmap_inputs <- GenerateHeatmapInputs(
+#'  mmo, summarize = 'mean', normalization = 'None', distance = 'dreams'
+#' )
 #' # The resulting list contains FC_matrix, dist_matrix, row_label, and heatmap_data
 #' # A heatmap can be generated using pheatmap
+#' # 'clustering_distance_rows' option make the dendrogram follows chemical distances of features. 
+#' #  -Delete this option to visualize the heatmap following cannonical clustering
 #' pheatmap(mat = heatmap_inputs$FC_matrix, 
 #'     cluster_rows = TRUE, #do not change
-#'     clustering_distance_rows = heatmap_inputs$dist_matrix, # This option make the dendrogram follows chemical distances of features. Delete this option to visualize the heatmap following cannonical clustering
+#'     clustering_distance_rows = heatmap_inputs$dist_matrix, 
 #'     cluster_cols = TRUE, 
 #'     clustering_method = "average", #UPGMA
 #'     show_rownames = TRUE, 
@@ -1084,9 +1142,15 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
 #' @export
 #' @examples
 #' # Perform enrichment analysis for a list of features using NPC_pathway level
-#' sig_terms <- CanopusLevelEnrichmentAnal(mmo, list_test = c("feature1", "feature2"), pthr = 0.1, sig = TRUE, term_level = 'NPC_pathway', representation = 'greater')
+#' sig_terms <- CanopusLevelEnrichmentAnal(
+#'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
+#'  sig = TRUE, term_level = 'NPC_pathway', representation = 'greater'
+#' )
 #' # Perform enrichment analysis for a list of features using ClassyFire_class level and return all terms
-#' all_terms <- CanopusLevelEnrichmentAnal(mmo, list_test = c("feature1", "feature2"), pthr = 0.1, sig = FALSE, term_level = 'ClassyFire_class', representation = 'greater')
+#' all_terms <- CanopusLevelEnrichmentAnal(
+#'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
+#'  sig = FALSE, term_level = 'ClassyFire_class', representation = 'greater'
+#' )
 CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term_level = 'NPC_pathway', representation = 'greater'){
   all_feature <- mmo$sirius_annot
   subset_feature <- mmo$sirius_annot |> filter(.data$feature %in% list_test)
@@ -1173,7 +1237,11 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' @param width The width of the output plot in inches (default: 5)
 #' @export 
 #' @examples
-#' CanopusListEnrichmentPlot(mmo, feature_list = DAMs_up$control_vs_treatment1.up, pthr = 0.05, outdir = 'canopus_enrichment_plot.pdf', height = 5, width = 5)
+#' CanopusListEnrichmentPlot(
+#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up, 
+#'  pthr = 0.05, outdir = 'canopus_enrichment_plot.pdf', 
+#'  height = 5, width = 5
+#' )
 #' 
 CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
@@ -1207,7 +1275,11 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #' @param topn The number of top terms to display in the plot (default: 5)
 #' @export
 #' @examples
-#' CanopusListEnrichmentPlot_2(mmo, feature_list = DAMs_up$control_vs_treatment1.up, pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf', height = 5, width = 5, topn = 5)
+#' CanopusListEnrichmentPlot_2(
+#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up, 
+#'  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf', 
+#'  height = 5, width = 5, topn = 5
+#' )
 CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
@@ -1250,7 +1322,11 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #'   comparison1 = DAMs_up$control_vs_treatment1.up,
 #'   comparison2 = DAMs_up$control_vs_treatment2.up
 #' )
-#' CanopusLevelEnrichmentPlot(mmo, comp.list = comp.list, term_level = 'NPC_pathway', pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot', height = 5, width = 5)
+#' CanopusLevelEnrichmentPlot(
+#'  mmo, comp.list = comp.list, term_level = 'NPC_pathway', 
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot', 
+#'  height = 5, width = 5
+#' )
 CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_pathway',pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 5, width = 5){
   df.EA <- data.frame()
   sig.terms <- c()
@@ -1306,9 +1382,21 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #'   comparison1 = DAMs_up$control_vs_treatment1.up,
 #'   comparison2 = DAMs_up$control_vs_treatment2.up
 #' )
-#' CanopusAllLevelEnrichmentPlot(mmo, comp.list = comp.list, terms = 'all_terms', pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels', height = 10, width = 8)
-#' CanopusAllLevelEnrichmentPlot(mmo, comp.list = comp.list, terms = 'NPC', pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels', height = 10, width = 8)
-#' CanopusAllLevelEnrichmentPlot(mmo, comp.list = comp.list, terms = 'ClassyFire', pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels', height = 10, width = 8)
+#' CanopusAllLevelEnrichmentPlot(
+#'  mmo, comp.list = comp.list, terms = 'all_terms', 
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels', 
+#'  height = 10, width = 8
+#' )
+#' CanopusAllLevelEnrichmentPlot(
+#'  mmo, comp.list = comp.list, terms = 'NPC', 
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_NPC_levels', 
+#'  height = 10, width = 8
+#' )
+#' CanopusAllLevelEnrichmentPlot(
+#'  mmo, comp.list = comp.list, terms = 'ClassyFire', 
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels', 
+#'  height = 10, width = 8
+#' )
 CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_terms', term_levels = NULL, pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 10, width = 8){
   df.EA <- data.frame()
   sig.terms <- c()
@@ -1377,7 +1465,11 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' @export 
 #' @examples
 #' # Perform MSEA using NPC_class level
-#' MSEA(mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange, term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class', width = 8, height = 12, sig = FALSE)
+#' MSEA(
+#'  mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange, 
+#'  term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class', 
+#'  width = 8, height = 12, sig = FALSE
+#' )
 MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA', width = 8, height = 12, sig = FALSE){
   # Create a named vector of feature scores
   .require_pkg("fgsea")
@@ -1754,7 +1846,10 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #' @export
 #' @examples
 #' AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
-#' AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z', filter_group = TRUE, group_list = c("Group1", "Group2"))
+#' AnovaBarPlot(
+#'  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z', 
+#'  filter_group = TRUE, group_list = c("Group1", "Group2")
+#' )
 AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL) {
   .require_pkg("ggbeeswarm")
   # Extract metadata and feature data
@@ -1942,8 +2037,10 @@ GetHillNumbers <- function(mmo, normalization = 'None', q = 0, filter_feature = 
 #' @return A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
 #' @export
 #' @examples
-#' alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None', mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
-#' alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z', mode = 'unweighted', filter_feature = TRUE, feature_list = Glucosinolates)
+#' alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None', 
+#'  mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
+#' alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z', 
+#'  mode = 'unweighted', filter_feature = TRUE, feature_list = Glucosinolates)
 GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'weighted', distance = 'dreams', filter_feature = FALSE, feature_list = NULL){
   if (mode == 'weighted'){
     GetFunctionalHillNumber(mmo, normalization = normalization, q = q, distance = distance, filter_feature = filter_feature, feature_list = feature_list)
@@ -2025,8 +2122,11 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @return A distance matrix of beta diversity values between samples.
 #' @export
 #' @examples
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'bray', normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates, filter_group = TRUE, group_list = c('Control', 'Treatment1'))
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'bray', 
+#'  normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates, 
+#'  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
 GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL){
   # Get compound distance and build tree for UniFrac
   scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
@@ -2099,8 +2199,10 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 #' @return A data frame containing the group names, sample names, and their corresponding beta diversity distances from the reference group.
 #' @export
 #' @examples
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-#' group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity, reference_group = 'Control', groups = c('Control', 'Treatment1', 'Treatment2'))
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#' group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity, 
+#'  reference_group = 'Control', groups = c('Control', 'Treatment1', 'Treatment2'))
 CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
   metadata <- mmo$metadata
   distances <- data.frame(group = character(), distance = numeric())

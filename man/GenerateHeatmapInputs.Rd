@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{GenerateHeatmapInputs}
 \alias{GenerateHeatmapInputs}
-\title{Generate heatmap inputs from the mmo object}
+\title{Generate input files to be used for pheatmap from the mmo object}
 \usage{
 GenerateHeatmapInputs(
   mmo,
@@ -10,7 +10,7 @@ GenerateHeatmapInputs(
   feature_list = NULL,
   filter_group = FALSE,
   group_list = NULL,
-  summarize = "fold_change",
+  summarize = "mean",
   control_group = "ctrl",
   normalization = "None",
   distance = "dreams"
@@ -27,7 +27,7 @@ GenerateHeatmapInputs(
 
 \item{group_list}{A vector of group names to filter (default: NULL)}
 
-\item{summarize}{The summarization method to use. Options are 'fold_change' or 'mean' (default: 'fold_change')}
+\item{summarize}{The summarization method to use. Options are 'fold_change' or 'mean' (default: 'mean')}
 
 \item{control_group}{The group to use as control for fold change calculation (default: 'ctrl')}
 
@@ -40,11 +40,42 @@ A list containing the following elements:
 \itemize{
 \item FC_matrix: A matrix of fold change or mean values
 \item dist_matrix: A distance matrix based on the specified distance metric
-\item row_label: A vector of row labels for custom-annotated features
+\item row_label: A vector of row labels for custom-annotated features (See AddCustomAnnot()). If no custom annotation is available, feature IDs are used.
 \item heatmap_data: A data frame containing the heatmap data with feature IDs and values
 }
 }
 \description{
 This function generates heatmap inputs from the mmo object, including fold change or mean values,
 distance matrix, and row labels for custom-annotated features.
+}
+\examples{
+# Generate heatmap inputs to visualize fold change values with log normalization and dreams distance
+heatmap_inputs <- GenerateHeatmapInputs(
+ mmo, summarize = 'fold_change', control_group = 'Control', 
+ normalization = 'None', distance = 'dreams'
+)
+# Generate heatmap inputs to visualize mean values
+heatmap_inputs <- GenerateHeatmapInputs(
+ mmo, summarize = 'mean', normalization = 'None', distance = 'dreams'
+)
+# The resulting list contains FC_matrix, dist_matrix, row_label, and heatmap_data
+# A heatmap can be generated using pheatmap
+# 'clustering_distance_rows' option make the dendrogram follows chemical distances of features. 
+#  -Delete this option to visualize the heatmap following cannonical clustering
+pheatmap(mat = heatmap_inputs$FC_matrix, 
+    cluster_rows = TRUE, #do not change
+    clustering_distance_rows = heatmap_inputs$dist_matrix, 
+    cluster_cols = TRUE, 
+    clustering_method = "average", #UPGMA
+    show_rownames = TRUE, 
+    show_colnames = TRUE,
+    cellwidth = 25,
+    cellheight = 0.05,
+    treeheight_row = 100,
+    fontsize_row = 3,
+    fontsize_col = 15,
+    scale = 'none',
+    annotation_names_row = TRUE,
+    labels_row = heatmap_inputs$row_label,
+    )
 }

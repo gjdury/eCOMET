@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{write_anova}
 \alias{write_anova}
-\title{Write ANOVA and Tukey's HSD results to a CSV file}
+\title{Write results of anova_tukey_dunnett to a CSV file}
 \usage{
 write_anova(anova_data, outdir, way = "oneway")
 }
@@ -15,4 +15,8 @@ write_anova(anova_data, outdir, way = "oneway")
 }
 \description{
 This function writes the results of ANOVA and Tukey's HSD test to a CSV file.
+}
+\examples{
+write_anova(anova_data = anova_results, outdir = "anova_tukey_results.csv", way = 'oneway')
+
 }

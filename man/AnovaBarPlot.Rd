@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{AnovaBarPlot}
 \alias{AnovaBarPlot}
-\title{AnovaBarPlot}
+\title{Generate barplots for each feature and perform ANOVA}
 \usage{
 AnovaBarPlot(
   mmo,
@@ -16,7 +16,7 @@ AnovaBarPlot(
 \arguments{
 \item{mmo}{The mmo object containing metadata and feature data}
 
-\item{ID_list}{A list of feature IDs to analyze}
+\item{ID_list}{A list of feature IDs to analyze. Use FeatureToID() to convert feature names to IDs.}
 
 \item{outdir}{The output directory to save the bar plots and ANOVA results}
 
@@ -28,4 +28,11 @@ AnovaBarPlot(
 }
 \description{
 This function generates bar plots for a specified feature across different groups in the metadata, performing ANOVA and Tukey's HSD test for post-hoc analysis.
+}
+\examples{
+AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
+AnovaBarPlot(
+ mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z', 
+ filter_group = TRUE, group_list = c("Group1", "Group2")
+)
 }

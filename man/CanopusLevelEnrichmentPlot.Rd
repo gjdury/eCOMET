@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{CanopusLevelEnrichmentPlot}
 \alias{CanopusLevelEnrichmentPlot}
-\title{Generate a plot for enrichment analysis of Canopus-predicted terms at a specific level}
+\title{Generate a plot for enrichment analysis of Canopus-predicted terms at a specific level using a list of vectors of features}
 \usage{
 CanopusLevelEnrichmentPlot(
   mmo = mmo,
@@ -38,4 +38,16 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 \description{
 This function generates a plot for enrichment analysis of Canopus-predicted terms at a specific level,
 showing fold enrichment, p-value, and subset count for each term.
+}
+\examples{
+# Perform enrichment analysis for multiple comparisons using NPC_pathway level
+comp.list <- list(
+  comparison1 = DAMs_up$control_vs_treatment1.up,
+  comparison2 = DAMs_up$control_vs_treatment2.up
+)
+CanopusLevelEnrichmentPlot(
+ mmo, comp.list = comp.list, term_level = 'NPC_pathway', 
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot', 
+ height = 5, width = 5
+)
 }

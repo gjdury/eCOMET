@@ -2,9 +2,9 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{GetNormFeature}
 \alias{GetNormFeature}
-\title{Get feature data from the mmo object, with normalization options}
+\title{Retrieve feature data from the mmo object, with normalization options}
 \usage{
-GetNormFeature(mmo, normalization = "None")
+GetNormFeature(mmo, normalization)
 }
 \arguments{
 \item{mmo}{The mmo object}
@@ -16,4 +16,7 @@ The feature data corresponding to the specified normalization method
 }
 \description{
 This function retrieves the feature data from the mmo object based on the specified normalization method.
+}
+\examples{
+feature_data <- GetNormFeature(mmo, normalization = 'Log')
 }

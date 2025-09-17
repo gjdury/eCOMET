@@ -17,3 +17,6 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(ecomet)
 ```
+
+
+The demo files are metabolomics analysis files of Arabidopsis thaliana (Col-0) attacked by two different herbivores (Spodoptera litura; sl, and Lipaphis erysimi; le). Eight replicates were sampled and analyzed for each group. See metadata.csv for more details. 

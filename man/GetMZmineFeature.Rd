@@ -9,7 +9,7 @@ GetMZmineFeature(mzmine_dir, metadata_dir, group_col)
 \arguments{
 \item{mzmine_dir}{Path to the mzmine feature data CSV file}
 
-\item{metadata_dir}{Path to the metadata CSV file. The metadata file should contain columns: sample, group, mass}
+\item{metadata_dir}{Path to the metadata CSV file. The metadata file should contain columns: sample, mass, and at least one grouping column (e.g., treatment)}
 
 \item{group_col}{Column name in the metadata file used for grouping samples}
 }
@@ -19,4 +19,7 @@ A mmo object containing the feature data and metadata
 \description{
 This function reads mzmine feature data and metadata from specified directories,
 to initiate a mmo object containing feature data and metadata
+}
+\examples{
+mmo <- GetMZmineFeature(mzmine_dir = "path/to/mzmine_feature.csv", metadata_dir = "path/to/metadata.csv", group_col = "treatment")
 }

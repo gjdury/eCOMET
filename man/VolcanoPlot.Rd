@@ -30,6 +30,13 @@ VolcanoPlot(
 \item{width}{The width of the output plot in inches (default: 5)}
 }
 \description{
-This function generates a volcano plot using data from mmo$pairwise,
+This function generates a volcano plot using data from mmo$pairwise (PairwiseComp(mmo, 'group1', 'group2') should be precended),
 highlighting upregulated and downregulated features based on log2 fold change and adjusted p-value
+}
+\examples{
+VolcanoPlot(
+ mmo, comp = 'Control_vs_Treatment1', 
+ topk = 10, pthr = 0.05, 
+ outdir = 'volcano_con_tre1.png', height = 5, width = 5
+)
 }

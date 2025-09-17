@@ -15,3 +15,6 @@ The mmo object with mean-centered feature data (mmo$meancentered)
 \description{
 This function applies mean-centering to the peak area in the feature data of the mmo object.
 }
+\examples{
+mmo <- MeancenterNormalization(mmo)
+}

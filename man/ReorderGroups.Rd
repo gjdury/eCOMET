@@ -17,4 +17,8 @@ The mmo object with reordered samples
 \description{
 This function reorders the samples in the mmo object based on a specified group order.
 The function updates the order of samples in the feature data, log-normalized data, z-score data, and mean-centered data.
+Use this function before plotting heatmaps or other visualizations to ensure consistent group ordering.
+}
+\examples{
+mmo <- ReorderGroups(mmo, group_order = c("Control", "Treatment1", "Treatment2"))
 }

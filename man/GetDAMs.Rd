@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{GetDAMs}
 \alias{GetDAMs}
-\title{Get lists of DAMs (Differentially Accumulated Metabolites) for each comparison}
+\title{Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the mmo object}
 \usage{
 GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
 }
@@ -18,4 +18,11 @@ A list containing two lists: DAMs_up and DAMs_down
 }
 \description{
 This function generates lists of upregulated and downregulated DAMs for each pairwise comparison in the mmo object.
+It uses log2 fold change and adjusted p-value thresholds to determine significance.
+Make sure to run PairwiseComp() for all desired comparisons before using this function.
+}
+\examples{
+dams <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
+dams_up <- dams$DAMs_up
+dams_down <- dams$DAMs_down
 }

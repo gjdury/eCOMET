@@ -16,4 +16,8 @@ A list containing the ANOVA results, Tukey's HSD results, Tukey's significance l
 }
 \description{
 This function performs ANOVA and Tukey's HSD test on the feature data of the mmo object,
+Returns a list of ANOVA results, Tukey's HSD results, Tukey's significance letters, and Dunnett's test results.
+}
+\examples{
+anova_results <- anova_tukey_dunnett(df = merged_data, formula = "feature_value ~ group")
 }

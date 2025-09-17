@@ -17,3 +17,6 @@ The distance matrix corresponding to the specified distance metric
 \description{
 This function retrieves the distance matrix from the mmo object based on the specified distance metric.
 }
+\examples{
+distance_matrix <- GetDistanceMat(mmo, distance = 'dreams')
+}

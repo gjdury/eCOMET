@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{PCAplot}
 \alias{PCAplot}
-\title{PCA plot}
+\title{Plots PCA and performs PERMANOVA}
 \usage{
 PCAplot(
   mmo,
@@ -19,7 +19,7 @@ PCAplot(
 \arguments{
 \item{mmo}{The mmo object with feature data and metadata}
 
-\item{color}{A vector of colors for the groups in the plot}
+\item{color}{A vector of colors for the groups in the plot. Make sure the names correspond to the group names in metadata}
 
 \item{outdir}{The output file path for the PCA plot (default: 'PCA')}
 
@@ -35,10 +35,20 @@ PCAplot(
 
 \item{label}{Boolean to indicate whether to label points with sample names (default: TRUE)}
 }
-\value{
-A PCA plot saved as a PDF file and PERMANOVA results saved as CSV files
-}
 \description{
 This function performs PCA analysis and generates a PCA plot with optional filtering of features and groups.
 It also conducts PERMANOVA and saves the results to CSV files.
+}
+\examples{
+PCAplot(
+ mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
+ outdir = 'PCA_plot', normalization = 'None', 
+ filter_feature = FALSE, filter_group = FALSE, label = FALSE
+)
+PCAplot(
+ mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
+ outdir = 'PCA_plot', normalization = 'Z', 
+ filter_feature = TRUE, feature_list = Glucosinolates, 
+ filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
+)
 }
