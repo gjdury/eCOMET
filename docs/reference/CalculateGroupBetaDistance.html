@@ -54,7 +54,7 @@
 
 
 <dt id="arg-beta-div">beta_div<a class="anchor" aria-label="anchor" href="#arg-beta-div"></a></dt>
-<dd><p>The beta diversity distance matrix</p></dd>
+<dd><p>The beta diversity distance matrix, output of GetBetaDiversity()</p></dd>
 
 
 <dt id="arg-reference-group">reference_group<a class="anchor" aria-label="anchor" href="#arg-reference-group"></a></dt>
@@ -70,6 +70,16 @@
     <p>A data frame containing the group names, sample names, and their corresponding beta diversity distances from the reference group.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">beta_diversity</span> <span class="op">&lt;-</span> <span class="fu"><a href="GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'Gen.Uni'</span>, </span></span>
+<span class="r-in"><span> normalization <span class="op">=</span> <span class="st">'None'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span>, filter_feature <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
+<span class="r-in"><span><span class="va">group_distances</span> <span class="op">&lt;-</span> <span class="fu">CalculateGroupBetaDistance</span><span class="op">(</span><span class="va">mmo</span>, beta_div <span class="op">=</span> <span class="va">beta_diversity</span>, </span></span>
+<span class="r-in"><span> reference_group <span class="op">=</span> <span class="st">'Control'</span>, groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Control'</span>, <span class="st">'Treatment1'</span>, <span class="st">'Treatment2'</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 
