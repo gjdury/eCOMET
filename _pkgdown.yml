@@ -4,9 +4,6 @@ template:
   params:
     bootswatch: lumen
 
-
-
-
 navbar:
   structure:
     left:
@@ -85,7 +82,5 @@ reference:
       - permanova_stat
       - GetDistanceMat
       - GetNormFeature
-
-
 news:
   one_page: true
