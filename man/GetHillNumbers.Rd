@@ -30,6 +30,8 @@ A data frame containing the Hill number for each group in the metadata, with col
 This function calculates the Hill numbers for a given mmo object, normalization method, and order of the Hill number without considering feature dissimilarity.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 hill_number <- GetHillNumbers(mmo, normalization = 'Z', q = 1, filter_feature = FALSE)
 hill_number <- GetHillNumbers(mmo, normalization = 'Z', q = 2, filter_feature = TRUE, feature_list = Glucosinolates)
+\dontshow{\}) # examplesIf}
 }

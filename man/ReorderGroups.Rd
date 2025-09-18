@@ -20,5 +20,7 @@ The function updates the order of samples in the feature data, log-normalized da
 Use this function before plotting heatmaps or other visualizations to ensure consistent group ordering.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- ReorderGroups(mmo, group_order = c("Control", "Treatment1", "Treatment2"))
+\dontshow{\}) # examplesIf}
 }

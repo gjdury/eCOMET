@@ -35,6 +35,7 @@ A data frame containing the enrichment results, including term level, term name,
 This function performs enrichment analysis for Canopus-predicted terms on a given list of features.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 # Perform enrichment analysis for a list of features using NPC_pathway level
 sig_terms <- CanopusLevelEnrichmentAnal(
  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
@@ -45,4 +46,5 @@ all_terms <- CanopusLevelEnrichmentAnal(
  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
  sig = FALSE, term_level = 'ClassyFire_class', representation = 'greater'
 )
+\dontshow{\}) # examplesIf}
 }

@@ -42,9 +42,11 @@ The Generalized UniFrac and CSCS method requires a distance matrix of feature di
 Bray-Curtis and Jaccard methods are calculated using the vegan package, not considering feature dissimilarity.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 beta_diversity <- GetBetaDiversity(mmo, method = 'bray', 
  normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates, 
  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
+\dontshow{\}) # examplesIf}
 }

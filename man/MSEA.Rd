@@ -44,10 +44,12 @@ It takes a ranked list of feature scores and tests for enrichment of metabolite 
 The results are saved as a CSV file and a PDF plot.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 # Perform MSEA using NPC_class level
 MSEA(
  mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange, 
  term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class', 
  width = 8, height = 12, sig = FALSE
 )
+\dontshow{\}) # examplesIf}
 }

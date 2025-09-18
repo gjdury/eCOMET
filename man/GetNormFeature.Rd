@@ -18,5 +18,7 @@ The feature data corresponding to the specified normalization method
 This function retrieves the feature data from the mmo object based on the specified normalization method.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 feature_data <- GetNormFeature(mmo, normalization = 'Log')
+\dontshow{\}) # examplesIf}
 }

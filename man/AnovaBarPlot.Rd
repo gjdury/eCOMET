@@ -30,9 +30,11 @@ AnovaBarPlot(
 This function generates bar plots for a specified feature across different groups in the metadata, performing ANOVA and Tukey's HSD test for post-hoc analysis.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
 AnovaBarPlot(
  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z', 
  filter_group = TRUE, group_list = c("Group1", "Group2")
 )
+\dontshow{\}) # examplesIf}
 }

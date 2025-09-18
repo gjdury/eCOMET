@@ -16,5 +16,7 @@ The mmo object with mean-centered feature data (mmo$meancentered)
 This function applies mean-centering to the peak area in the feature data of the mmo object.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- MeancenterNormalization(mmo)
+\dontshow{\}) # examplesIf}
 }

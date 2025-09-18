@@ -39,6 +39,7 @@ PLSDAplot(
 PLS-DA plot with feature loadings
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 PLSDAplot(
  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z', 
@@ -50,4 +51,5 @@ PLSDAplot(
  filter_feature = TRUE, feature_list = Glucosinolates, 
  filter_group = TRUE, group_list = c("Control", "Treatment1")
 )
+\dontshow{\}) # examplesIf}
 }

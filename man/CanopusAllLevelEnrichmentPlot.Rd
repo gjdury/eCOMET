@@ -40,6 +40,7 @@ This function generates a plot for enrichment analysis of Canopus-predicted term
 showing fold enrichment, p-value, and subset count for each term level.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 comp.list <- list(
   comparison1 = DAMs_up$control_vs_treatment1.up,
   comparison2 = DAMs_up$control_vs_treatment2.up
@@ -59,4 +60,5 @@ CanopusAllLevelEnrichmentPlot(
  pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels', 
  height = 10, width = 8
 )
+\dontshow{\}) # examplesIf}
 }

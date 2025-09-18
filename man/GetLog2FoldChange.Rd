@@ -19,5 +19,7 @@ This function calculates and returns a dataframe of log2 fold change values for 
 Takes inputs from GetGroupMeans() function.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 fold_change <- GetLog2FoldChange(GetGroupMeans(mmo, normalization = 'Log'), control_group = 'Control')
+\dontshow{\}) # examplesIf}
 }

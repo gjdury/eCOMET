@@ -34,6 +34,7 @@ This function calculates and returns a dataframe of mean feature values for each
 Use SwitchGroup() to change the grouping variable before running this function.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 group_means <- GetGroupMeans(mmo, normalization = 'Log')
 group_means <- GetGroupMeans(mmo, 
  normalization = 'None', 
@@ -49,4 +50,5 @@ group_means <- GetGroupMeans(mmo,
  filter_feature = TRUE, feature_list = Glucosinolates, 
  filter_group = TRUE, group_list = c("Control", "Treatment1")
 ) # if Glucosinolates is a vector of feature names   
+\dontshow{\}) # examplesIf}
 }

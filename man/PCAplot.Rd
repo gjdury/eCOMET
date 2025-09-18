@@ -40,6 +40,7 @@ This function performs PCA analysis and generates a PCA plot with optional filte
 It also conducts PERMANOVA and saves the results to CSV files.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 PCAplot(
  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
  outdir = 'PCA_plot', normalization = 'None', 
@@ -51,4 +52,5 @@ PCAplot(
  filter_feature = TRUE, feature_list = Glucosinolates, 
  filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
 )
+\dontshow{\}) # examplesIf}
 }

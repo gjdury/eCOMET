@@ -11,7 +11,7 @@
 #' @param group_col Column name in the metadata file used for grouping samples
 #' @return A mmo object containing the feature data and metadata
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- GetMZmineFeature(mzmine_dir = "path/to/mzmine_feature.csv", metadata_dir = "path/to/metadata.csv", group_col = "treatment")
 
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col){
@@ -47,7 +47,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col){
 #' @param new_group_col The name of the new group column in the metadata file
 #' @return The mmo object with the updated group column
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- SwitchGroup(mmo, new_group_col = "genotype")
 SwitchGroup <- function(mmo, new_group_col) {
   if (missing(new_group_col) || !(new_group_col %in% colnames(mmo$metadata))) {
@@ -69,7 +69,7 @@ SwitchGroup <- function(mmo, new_group_col) {
 #' @param canopus_formuladir Path to the SIRIUS canopus_formula_summary.tsv file
 #' @return The mmo object with SIRIUS annotations added
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- AddSiriusAnnot(mmo, 
 #'  canopus_structuredir = "path/to/structure_identification.tsv", 
 #'  canopus_formuladir = "path/to/canopus_formula_summary.tsv"
@@ -101,7 +101,7 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
 #' @param rttol RT tolerance in minutes (default 0.5).
 #' @return The same `mmo` object with `mmo$custom_annot` (id, feature, custom_annot).
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- AddCustomAnnot(mmo, DB_file = "path/to/custom_db.csv", mztol = 5, rttol = 0.5)
 AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
   DB <- read.csv(DB_file, stringsAsFactors = FALSE)
@@ -154,7 +154,7 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 #' @param method The method to use for replacement. Options are 'one' (replace with 1) or 'half_mean' (replace with half of the smallest non-zero value in the row)
 #' @return The mmo object with replaced values in the feature data (mmo$feature_data)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- ReplaceZero(mmo, method = 'one')
 ReplaceZero <- function(mmo, method = 'one') {
   df <- mmo$feature_data
@@ -192,7 +192,7 @@ ReplaceZero <- function(mmo, method = 'one') {
 #' @param mmo The mmo object
 #' @return The mmo object with normalized feature data (mmo$feature_data)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- MassNormalization(mmo)
 MassNormalization <- function(mmo){
   normalized_df <- mmo$feature_data
@@ -216,7 +216,7 @@ MassNormalization <- function(mmo){
 #' @param mmo The mmo object
 #' @return The mmo object with log-normalized feature data (mmo$log)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- LogNormalization(mmo)
 LogNormalization <- function(mmo){
   feature_data_only <- mmo$feature_data[,-(1:2)]
@@ -234,7 +234,7 @@ LogNormalization <- function(mmo){
 #' @param mmo The mmo object
 #' @return The mmo object with mean-centered feature data (mmo$meancentered)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- MeancenterNormalization(mmo)
 MeancenterNormalization <- function(mmo){
   feature_data_only <- mmo$feature_data[,-(1:2)]
@@ -252,7 +252,7 @@ MeancenterNormalization <- function(mmo){
 #' @param mmo The mmo object
 #' @return The mmo object with Z-normalized feature data (mmo$zscore)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- ZNormalization(mmo)
 ZNormalization <- function(mmo){
   feature_data_only <- mmo$feature_data[,-(1:2)]
@@ -277,7 +277,7 @@ ZNormalization <- function(mmo){
 #' @param m2ds_dir Path to the MS2DeepScore similarity CSV file from MZMine (molecular networking)
 #' @return The mmo object with dissimilarity matrices added (mmo$cos.dissim, mmo$dreams.dissim, mmo$m2ds.dissim)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- AddChemDist(mmo, 
 #'  cos_dir = "path/to/cosine_similarity.csv", 
 #'  dreams_dir = "path/to/dreams_similarity.csv", 
@@ -351,7 +351,7 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
 #' @param group_order A vector specifying the desired order of groups
 #' @return The mmo object with reordered samples
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- ReorderGroups(mmo, group_order = c("Control", "Treatment1", "Treatment2"))
 ReorderGroups <- function(mmo, group_order) {
   metadata <- mmo$metadata
@@ -381,7 +381,7 @@ ReorderGroups <- function(mmo, group_order) {
 #' @param normalization The normalization method to use. Options are 'None', 'Log', 'Meancentered', or 'Z'
 #' @return The feature data corresponding to the specified normalization method
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' feature_data <- GetNormFeature(mmo, normalization = 'Log')
 GetNormFeature <- function(mmo, normalization){
   if (normalization == 'None'){
@@ -407,7 +407,7 @@ GetNormFeature <- function(mmo, normalization){
 #' @param distance The distance metric to use. Options are 'dreams', 'cosine', or 'm2ds'
 #' @return The distance matrix corresponding to the specified distance metric
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' distance_matrix <- GetDistanceMat(mmo, distance = 'dreams')
 GetDistanceMat <- function(mmo, distance = 'dreams'){
   if (distance == 'dreams'){
@@ -428,7 +428,7 @@ GetDistanceMat <- function(mmo, distance = 'dreams'){
 #' @param feature_names A vector of feature names to convert
 #' @return A vector of feature IDs corresponding to the input feature names
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' feature_ids <- FeatureToID(mmo, feature_names = c("100.0_5.0", "150.0_10.0"))
 #' feature_ids <- FeatureToID(mmo, feature_names = mmo$feature_data$feature[1:10])
 #' feature_ids <- FeatureToID(mmo, 
@@ -452,7 +452,7 @@ FeatureToID <- function(mmo, feature_names) {
 #' @param feature_ids A vector of feature IDs to convert
 #' @return A vector of feature names corresponding to the input feature IDs
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' feature_names <- IDToFeature(mmo, feature_ids = c("1219", "2250", "3360"))
 #' feature_names <- IDToFeature(mmo, feature_ids = mmo$feature_data$id[1:10])
 #' feature_names <- IDToFeature(mmo, 
@@ -481,7 +481,7 @@ IDToFeature <- function(mmo, feature_ids) {
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @return A data frame containing the mean feature values for each group
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' group_means <- GetGroupMeans(mmo, normalization = 'Log')
 #' group_means <- GetGroupMeans(mmo, 
 #'  normalization = 'None', 
@@ -541,7 +541,7 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, f
 #' @param control_group The name of the control group to compare against
 #' @return A data frame with log2 fold change values for each group compared to the control group
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' fold_change <- GetLog2FoldChange(GetGroupMeans(mmo, normalization = 'Log'), control_group = 'Control')
 GetLog2FoldChange <- function(group_means, control_group) {
   control_means <- group_means[[control_group]]
@@ -561,7 +561,7 @@ GetLog2FoldChange <- function(group_means, control_group) {
 #' @param formula The formula for the ANOVA test, e.g., "feature ~ group"
 #' @return A list containing the ANOVA results, Tukey's HSD results, Tukey's significance letters, and Dunnett's test results
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' anova_results <- anova_tukey_dunnett(df = merged_data, formula = "feature_value ~ group")
 anova_tukey_dunnett <- function(df, formula) {
   .require_pkg("DescTools")
@@ -581,7 +581,7 @@ anova_tukey_dunnett <- function(df, formula) {
 #' @param outdir The output directory where the results will be saved
 #' @param way The type of ANOVA test to perform. Options are 'oneway' or 'twoway'
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' write_anova(anova_data = anova_results, outdir = "anova_tukey_results.csv", way = 'oneway')
 #' 
 write_anova <- function(anova_data, outdir, way='oneway'){
@@ -626,7 +626,7 @@ write_anova <- function(anova_data, outdir, way='oneway'){
 #' @param permutations The number of permutations for the PERMANOVA test (default: 5000)
 #' @return A list containing the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' permanova_results <- permanova_stat(
 #'  data = feature_data, metadata = mmo$metadata, 
 #'  mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"), 
@@ -693,7 +693,7 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
 #' @param correction The method for multiple comparison correction. Options are 'BH', 'holm', 'bonferroni', etc. Inherits from p.adjust() (default: 'BH')
 #' @return The mmo object with pairwise comparison results added to mmo$pairwise
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' mmo <- PairwiseComp(mmo, group1 = 'Control', group2 = 'Treatment1')
 PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
   feature <- mmo$feature_data
@@ -756,7 +756,7 @@ PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
 #' @param pval_cutoff The threshold of adjusted p-value to be considered significant (default: 0.05)
 #' @return A list containing two lists: DAMs_up and DAMs_down
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' dams <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
 #' dams_up <- dams$DAMs_up
 #' dams_down <- dams$DAMs_down
@@ -795,7 +795,7 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' VolcanoPlot(
 #'  mmo, comp = 'Control_vs_Treatment1', 
 #'  topk = 10, pthr = 0.05, 
@@ -858,7 +858,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param label Boolean to indicate whether to label points with sample names (default: TRUE)
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' PCAplot(
 #'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
 #'  outdir = 'PCA_plot', normalization = 'None', 
@@ -931,7 +931,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' PLSDAplot(
 #'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
 #'  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z', 
@@ -1035,7 +1035,7 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #' - row_label: A vector of row labels for custom-annotated features (See AddCustomAnnot()). If no custom annotation is available, feature IDs are used.
 #' - heatmap_data: A data frame containing the heatmap data with feature IDs and values
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' # Generate heatmap inputs to visualize fold change values with log normalization and dreams distance
 #' heatmap_inputs <- GenerateHeatmapInputs(
 #'  mmo, summarize = 'fold_change', control_group = 'Control', 
@@ -1140,7 +1140,7 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
 #' @param representation The representation type for enrichment analysis. Options are 'greater' for overrepresentation (default: 'greater')
 #' @return A data frame containing the enrichment results, including term level, term name, subset count, total count, fold enrichment, p-value, and adjusted p-value (FDR)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' # Perform enrichment analysis for a list of features using NPC_pathway level
 #' sig_terms <- CanopusLevelEnrichmentAnal(
 #'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
@@ -1236,7 +1236,7 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' CanopusListEnrichmentPlot(
 #'  mmo, feature_list = DAMs_up$control_vs_treatment1.up, 
 #'  pthr = 0.05, outdir = 'canopus_enrichment_plot.pdf', 
@@ -1274,7 +1274,7 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #' @param width The width of the output plot in inches (default: 5)
 #' @param topn The number of top terms to display in the plot (default: 5)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' CanopusListEnrichmentPlot_2(
 #'  mmo, feature_list = DAMs_up$control_vs_treatment1.up, 
 #'  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf', 
@@ -1316,7 +1316,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' # Perform enrichment analysis for multiple comparisons using NPC_pathway level
 #' comp.list <- list(
 #'   comparison1 = DAMs_up$control_vs_treatment1.up,
@@ -1377,7 +1377,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #' @param height The height of the output plot in inches (default: 10)
 #' @param width The width of the output plot in inches (default: 8)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' comp.list <- list(
 #'   comparison1 = DAMs_up$control_vs_treatment1.up,
 #'   comparison2 = DAMs_up$control_vs_treatment2.up
@@ -1463,7 +1463,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' @param height The height of the output plot in inches (default: 12)
 #' @param sig A logical value indicating whether to return only significant terms (default: FALSE)
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' # Perform MSEA using NPC_class level
 #' MSEA(
 #'  mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange, 
@@ -1844,7 +1844,7 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #' @param filter_group A boolean indicating whether to filter the feature values by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature values by, if filter_group is TRUE (default: NULL)
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
 #' AnovaBarPlot(
 #'  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z', 
@@ -1898,7 +1898,7 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @param output_dir The output directory to save the CSV file
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' ExportFeaturesToCSV(mmo, feature_list = Glucosinolates, normalization = 'Z', output_dir = 'output.csv')
 #' ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up, normalization = 'None', output_dir = 'output.csv')
 #' 
@@ -1931,7 +1931,7 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
 #' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
 #' @return A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
 #' @export 
-#' @examples
+#' @examplesIf FALSE
 #' hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 1, distance = 'dreams', filter_feature = FALSE)
 #' hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 3, distance = 'dreams', filter_feature = TRUE, feature_list = Glucosinolates)
 #
@@ -1990,7 +1990,7 @@ GetFunctionalHillNumber <- function(mmo, normalization = 'None',q = 1, distance 
 #' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
 #' @return A data frame containing the Hill number for each group in the metadata, with columns for group and hill number.
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' hill_number <- GetHillNumbers(mmo, normalization = 'Z', q = 1, filter_feature = FALSE)
 #' hill_number <- GetHillNumbers(mmo, normalization = 'Z', q = 2, filter_feature = TRUE, feature_list = Glucosinolates)
 GetHillNumbers <- function(mmo, normalization = 'None', q = 0, filter_feature = FALSE, feature_list = NULL) {
@@ -2036,7 +2036,7 @@ GetHillNumbers <- function(mmo, normalization = 'None', q = 0, filter_feature = 
 #' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
 #' @return A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None', 
 #'  mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
 #' alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z', 
@@ -2121,7 +2121,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
 #' @return A distance matrix of beta diversity values between samples.
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'bray', 
@@ -2198,7 +2198,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 #' @param groups A vector of group names from the metadata to calculate distances for
 #' @return A data frame containing the group names, sample names, and their corresponding beta diversity distances from the reference group.
 #' @export
-#' @examples
+#' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 #' group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity, 

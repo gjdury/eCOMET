@@ -21,5 +21,7 @@ This function reads mzmine feature data and metadata from specified directories,
 to initiate a mmo object containing feature data and metadata
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- GetMZmineFeature(mzmine_dir = "path/to/mzmine_feature.csv", metadata_dir = "path/to/metadata.csv", group_col = "treatment")
+\dontshow{\}) # examplesIf}
 }

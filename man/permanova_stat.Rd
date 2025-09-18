@@ -35,6 +35,7 @@ It also conducts post-hoc pairwise comparisons and adjusts p-values for multiple
 The function returns the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values of pairwise comparisons.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 permanova_results <- permanova_stat(
  data = feature_data, metadata = mmo$metadata, 
  mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"), 
@@ -44,4 +45,5 @@ permanova_results <- permanova_stat(
  data = betadiv, metadata = mmo$metadata, 
  mode = 'distance', permutations = 10000
 )
+\dontshow{\}) # examplesIf}
 }

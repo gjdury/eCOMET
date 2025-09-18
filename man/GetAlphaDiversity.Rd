@@ -37,8 +37,10 @@ This function calculates the alpha diversity for a given mmo object, order of th
 Unweighted mode uses Hill numbers without considering feature dissimilarity, while weighted mode uses functional Hill numbers that account for feature dissimilarity.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None', 
  mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
 alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z', 
  mode = 'unweighted', filter_feature = TRUE, feature_list = Glucosinolates)
+\dontshow{\}) # examplesIf}
 }

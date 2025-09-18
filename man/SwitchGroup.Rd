@@ -19,5 +19,7 @@ This function switches the group column in the metadata of the mmo object to a n
 The new group column must exist in the metadata file.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- SwitchGroup(mmo, new_group_col = "genotype")
+\dontshow{\}) # examplesIf}
 }

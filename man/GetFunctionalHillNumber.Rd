@@ -34,6 +34,8 @@ This function calculates the functional Hill number for a given mmo object, norm
 See https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for details of the functional Hill number calculation.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 1, distance = 'dreams', filter_feature = FALSE)
 hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 3, distance = 'dreams', filter_feature = TRUE, feature_list = Glucosinolates)
+\dontshow{\}) # examplesIf}
 }

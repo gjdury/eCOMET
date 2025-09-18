@@ -17,5 +17,7 @@ This function applies log2 transformation to the peak area in the feature data o
 Run ReplaceZero() before this function to avoid -Inf values.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- LogNormalization(mmo)
+\dontshow{\}) # examplesIf}
 }

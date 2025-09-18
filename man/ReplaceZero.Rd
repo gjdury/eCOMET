@@ -19,5 +19,7 @@ This function replaces zero and NA values in the feature data of the mmo object.
 Run this function before MassNormalization(), LogNormalization(), MeancenterNormalization(), or ZNormalization().
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- ReplaceZero(mmo, method = 'one')
+\dontshow{\}) # examplesIf}
 }

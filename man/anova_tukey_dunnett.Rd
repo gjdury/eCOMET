@@ -19,5 +19,7 @@ This function performs ANOVA and Tukey's HSD test on the feature data of the mmo
 Returns a list of ANOVA results, Tukey's HSD results, Tukey's significance letters, and Dunnett's test results.
 }
 \examples{
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 anova_results <- anova_tukey_dunnett(df = merged_data, formula = "feature_value ~ group")
+\dontshow{\}) # examplesIf}
 }
