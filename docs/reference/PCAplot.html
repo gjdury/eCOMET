@@ -101,19 +101,19 @@ It also conducts PERMANOVA and saves the results to CSV files.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">PCAplot</span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="fu">PCAplot</span><span class="op">(</span></span></span>
 <span class="r-in"><span> <span class="va">mmo</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span> <span class="op">=</span> <span class="st">"blue"</span>, <span class="st">"Treatment1"</span> <span class="op">=</span> <span class="st">"red"</span>, <span class="st">"Treatment2"</span> <span class="op">=</span> <span class="st">"green"</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span> outdir <span class="op">=</span> <span class="st">'PCA_plot'</span>, normalization <span class="op">=</span> <span class="st">'None'</span>, </span></span>
 <span class="r-in"><span> filter_feature <span class="op">=</span> <span class="cn">FALSE</span>, filter_group <span class="op">=</span> <span class="cn">FALSE</span>, label <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
 <span class="r-in"><span><span class="fu">PCAplot</span><span class="op">(</span></span></span>
 <span class="r-in"><span> <span class="va">mmo</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span> <span class="op">=</span> <span class="st">"blue"</span>, <span class="st">"Treatment1"</span> <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span>, </span></span>
 <span class="r-in"><span> outdir <span class="op">=</span> <span class="st">'PCA_plot'</span>, normalization <span class="op">=</span> <span class="st">'Z'</span>, </span></span>
 <span class="r-in"><span> filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">Glucosinolates</span>, </span></span>
 <span class="r-in"><span> filter_group <span class="op">=</span> <span class="cn">TRUE</span>, group_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"Treatment1"</span><span class="op">)</span>, label <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

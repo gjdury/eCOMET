@@ -95,12 +95,12 @@ Unweighted mode uses Hill numbers without considering feature dissimilarity, whi
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">alpha_diversity</span> <span class="op">&lt;-</span> <span class="fu">GetAlphaDiversity</span><span class="op">(</span><span class="va">mmo</span>, q <span class="op">=</span> <span class="fl">1</span>, normalization <span class="op">=</span> <span class="st">'None'</span>, </span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="va">alpha_diversity</span> <span class="op">&lt;-</span> <span class="fu">GetAlphaDiversity</span><span class="op">(</span><span class="va">mmo</span>, q <span class="op">=</span> <span class="fl">1</span>, normalization <span class="op">=</span> <span class="st">'None'</span>, </span></span>
 <span class="r-in"><span> mode <span class="op">=</span> <span class="st">'weighted'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span>, filter_feature <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
 <span class="r-in"><span><span class="va">alpha_diversity</span> <span class="op">&lt;-</span> <span class="fu">GetAlphaDiversity</span><span class="op">(</span><span class="va">mmo</span>, q <span class="op">=</span> <span class="fl">2</span>, normalization <span class="op">=</span> <span class="st">'Z'</span>, </span></span>
 <span class="r-in"><span> mode <span class="op">=</span> <span class="st">'unweighted'</span>, filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">Glucosinolates</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

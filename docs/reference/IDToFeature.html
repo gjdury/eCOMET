@@ -64,14 +64,13 @@
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">feature_names</span> <span class="op">&lt;-</span> <span class="fu">IDToFeature</span><span class="op">(</span><span class="va">mmo</span>, feature_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1219"</span>, <span class="st">"2250"</span>, <span class="st">"3360"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="va">feature_names</span> <span class="op">&lt;-</span> <span class="fu">IDToFeature</span><span class="op">(</span><span class="va">mmo</span>, feature_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1219"</span>, <span class="st">"2250"</span>, <span class="st">"3360"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">feature_names</span> <span class="op">&lt;-</span> <span class="fu">IDToFeature</span><span class="op">(</span><span class="va">mmo</span>, feature_ids <span class="op">=</span> <span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span><span class="op">$</span><span class="va">id</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
 <span class="r-in"><span><span class="va">feature_names</span> <span class="op">&lt;-</span> <span class="fu">IDToFeature</span><span class="op">(</span><span class="va">mmo</span>, </span></span>
 <span class="r-in"><span> feature_ids <span class="op">=</span> <span class="fu"><a href="FeatureToID.html">FeatureToID</a></span><span class="op">(</span><span class="va">mmo</span>, feature_names <span class="op">=</span> <span class="va">Glucosinolates</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span> <span class="co"># if Glucosinolates is a vector of feature names</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'mmo' not found</span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
