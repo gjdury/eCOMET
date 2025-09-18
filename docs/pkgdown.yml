@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   Treatment-based_study_tutorial: Treatment-based_study_tutorial.html
   vignette-eCOMET-intro: vignette-eCOMET-intro.html
-last_built: 2025-09-18T02:09Z
+last_built: 2025-09-18T02:17Z
 urls:
   reference: https://phytoecia.github.io/eCOMET/reference
   article: https://phytoecia.github.io/eCOMET/articles

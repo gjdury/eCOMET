@@ -1157,10 +1157,10 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
   # print(paste('total features:', nrow(all_feature), 'list_test features:', nrow(subset_feature)))
   # Select the appropriate term level for enrichment analysis
   if (term_level == "NPC_pathway") {
-    all_feature$classifications_split <- all_feature[[32]]
-    subset_feature$classifications_split <- subset_feature[[32]]
+    all_feature$classifications_split <- all_feature[['NPC#pathway']]
+    subset_feature$classifications_split <- subset_feature[['NPC#pathway']]
   } else if (term_level == "NPC_superclass") {
-    all_feature$classifications_split <- all_feature[[34]]
+    all_feature$classifications_split <- all_feature[['NPC#superclass']]
     subset_feature$classifications_split <- subset_feature[[34]]
   } else if (term_level == "NPC_class") {
     all_feature$classifications_split <- all_feature[[36]]
@@ -1479,21 +1479,21 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
 
   # Retrieve metabolite sets based on the specified term level
   if(term_level == 'NPC_class'){
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[36]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['NPC#class']])
   } else if (term_level == 'NPC_superclass'){
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[34]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['NPC#superclass']])
   } else if (term_level == 'NPC_pathway'){
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[32]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['NPC#pathway']])
   } else if (term_level == "ClassyFire_superclass") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[38]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#superclass']])
   } else if (term_level == "ClassyFire_class") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[40]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#class']])
   } else if (term_level == "ClassyFire_subclass") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[42]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#subclass']])
   } else if (term_level == "ClassyFire_level5") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[44]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#level5']])
   } else if (term_level == "ClassyFire_most_specific") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[[46]])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#most_specific']])
   } else {
     stop("Invalid term level. Please choose a valid term level.")
   }
@@ -1905,12 +1905,10 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
 ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', output_dir){
   feature <- GetNormFeature(mmo, normalization = normalization) # Get normalized feature data
   # Filter the feature data, annotation, and DA analysis for the list provided
-  selected_annotations <- mmo$sirius_annot |> filter(feature %in% feature_list) |>
-    select(id = 1, feature = 2, formula = 12, compound = 15, pubchem = 18, ionmass = 21, NPC_pathway = 30, NPC_superclass = 32, NPC_class = 34, ClassyFire_superclass = 36, ClassyFire_class = 38, ClassyFire_subclass = 40, ClassyFire_level5 = 42, ClassyFire_most_specific = 44)
   selected_feature <- feature |> filter(feature %in% feature_list)
   selected_pairwise <- mmo$pairwise |> filter(feature %in% feature_list)
   # Merge all
-  merged_df <- merge(selected_annotations, selected_feature, by = 'feature')
+  merged_df <- merge(mmo$sirius_annot, selected_feature, by = 'feature')
   merged_df <- merge(merged_df, selected_pairwise, by = 'feature')
 
   write.csv(merged_df, output_dir)
