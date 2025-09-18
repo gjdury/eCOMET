@@ -1,4 +1,91 @@
 url: https://phytoecia.github.io/eCOMET/
 template:
   bootstrap: 5
+  params:
+    bootswatch: lumen
 
+
+
+
+navbar:
+  structure:
+    left:
+      - home
+      - reference
+      - articles
+      - news
+    right:
+      - github
+
+reference:
+  - title: "Core dataset processing"
+    contents:
+      - GetMZmineFeature
+      - AddSiriusAnnot
+      - AddChemDist
+      - AddCustomAnnot
+      - LogNormalization
+      - MassNormalization
+      - MeancenterNormalization
+      - ZNormalization
+      - ReplaceZero
+      - ReorderGroups
+      - SwitchGroup
+
+  - title: "Basic statistics and visualization"
+    contents:
+      - PairwiseComp
+      - VolcanoPlot
+      - PCAplot
+      - PLSDAplot
+      - AnovaBarPlot
+      - GenerateHeatmapInputs
+      - GetDAMs
+      - GetGroupMeans
+      - GetLog2FoldChange
+
+  - title: "Chemical class analysis"
+    contents:
+      - CanopusLevelEnrichmentAnal
+      - CanopusListEnrichmentPlot
+      - CanopusListEnrichmentPlot_2
+      - CanopusLevelEnrichmentPlot
+      - CanopusAllLevelEnrichmentPlot
+      - MSEA
+
+  - title: Chemical diveristy Analysis
+    contents:
+      - GetAlphaDiversity
+      - GetFunctionalHillNumber
+      - GetHillNumbers
+      - GetBetaDiversity
+      - CalculateGroupBetaDistance
+      - GetSpecializationIndex
+
+  - title: Metadata regression analysis
+    contents:
+      - FeaturePerformanceRegression
+      - GetPerformanceFeatureCorrelation
+      - GetPerformanceFeatureLMM
+      - GetPerformanceFeatureRegression
+      - PlotFoldchangeResistanceQuad
+      - PlotFoldchangeResistanceRegression
+      - PlotFoldchangeResistanceRegression_t
+
+  - title: Output
+    contents:
+      - ExportFeaturesToCSV
+
+  - title: misc
+    contents:
+      - FeatureToID
+      - IDToFeature
+      - anova_tukey_dunnett
+      - write_anova
+      - permanova_stat
+      - GetDistanceMat
+      - GetNormFeature
+
+
+news:
+  one_page: true
