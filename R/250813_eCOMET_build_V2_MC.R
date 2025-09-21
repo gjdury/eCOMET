@@ -2184,7 +2184,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 }
 
 
-#' NMDSPlot
+#' NMDSplot
 #'
 #' This function generates a Non-metric Multidimensional Scaling (NMDS) plot based on the provided beta diversity distance matrix.
 #' It also performs PERMANOVA analysis to assess the significance of group differences and saves the results to CSV files.

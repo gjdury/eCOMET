@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{NMDSplot}
 \alias{NMDSplot}
-\title{NMDSPlot}
+\title{NMDSplot}
 \usage{
 NMDSplot(mmo, betadiv, prefix, width = 6, height = 6, color)
 }

@@ -50,7 +50,7 @@ reference:
       - CanopusAllLevelEnrichmentPlot
       - MSEA
 
-  - title: Chemical diveristy Analysis
+  - title: Chemical diversity Analysis
     contents:
       - GetAlphaDiversity
       - GetFunctionalHillNumber
@@ -88,4 +88,4 @@ news:
   one_page: true
 
 social:
-  github: Phytoecia
+  github: phytoecia
