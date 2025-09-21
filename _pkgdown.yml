@@ -13,6 +13,11 @@ navbar:
       - news
     right:
       - github
+      - search
+  components:
+    github:
+      icon: fab fa-github
+      href: https://github.com/Phytoecia/eCOMET
 
 reference:
   - title: "Core dataset processing"
