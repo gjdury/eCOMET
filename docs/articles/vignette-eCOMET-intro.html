@@ -37,6 +37,7 @@
     <li><a class="dropdown-item" href="../articles/vignette-eCOMET-intro.html">vignette-eCOMET-intro</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav"></ul>
 </div>
@@ -61,7 +62,41 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://phytoecia.github.io/eCOMET/">ecomet</a></span><span class="op">)</span></span></code></pre></div>
-  </main>
+<div class="section level2">
+<h2 id="mmo-object">
+<code>mmo</code> object?<a class="anchor" aria-label="anchor" href="#mmo-object"></a>
+</h2>
+<p>The <code>mmo</code> object is a central data structure in the <strong>eCOMET</strong> package.<br>
+It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code> function and contains:</p>
+<ul>
+<li>
+<strong>feature_data</strong>: A data frame of metabolite features and their measured values.</li>
+<li>
+<strong>metadata</strong>: Sample metadata, including grouping information.</li>
+<li>
+<strong>pairwise</strong>: Results of pairwise comparisons between features. Added by <code><a href="../reference/PairwiseComp.html">PairwiseComp()</a></code>.</li>
+<li>
+<strong>sirius_annot</strong>: (optional) SIRIUS/Canopus chemical annotations. Added by <code><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot()</a></code>.</li>
+<li>
+<strong>custom_annot</strong>: (optional) Custom compound annotations. Added by <code><a href="../reference/AddCustomAnnot.html">AddCustomAnnot()</a></code>.</li>
+</ul>
+<p>You can create an <code>mmo</code> object like this:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMZmineFeature.html">GetMZmineFeature</a></span><span class="op">(</span></span>
+<span>  mzmine_dir <span class="op">=</span> <span class="st">"path/to/mzmine_feature.csv"</span>,</span>
+<span>  metadata_dir <span class="op">=</span> <span class="st">"path/to/metadata.csv"</span>,</span>
+<span>  group_col <span class="op">=</span> <span class="st">"treatment"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>Once created, you can use the <code>mmo</code> object for normalization, annotation, statistical analysis, and visualization throughout the package.</p>
+</div>
+<div class="section level2">
+<h2 id="input-file-requirements">Input file requirements<a class="anchor" aria-label="anchor" href="#input-file-requirements"></a>
+</h2>
+<p>The mendatory input files for creating an <code>mmo</code> object are: 1. <strong>MZmine feature table</strong>: 2. <strong>Metadata file</strong>: A CSV file containing sample metadata, with following columns: -sample (___.mzML or equivalent filename used as input of the MZmine), -mass (the sample mass which will be used for normalization. just put 1 if not needed), -and at least one grouping info column (the experimental group for each sample). 3.</p>
+<p>See the demo files for examples. ### MZmine feature table Exported from MZmine as a CSV file. ### Metadata file A CSV file with at least three columns: <code>sample</code>, <code>mass</code>, and one grouping column (e.g., <code>treatment</code>). The <code>sample</code> column should match the filenames in the MZmine feature table. The <code>mass</code> column is used for normalization (set to 1 if not needed). The grouping column is used for statistical comparisons.</p>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

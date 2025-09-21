@@ -5,6 +5,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/articles/vignette-eCOMET-intro.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/authors.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/index.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/news/index.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddChemDist.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddCustomAnnot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddSiriusAnnot.html</loc></url>
@@ -38,7 +39,9 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/MSEA.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/MassNormalization.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/MeancenterNormalization.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/NMDSplot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/PCAplot.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/PCoAplot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/PLSDAplot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/PairwiseComp.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/PlotFoldchangeResistanceQuad.html</loc></url>

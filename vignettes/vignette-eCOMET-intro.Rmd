@@ -31,7 +31,7 @@ It is created by the `GetMZmineFeature()` function and contains:
 
 You can create an `mmo` object like this:
 
-```{r}
+```{r, eval = FALSE}
 mmo <- GetMZmineFeature(
   mzmine_dir = "path/to/mzmine_feature.csv",
   metadata_dir = "path/to/metadata.csv",

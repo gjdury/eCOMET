@@ -2184,7 +2184,90 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 }
 
 
+#' NMDSPlot
+#'
+#' This function generates a Non-metric Multidimensional Scaling (NMDS) plot based on the provided beta diversity distance matrix.
+#' It also performs PERMANOVA analysis to assess the significance of group differences and saves the results to CSV files.
+#' @param mmo The mmo object containing metadata
+#' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity()
+#' @param prefix The prefix for the output files
+#' @param width The width of the output NMDS plot (default: 6)
+#' @param height The height of the output NMDS plot (default: 6)
+#' @param color A vector of colors for the groups in the plot
+#' @export
+#' @examplesIf FALSE
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#' NMDSPlot(mmo, betadiv = beta_diversity, prefix = 'output/NMDS', width = 6, height = 6)
+NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
+  .require_pkg("vegan")
+  .require_pkg("ggrepel")
+  metadata <- mmo$metadata
+  nmds <- vegan::metaMDS(betadiv, k = 2, try = 50, trymax = 100)
+  
+  # Extract NMDS coordinates
+  nmds_coords <- as.data.frame(vegan::scores(nmds, display = "sites"))
+  groups <- c()
+  for (row in rownames(nmds_coords)) {
+    groups <- append(groups, metadata[metadata$sample == row, ]$group)
+  }
+  nmds_coords$group <- groups
+  
+  # Plot NMDS
+  ggplot(nmds_coords, aes(x = .data$NMDS1, y = .data$NMDS2, color = .data$group)) +
+    geom_point(size = 3) +
+    #geom_text_repel(aes(label = group), size = 3) +
+    theme_classic() +
+    stat_ellipse(level = 0.90) +
+    labs(x = "NMDS1", y = "NMDS2") +
+    scale_color_manual(values = .data$color) +
+    theme(legend.position = "right")
+  ggsave(paste0(prefix, '_NMDS.pdf'), height = height, width = width)
 
+  permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
+  write.csv(permanova$permanova_res, paste0(prefix, '_permanova_results.csv'))
+  write.csv(as.data.frame(permanova$pairwise_raw), paste0(prefix, '_pairwise_permanova_results.csv'))
+  write.csv(as.data.frame(permanova$pairwise_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
+}
+
+#' PCoAplot
+#' 
+#' This function generates a Principal Coordinates Analysis (PCoA) plot based on the provided beta diversity distance matrix.
+#' It also performs PERMANOVA analysis to assess the significance of group differences and saves the
+#' results to CSV files.
+#' @param mmo The mmo object containing metadata
+#' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity
+#' @param prefix The prefix for the output files
+#' @param width The width of the output PCoA plot (default: 6
+#' @param height The height of the output PCoA plot (default: 6)
+#' @param color A vector of colors for the points in the plot
+#' @export
+#' @examplesIf FALSE
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#' PCoAplot(mmo, betadiv = beta_diversity, prefix = 'output/PCoA', width = 6, height = 6)
+PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
+  .require_pkg('ape')
+  metadata <- mmo$metadata
+  pcoa_res <- ape::pcoa(betadiv)
+  pcoa_coords <- as.data.frame(pcoa_res$vectors[, 1:2])
+  colnames(pcoa_coords) <- c("PCoA1", "PCoA2")
+  pcoa_coords$group <- metadata$group[match(rownames(pcoa_coords), metadata$sample)]
+  
+  ggplot(pcoa_coords, aes(x = .data$PCoA1, y = .data$PCoA2, color = .data$group)) +
+    geom_point(size = 3) +
+    stat_ellipse(level = 0.90) +
+    theme_classic() +
+    labs(x = "PCoA1", y = "PCoA2") +
+    scale_color_manual(values = .data$color) +
+    theme(legend.position = "right")
+  ggsave(paste0(prefix, '_PCoA.pdf'), height = height, width = width)
+  
+  permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
+  write.csv(permanova$permanova_res, paste0(prefix, '_permanova_results.csv'))
+  write.csv(as.data.frame(permanova$pairwise_raw), paste0(prefix, '_pairwise_permanova_results.csv'))
+  write.csv(as.data.frame(permanova$pairwise_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
+}
 
 #' CalculateGroupBetaDistance
 #'

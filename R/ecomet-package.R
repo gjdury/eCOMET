@@ -17,5 +17,7 @@
 #' @importFrom ggplot2 xlim geom_vline geom_hline theme_minimal annotate
 #' @importFrom ggplot2 scale_fill_manual geom_boxplot
 #' @importFrom ggplot2 coord_flip scale_fill_gradient
+#' @importFrom ape pcoa
+#' @importFrom vegan metaMDS scores
 #'
 NULL

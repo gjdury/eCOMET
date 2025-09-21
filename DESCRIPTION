@@ -41,7 +41,8 @@ Imports:
   caret,
   data.table,
   fgsea,
-  pairwiseAdonis
+  pairwiseAdonis,
+  ape
 Suggests:
     testthat (>= 3.0.0),
     knitr,
