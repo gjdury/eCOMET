@@ -1000,7 +1000,7 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
   stat_ellipse(level = 0.90) +
   ggtitle("PLS-DA Plot") +
   labs(x = "Component 1", y = "Component 2") +
-  scale_color_manual(values = .data$custom_colors) +
+  scale_color_manual(values = color) +
   theme(legend.position = "right")+
   geom_segment(data = top_features,
                aes(x = 0, y = 0, xend = .data$Comp1_Loading * loading_scale, yend = .data$Comp2_Loading * loading_scale),  # Scale the arrows
@@ -1358,9 +1358,9 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
     xlab('Comparisons')+
     ylab('Chemical classes')
   enrichment_plot
-  write.csv(df.EA, paste(prefix, '.csv'), row.names = FALSE)
-  write.csv(df.EA.sig, paste(prefix, '_sig.csv'), row.names = FALSE)
-  ggsave(paste(prefix, '.pdf'), width = width, height = height)
+  write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
+  write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
+  ggsave(paste0(prefix, '.pdf'), width = width, height = height)
 }
 
 #' Generate a plot for enrichment analysis of Canopus-predicted terms across all levels
@@ -2222,7 +2222,7 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
     theme_classic() +
     stat_ellipse(level = 0.90) +
     labs(x = "NMDS1", y = "NMDS2") +
-    scale_color_manual(values = .data$color) +
+    scale_color_manual(values = color) +
     theme(legend.position = "right")
   ggsave(paste0(prefix, '_NMDS.pdf'), height = height, width = width)
 
@@ -2261,7 +2261,7 @@ PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
     stat_ellipse(level = 0.90) +
     theme_classic() +
     labs(x = "PCoA1", y = "PCoA2") +
-    scale_color_manual(values = .data$color) +
+    scale_color_manual(values = color) +
     theme(legend.position = "right")
   ggsave(paste0(prefix, '_PCoA.pdf'), height = height, width = width)
   

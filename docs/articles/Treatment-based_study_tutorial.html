@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,9 +66,236 @@
     
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://phytoecia.github.io/eCOMET/">ecomet</a></span><span class="op">)</span></span></code></pre></div>
-<p>The demo files are metabolomics analysis files of Arabidopsis thaliana (Col-0) attacked by two different herbivores (Spodoptera litura; sl, and Lipaphis erysimi; le). Eight replicates were sampled and analyzed for each group. See metadata.csv for more details.</p>
-  </main>
+<code class="sourceCode R"><span><span class="co"># pak::pak("phytoecia/eCOMET")</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://phytoecia.github.io/eCOMET/">ecomet</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     filter, lag</span></span>
+<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span></code></pre></div>
+<ul>
+<li>The tutorial files are metabolomics analysis files of <em>Arabidopsis thaliana</em> (Col-0) attacked by two different herbivores (<em>Spodoptera litura</em>; sl, and <em>Lipaphis erysimi</em>; le).</li>
+<li>Eight replicates were sampled and analyzed for each group. See metadata.csv for more details.</li>
+<li>Make sure you downloaded the tutorial files from <a href="">here</a> and set the working directory to the downloaded folder.</li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="st">'/path/to/eCOMET/tutorial/tutorial_1_treatment_based'</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">demo_feature</span> <span class="op">&lt;-</span> <span class="st">"raw_data/feature_table_demo.csv"</span></span>
+<span><span class="va">demo_metadata</span> <span class="op">&lt;-</span> <span class="st">"raw_data/metadata_demo.csv"</span></span>
+<span><span class="va">demo_sirius_formula</span> <span class="op">&lt;-</span> <span class="st">"raw_data/canopus_formula_summary.tsv"</span></span>
+<span><span class="va">demo_sirius_structure</span> <span class="op">&lt;-</span> <span class="st">"raw_data/structure_identifications.tsv"</span></span>
+<span><span class="va">demo_dreams</span> <span class="op">&lt;-</span> <span class="st">"raw_data/dreams_sim_demo.csv"</span></span>
+<span><span class="va">gls_db</span> <span class="op">&lt;-</span> <span class="st">"raw_data/custom_DB_glucosinolates.csv"</span></span></code></pre></div>
+<div class="section level2">
+<h2 id="create-an-mmo-object">1. Create an <code>mmo</code> object<a class="anchor" aria-label="anchor" href="#create-an-mmo-object"></a>
+</h2>
+<p>Following steps are performed to create an <code>mmo</code> object and add various normalizations and annotations. Inspect the structure of the ‘mmo’ object using ‘summary(mmo)’’ after each step to see how the object is updated.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Initialize eCOMET object</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMZmineFeature.html">GetMZmineFeature</a></span><span class="op">(</span>mzmine_dir<span class="op">=</span><span class="va">demo_feature</span>, metadata_dir <span class="op">=</span> <span class="va">demo_metadata</span>, group_col <span class="op">=</span> <span class="st">'group'</span><span class="op">)</span></span>
+<span><span class="co"># Add normalizations</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ReplaceZero.html">ReplaceZero</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'one'</span><span class="op">)</span> <span class="co"># Replace 0 and NA values by 1</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MassNormalization.html">MassNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Normalize peak area by sample mass in metadata</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MeancenterNormalization.html">MeancenterNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Add mean-centered area</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/LogNormalization.html">LogNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Add log-transformed area</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ZNormalization.html">ZNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Add Zscore</span></span>
+<span></span>
+<span><span class="co"># Add SIRIUS annotation</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot</a></span><span class="op">(</span><span class="va">mmo</span>, canopus_structuredir <span class="op">=</span> <span class="va">demo_sirius_structure</span>, canopus_formuladir <span class="op">=</span> <span class="va">demo_sirius_formula</span><span class="op">)</span></span>
+<span><span class="co"># Make a vector of flavonoids using SIRIUS annotation</span></span>
+<span><span class="va">FLVs</span> <span class="op">&lt;-</span> <span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_detect.html" class="external-link">str_detect</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot</span><span class="op">[[</span><span class="st">'ClassyFire#most specific class'</span><span class="op">]</span><span class="op">]</span>, <span class="st">"Flavonoid"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Add custom annotation using inhouse glucosinolate library</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddCustomAnnot.html">AddCustomAnnot</a></span><span class="op">(</span><span class="va">mmo</span>, DB <span class="op">=</span> <span class="va">gls_db</span>, mztol <span class="op">=</span> <span class="fl">5</span>, rttol <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
+<span><span class="co"># Make a vector of glucosinolates using custom annotation</span></span>
+<span><span class="va">GLSs</span> <span class="op">&lt;-</span> <span class="va">mmo</span><span class="op">$</span><span class="va">custom_annot</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lengths.html" class="external-link">lengths</a></span><span class="op">(</span><span class="va">custom_annot</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">feature</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Add Dreams distance</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="plot-dimensionality-reduction-plots">2. Plot dimensionality reduction plots<a class="anchor" aria-label="anchor" href="#plot-dimensionality-reduction-plots"></a>
+</h2>
+<div class="section level3">
+<h3 id="pca-plot-and-permanova">PCA plot and PERMANOVA<a class="anchor" aria-label="anchor" href="#pca-plot-and-permanova"></a>
+</h3>
+<p>A PCA plot is commonly used to visualize the overall distribution of groups. Following PERMANOVA test can be performed to check if the groups are significantly different.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Set colors for groups</span></span>
+<span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ctrl"</span> <span class="op">=</span> <span class="st">"grey"</span>, <span class="st">"sl1"</span> <span class="op">=</span> <span class="st">"#fdcdac"</span>, <span class="st">"le1"</span> <span class="op">=</span> <span class="st">"#b3e2cd"</span><span class="op">)</span></span>
+<span><span class="co"># PCA plot</span></span>
+<span><span class="co"># A plot and permanova output files will be generated in the specified outdir</span></span>
+<span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA_log'</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, normalization <span class="op">=</span> <span class="st">'Log'</span><span class="op">)</span> <span class="co"># Data normalization option</span></span>
+<span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA_FLV'</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">FLVs</span><span class="op">)</span> <span class="co"># Feature filtering option</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="pls-da-plot">PLS-DA plot<a class="anchor" aria-label="anchor" href="#pls-da-plot"></a>
+</h3>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Plot PLS-DA</span></span>
+<span><span class="fu"><a href="../reference/PLSDAplot.html">PLSDAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PLSDA.pdf'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/PLSDAplot.html">PLSDAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PLSDA_meancentered.pdf'</span>, normalization <span class="op">=</span> <span class="st">'Meancentered'</span><span class="op">)</span> <span class="co"># Data normalization option</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="identify-differentially-accumulated-metabolites-dams">3. Identify differentially accumulated metabolites (DAMs)<a class="anchor" aria-label="anchor" href="#identify-differentially-accumulated-metabolites-dams"></a>
+</h2>
+<ul>
+<li>‘PairwiseComp()’ function performs pairwise comparison between two groups using t-test and fold change. The results are stored in mmo$pairwise_comp.</li>
+<li>‘GetDAMs()’ function extracts DAMs based on user-defined cutoffs for p-value and fold change.</li>
+<li>Here, we compare each herbivore treatment group (sl1 and le1) to the control group (ctrl).</li>
+<li>Log2(1.5) = 0.5849625 is used as fold change cutoff and 0.1 as p-value cutoff to extract more DAMs</li>
+</ul>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Run pairwise comparison</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PairwiseComp.html">PairwiseComp</a></span><span class="op">(</span><span class="va">mmo</span>, group1 <span class="op">=</span> <span class="st">'ctrl'</span>, group2 <span class="op">=</span> <span class="st">'sl1'</span><span class="op">)</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PairwiseComp.html">PairwiseComp</a></span><span class="op">(</span><span class="va">mmo</span>, group1 <span class="op">=</span> <span class="st">'ctrl'</span>, group2 <span class="op">=</span> <span class="st">'le1'</span><span class="op">)</span></span>
+<span><span class="co"># Extract DAMs</span></span>
+<span><span class="va">DAMs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetDAMs.html">GetDAMs</a></span><span class="op">(</span><span class="va">mmo</span>, fc_cutoff <span class="op">=</span> <span class="fl">0.5849625</span>, pval_cutoff <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="co"># log2(1.5) = 0.5849625</span></span>
+<span><span class="va">DAMs_up</span> <span class="op">&lt;-</span> <span class="va">DAMs</span><span class="op">$</span><span class="va">DAMs_up</span></span>
+<span><span class="va">DAMs_down</span> <span class="op">&lt;-</span> <span class="va">DAMs</span><span class="op">$</span><span class="va">DAMs_down</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">DAMs_up</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="volcano-plot">3.1. Volcano plot<a class="anchor" aria-label="anchor" href="#volcano-plot"></a>
+</h3>
+<p>A volcano plot can be used to visualize the overall distribution of features based on fold change and p-value.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Volcano plot</span></span>
+<span><span class="fu"><a href="../reference/VolcanoPlot.html">VolcanoPlot</a></span><span class="op">(</span><span class="va">mmo</span>, comp <span class="op">=</span> <span class="st">'ctrl_vs_sl1'</span>, outdir <span class="op">=</span> <span class="st">'plot/Volcano_ctrl_vs_sl1.pdf'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/VolcanoPlot.html">VolcanoPlot</a></span><span class="op">(</span><span class="va">mmo</span>, comp <span class="op">=</span> <span class="st">'ctrl_vs_le1'</span>, outdir <span class="op">=</span> <span class="st">'plot/Volcano_ctrl_vs_le1.pdf'</span>, topk <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="co"># Remove label by setting topk = 0</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="venn-diagram-and-upset-plot">3.2. Venn diagram and upset plot<a class="anchor" aria-label="anchor" href="#venn-diagram-and-upset-plot"></a>
+</h3>
+<p>A Venn diagram or upset plot can be used to visualize the overlap of DAMs between different comparisons.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Define input list</span></span>
+<span><span class="va">VennInput</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  sl1.up <span class="op">=</span> <span class="va">DAMs_up</span><span class="op">$</span><span class="va">ctrl_vs_sl1.up</span>,</span>
+<span>  le1.up <span class="op">=</span> <span class="va">DAMs_up</span><span class="op">$</span><span class="va">ctrl_vs_le1.up</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co"># Venn diagram</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va">ggvenn</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">ggvenn</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/ggvenn/man/ggvenn.html" class="external-link">ggvenn</a></span><span class="op">(</span><span class="va">VennInput</span>, stroke_size <span class="op">=</span> <span class="fl">0.5</span>, set_name_size <span class="op">=</span> <span class="fl">4</span>, show_percentage <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> </span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"plot/Venn_Upreg.pdf"</span>, height <span class="op">=</span> <span class="fl">5</span>, width <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co"># UpSet plot</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="http://github.com/hms-dbmi/UpSetR" class="external-link">UpSetR</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/hms-dbmi/UpSetR" class="external-link">UpSetR</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Upset_Upreg.pdf"</span>, <span class="fl">7</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/UpSetR/man/upset.html" class="external-link">upset</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/UpSetR/man/fromList.html" class="external-link">fromList</a></span><span class="op">(</span><span class="va">VennInput</span><span class="op">)</span>, nsets<span class="op">=</span><span class="fl">10</span>, nintersects<span class="op">=</span><span class="fl">20</span>,order.by<span class="op">=</span><span class="st">'freq'</span>, mainbar.y.label<span class="op">=</span><span class="st">'Features in Set'</span>, line.size<span class="op">=</span><span class="fl">1</span>, point.size<span class="op">=</span><span class="fl">4</span>, shade.color<span class="op">=</span><span class="st">'white'</span>, text.scale<span class="op">=</span><span class="fl">1</span>, show.numbers<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="heatmap">4. Heatmap<a class="anchor" aria-label="anchor" href="#heatmap"></a>
+</h2>
+<p>To visualize the relative abundance of features across samples, a heatmap can be generated. The features can be either clusterd using hierarchical clustering or by chemical distances (e.g., Dreams distance), following idea of Qemistree (Tripathi et al., 2021, Nat Chem. Biol.).</p>
+<ul>
+<li>The input matrix for heatmap can be either fold change between each treatment and control or mean normalized values across samples.</li>
+<li>Various normalizations can be used (None, Log, Meancentered, and Z).</li>
+<li>Groups or features can be filtered by setting ‘filter_group’ or ‘filter_feature’ to TRUE and providing a list of groups or features.</li>
+<li>The input data for the heatmap is generated by ‘GenerateHeatmapInputs()’ function, then the heatmap is plotted using ‘pheatmap’ package.</li>
+</ul>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pheatmap</span><span class="op">)</span></span>
+<span><span class="co"># Generate input for heatmap</span></span>
+<span><span class="co"># distance is one of the chemical distance (cosine, m2ds, and dreams) for clustering rows</span></span>
+<span><span class="co"># The values can be either fold_change or mean (use option 'summarize')</span></span>
+<span><span class="va">heatmap_inputs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GenerateHeatmapInputs.html">GenerateHeatmapInputs</a></span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>, summarize <span class="op">=</span> <span class="st">'fold_change'</span>, control_group <span class="op">=</span> <span class="st">'ctrl'</span>, </span>
+<span>  normalization <span class="op">=</span> <span class="st">'None'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span></span>
+<span><span class="op">)</span> <span class="co"># This generates fold change matrix between each treatment and control</span></span>
+<span></span>
+<span><span class="co"># The resulting list contains FC_matrix, dist_matrix, row_label, and heatmap_data</span></span>
+<span><span class="co"># A heatmap can be generated using pheatmap</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Heatmap_FC_dreams.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
+<span>     clustering_distance_rows <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">dist_matrix</span>,  </span>
+<span>     clustering_method <span class="op">=</span> <span class="st">"average"</span>, </span>
+<span>     cellwidth <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>     cellheight <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>     treeheight_row <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>     fontsize_row <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>     fontsize_col <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>     scale <span class="op">=</span> <span class="st">'none'</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Either, you can visualize mean normalized values across samples</span></span>
+<span><span class="va">heatmap_inputs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GenerateHeatmapInputs.html">GenerateHeatmapInputs</a></span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>, summarize <span class="op">=</span> <span class="st">'mean'</span>, normalization <span class="op">=</span> <span class="st">'Z'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span></span>
+<span><span class="op">)</span> </span>
+<span><span class="co"># 'clustering_distance_rows' option make the dendrogram follows chemical distances of features. </span></span>
+<span><span class="co">#  -Delete this option to visualize the heatmap following cannonical clustering</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Heatmap_Mean_Z_clustering.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
+<span>     <span class="co">#clustering_distance_rows = heatmap_inputs$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering </span></span>
+<span>     clustering_method <span class="op">=</span> <span class="st">"average"</span>, <span class="co">#UPGMA</span></span>
+<span>     cellwidth <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>     cellheight <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>     treeheight_row <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>     fontsize_row <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>     fontsize_col <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>     scale <span class="op">=</span> <span class="st">'none'</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Feature filtering option</span></span>
+<span><span class="co"># Visualize only glucosinolates</span></span>
+<span><span class="co"># As glucosinolate annotations are stored in mmo$custom_annot (by AddCustomAnnot() function),</span></span>
+<span><span class="co"># the compound names are stored in heatmap_inputs$row_label and can be used as row names</span></span>
+<span><span class="va">heatmap_inputs_GLS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GenerateHeatmapInputs.html">GenerateHeatmapInputs</a></span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>, summarize <span class="op">=</span> <span class="st">'mean'</span>, normalization <span class="op">=</span> <span class="st">'Z'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span>,</span>
+<span>  filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">GLSs</span></span>
+<span><span class="op">)</span> </span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Heatmap_Mean_Z_GLS.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs_GLS</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
+<span>     <span class="co">#clustering_distance_rows = heatmap_inputs_GLS$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering </span></span>
+<span>     clustering_method <span class="op">=</span> <span class="st">"average"</span>, <span class="co">#UPGMA</span></span>
+<span>     cellwidth <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>     cellheight <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>     treeheight_row <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>     fontsize_row <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>     fontsize_col <span class="op">=</span> <span class="fl">15</span>,</span>
+<span>     scale <span class="op">=</span> <span class="st">'none'</span>,</span>
+<span>     annotation_names_row <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>     labels_row <span class="op">=</span> <span class="va">heatmap_inputs_GLS</span><span class="op">$</span><span class="va">row_label</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="canopus-class-enrichment-analysis">5. CANOPUS class enrichment analysis<a class="anchor" aria-label="anchor" href="#canopus-class-enrichment-analysis"></a>
+</h2>
+<p>To identify overepresented chemical classes in a set of features of interest (e.g., DAMs), CANOPUS class enrichment analysis can be performed following idea of ORA.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># For a single set of features, a detailed enrichment plot can be generated</span></span>
+<span><span class="co"># There are two plotting styles available</span></span>
+<span><span class="fu"><a href="../reference/CanopusListEnrichmentPlot.html">CanopusListEnrichmentPlot</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span><span class="op">$</span><span class="va">ctrl_vs_sl1.up</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, outdir <span class="op">=</span> <span class="st">'plot/sl1_up_enrichment.pdf'</span>, height <span class="op">=</span> <span class="fl">6</span>, width <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/CanopusListEnrichmentPlot_2.html">CanopusListEnrichmentPlot_2</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span><span class="op">$</span><span class="va">ctrl_vs_sl1.up</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, outdir <span class="op">=</span> <span class="st">'plot/sl1_up_enrichment_2.pdf'</span>, topn <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">6</span>, width <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># For a list of sets features, a summary enrichment plot can be generated</span></span>
+<span><span class="co"># The summary enrichment plot can be generated for either a single level of CANOPUS classification (8.2.1) or for all levels (8.2.2)</span></span>
+<span><span class="co"># For a single level of CANOPUS classification</span></span>
+<span><span class="va">term_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'NPC_class'</span>, <span class="st">'NPC_superclass'</span>, <span class="st">'NPC_pathway'</span>, <span class="st">'ClassyFire_most_specific'</span>, <span class="st">'ClassyFire_level5'</span>, <span class="st">'ClassyFire_subclass'</span>, <span class="st">'ClassyFire_class'</span>, <span class="st">'ClassyFire_superclass'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/CanopusLevelEnrichmentPlot.html">CanopusLevelEnrichmentPlot</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span>, term_level <span class="op">=</span> <span class="st">'NPC_class'</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, prefix <span class="op">=</span> <span class="st">'plot/DAMs_up_NPC_class'</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># For all levels of CANOPUS classification</span></span>
+<span><span class="co"># All levels, or only NPC or ClassyFire</span></span>
+<span><span class="fu"><a href="../reference/CanopusAllLevelEnrichmentPlot.html">CanopusAllLevelEnrichmentPlot</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span>, term_level <span class="op">=</span> <span class="st">'NPC'</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, prefix <span class="op">=</span> <span class="st">'plot/DAMs_up_all_terms'</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/CanopusAllLevelEnrichmentPlot.html">CanopusAllLevelEnrichmentPlot</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span>, term_level <span class="op">=</span> <span class="st">'ClassyFire'</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, prefix <span class="op">=</span> <span class="st">'plot/DAMs_up_all_terms'</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

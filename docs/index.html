@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,7 @@
 <div class="page-header"><h1 id="welcome-to-ecomet-a-tool-for-mass-spectrometrybased-ecological-metabolomics">Welcome to eCOMET: A Tool for Mass Spectrometry–Based Ecological Metabolomics<a class="anchor" aria-label="anchor" href="#welcome-to-ecomet-a-tool-for-mass-spectrometrybased-ecological-metabolomics"></a>
 </h1></div>
 <!-- badges: start -->
-<p><strong>eCOMET</strong> is an R package for processing and analyzing mass spectrometry–based metabolomics data in ecological and evolutionary contexts. It establishes a standardized pipeline that integrates MS1 feature–abundance tables with MS2 spectral similarity to generate common data products, including principal component analyses (PCA), chemical dendrograms where tips represent compounds, principal coordinates analyses (PCoA), and differential expression analyses. Unlike existing metabolomics toolkits that focus primarily on biomedical or cheminformatics applications, ecomet is designed explicitly for ecometabolomics. It emphasizes workflows that link metabolomic variation to ecological data, making it easier to move from raw mass spectrometry files to reproducible, comparative analyses of plant chemical diversity.</p>
+<p><strong>eCOMET</strong> is an R package for processing and analyzing mass spectrometry–based metabolomics data in ecological and evolutionary contexts. It establishes a standardized pipeline that integrates MS1 feature–abundance tables with MS2 spectral similarity to generate common data products, including principal component analyses (PCA), chemical dendrograms where tips represent compounds, principal coordinates analyses (PCoA), and differential accumulation analyses. Unlike existing metabolomics toolkits that focus primarily on biomedical or cheminformatics applications, ecomet is designed explicitly for ecometabolomics. It emphasizes workflows that link metabolomic variation to ecological data, making it easier to move from raw mass spectrometry files to reproducible, comparative analyses of plant chemical diversity.</p>
 <hr>
 <div class="section level2">
 <h2 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
@@ -65,12 +65,11 @@
 <ul>
 <li>Import and normalize MS1 feature–abundance tables</li>
 <li>Integrate MS2 spectral similarity for chemical diversity analysis</li>
-<li>Annotate features using SIRIUS and custom databases</li>
-<li>Perform differential accumulation analysis</li>
-<li>Visualize results with PCA, PCoA, NMDS, volcano plots, heatmaps, and more</li>
+<li>Perform differential accumulation analysis to find DAMs (Differentially accumulated metabolites)</li>
+<li>Visualize results with PCA, PLS-DA, PCoA, NMDS, volcano plots, heatmaps, and more</li>
 <li>Quantify chemical diversity using alpha and beta diversity metrics, utilizing spectral similarity based on modified cosine score, MS2DeepScore, and DreaMS</li>
 <li>Chemical class enrichment analysis using CANOPUS annotation</li>
-<li>Screening molecular features related to sampel metadata (e.g., temperature, height, herbivory)</li>
+<li>Screening molecular features related to sample metadata (e.g., temperature, height, herbivory)</li>
 </ul>
 </div>
 <div class="section level2"><h2 id="section">
@@ -88,7 +87,7 @@
 <div class="section level2">
 <h2 id="preparing-data-for-analysis">Preparing data for analysis<a class="anchor" aria-label="anchor" href="#preparing-data-for-analysis"></a>
 </h2>
-<p>We recommend reading <a href="./articles/Intro.html">vignette-Intro</a> before starting, to understand how the raw data from mass spectrometers can be prepared for analyses.<br>
+<p>We recommend reading <a href="./articles/Intro.html">Articles-Intro</a> before starting, to understand how the raw data from mass spectrometers can be prepared for analyses.<br>
 We currently support data processed by MZMine (version 4 or later).</p>
 </div>
 <div class="section level2">
