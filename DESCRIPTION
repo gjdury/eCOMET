@@ -1,6 +1,6 @@
 Package: ecomet
 Title: A Tool for Mass Spectrometry–Based Ecological Metabolomics
-Version: 0.0.0.9000
+Version: 0.0.0.9001
 Authors@R: c(
     person("Dale L.", "Forrister", , "dale.forrister@utexas.edu", role = c("aut")),
     person("Min-Soo", "Choi", , "minsoo1012@snu.ac.kr", role = c("aut","cre")))
