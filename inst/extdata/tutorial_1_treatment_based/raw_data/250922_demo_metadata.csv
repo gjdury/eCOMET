@@ -1,0 +1,13 @@
+﻿sample,mass,group
+BS1_C1.mzML,50,control
+BS1_C2.mzML,49,control
+BS1_C3.mzML,51,control
+BS1_C4.mzML,52,control
+BS1_C5.mzML,50,control
+BS1_C6.mzML,54,control
+BS1_D1.mzML,48,damaged
+BS1_D2.mzML,49,damaged
+BS1_D3.mzML,50,damaged
+BS1_D4.mzML,54,damaged
+BS1_D5.mzML,50,damaged
+BS1_D6.mzML,49,damaged

@@ -7,7 +7,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/phytoecia/eCOMET)](https://github.com/phytoecia/eCOMET/stargazers)
 <!-- badges: end -->
 
-**eCOMET** is an R package for processing and analyzing mass spectrometry–based metabolomics data in ecological and evolutionary contexts. It establishes a standardized pipeline that integrates MS1 feature–abundance tables with MS2 spectral similarity to generate common data products, including principal component analyses (PCA), chemical dendrograms where tips represent compounds, principal coordinates analyses (PCoA), and differential expression analyses. Unlike existing metabolomics toolkits that focus primarily on biomedical or cheminformatics applications, ecomet is designed explicitly for ecometabolomics. It emphasizes workflows that link metabolomic variation to ecological data, making it easier to move from raw mass spectrometry files to reproducible, comparative analyses of plant chemical diversity.
+**eCOMET** is an R package for processing and analyzing mass spectrometry–based metabolomics data in ecological and evolutionary contexts. It establishes a standardized pipeline that integrates MS1 feature–abundance tables with MS2 spectral similarity to generate common data products, including principal component analyses (PCA), chemical dendrograms where tips represent compounds, principal coordinates analyses (PCoA), and differential accumulation analyses. Unlike existing metabolomics toolkits that focus primarily on biomedical or cheminformatics applications, ecomet is designed explicitly for ecometabolomics. It emphasizes workflows that link metabolomic variation to ecological data, making it easier to move from raw mass spectrometry files to reproducible, comparative analyses of plant chemical diversity.
 
 ---
 
@@ -19,7 +19,7 @@
 - Visualize results with PCA, PLS-DA, PCoA, NMDS, volcano plots, heatmaps, and more
 - Quantify chemical diversity using alpha and beta diversity metrics, utilizing spectral similarity based on modified cosine score, MS2DeepScore, and DreaMS
 - Chemical class enrichment analysis using CANOPUS annotation
-- Screening molecular features related to sampel metadata (e.g., temperature, height, herbivory)
+- Screening molecular features related to sample metadata (e.g., temperature, height, herbivory)
 
 <img width="1921" height="1080" alt="Screenshot 2025-07-24 at 6 59 47 PM" src="https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c" />
 ---
