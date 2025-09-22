@@ -48,6 +48,6 @@ Suggests:
     knitr,
     rmarkdown
 Remotes:
-    pmartinezarbizu/pairwiseAdonis
+    pmartinezarbizu/pairwiseAdonis/pairwiseAdonis
 URL: https://phytoecia.github.io/eCOMET/
 VignetteBuilder: knitr
