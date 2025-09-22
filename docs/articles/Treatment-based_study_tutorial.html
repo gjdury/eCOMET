@@ -78,11 +78,10 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span></code></pre></div>
-<ul>
-<li>The tutorial files are metabolomics analysis files of <em>Arabidopsis thaliana</em> (Col-0) attacked by two different herbivores (<em>Spodoptera litura</em>; sl, and <em>Lipaphis erysimi</em>; le).</li>
-<li>Eight replicates were sampled and analyzed for each group. See metadata.csv for more details.</li>
-<li>Make sure you downloaded the tutorial files from <a href="">here</a> and set the working directory to the downloaded folder.</li>
-</ul>
+<div class="section level2">
+<h2 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
+</h2>
+<p>In this tutorial, we will demonstrate how to use the <strong>eCOMET</strong> package for analyzing metabolomics data from a treatment-based study. - Treatment-based studies involve comparing metabolite profiles between different treatment groups (e.g., control vs treated). - The tutorial covers data preprocessing, normalization, statistical analysis, and visualization techniques commonly used in treatment-based metabolomics studies. - The tutorial files are metabolomics analysis files of <em>Arabidopsis thaliana</em> (Col-0) attacked by two different herbivores (<em>Spodoptera litura</em>; sl, and <em>Lipaphis erysimi</em>; le). - Eight replicates were sampled and analyzed for each group. See metadata.csv for more details. - Make sure you downloaded the tutorial files from <a href="">here</a> and set the working directory to the downloaded folder.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd</a></span><span class="op">(</span><span class="st">'/path/to/eCOMET/tutorial/tutorial_1_treatment_based'</span><span class="op">)</span></span>
 <span></span>
@@ -92,6 +91,7 @@
 <span><span class="va">demo_sirius_structure</span> <span class="op">&lt;-</span> <span class="st">"raw_data/structure_identifications.tsv"</span></span>
 <span><span class="va">demo_dreams</span> <span class="op">&lt;-</span> <span class="st">"raw_data/dreams_sim_demo.csv"</span></span>
 <span><span class="va">gls_db</span> <span class="op">&lt;-</span> <span class="st">"raw_data/custom_DB_glucosinolates.csv"</span></span></code></pre></div>
+</div>
 <div class="section level2">
 <h2 id="create-an-mmo-object">1. Create an <code>mmo</code> object<a class="anchor" aria-label="anchor" href="#create-an-mmo-object"></a>
 </h2>

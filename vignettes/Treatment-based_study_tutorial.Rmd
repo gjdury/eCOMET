@@ -21,7 +21,10 @@ library(dplyr)
 library(stringr)
 ```
 
-
+## Background
+In this tutorial, we will demonstrate how to use the **eCOMET** package for analyzing metabolomics data from a treatment-based study.
+- Treatment-based studies involve comparing metabolite profiles between different treatment groups (e.g., control vs treated).
+- The tutorial covers data preprocessing, normalization, statistical analysis, and visualization techniques commonly used in treatment-based metabolomics studies.
 - The tutorial files are metabolomics analysis files of *Arabidopsis thaliana* (Col-0) attacked by two different herbivores (*Spodoptera litura*; sl, and *Lipaphis erysimi*; le). 
 - Eight replicates were sampled and analyzed for each group. See metadata.csv for more details. 
 - Make sure you downloaded the tutorial files from [here]() and set the working directory to the downloaded folder.
