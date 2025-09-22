@@ -4,3 +4,6 @@
 * Initial packaged version from custom functions
 * Roxygen-formated
 
+# eCOMET 0.0.0.9001
+* Vignettes added
+* NMDS, PCoA added

@@ -15,9 +15,8 @@
 
 - Import and normalize MS1 feature–abundance tables
 - Integrate MS2 spectral similarity for chemical diversity analysis
-- Annotate features using SIRIUS and custom databases
-- Perform differential accumulation analysis
-- Visualize results with PCA, PCoA, NMDS, volcano plots, heatmaps, and more
+- Perform differential accumulation analysis to find DAMs (Differentially accumulated metabolites)
+- Visualize results with PCA, PLS-DA, PCoA, NMDS, volcano plots, heatmaps, and more
 - Quantify chemical diversity using alpha and beta diversity metrics, utilizing spectral similarity based on modified cosine score, MS2DeepScore, and DreaMS
 - Chemical class enrichment analysis using CANOPUS annotation
 - Screening molecular features related to sampel metadata (e.g., temperature, height, herbivory)
@@ -35,7 +34,7 @@ pak::pak("phytoecia/eCOMET")
 library(ecomet)
 ```
 ## Preparing data for analysis
-We recommend reading [vignette-Intro](./articles/Intro.html) before starting, to understand how the raw data from mass spectrometers can be prepared for analyses.  
+We recommend reading [Articles-Intro](./articles/Intro.html) before starting, to understand how the raw data from mass spectrometers can be prepared for analyses.  
 We currently support data processed by MZMine (version 4 or later).
 
 ## Tutorials
