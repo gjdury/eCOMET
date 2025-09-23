@@ -1123,8 +1123,72 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
   return(list(FC_matrix = FC_matrix, dist_matrix = dist_matrix, row_label = row_label, heatmap_data = heatmap_data))
 }
 
+#' PlotNPCStackedBar
+#' 
+#' This function generates a stacked bar plot showing the count of features in each group categorized by NPC_pathway.
+#' It uses the mmo object with sirius annotation and normalized data.
+#' Make sure you don't run ReplaceZero() before using this function, as it may remove presence/absence information.
+#' 
+#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param group_col The column name in metadata to use for grouping samples
+#' @param output_file The output file path for the stacked bar plot (e.g., 'NPC_stacked_bar.png')
+#' @param width The width of the output plot
+#' @param height The height of the output plot
+#' @export
+#' @examplesIf FALSE
+#' PlotNPCStackedBar(
+#'  mmo, group_col = 'treatment', 
+#'  output_file = 'NPC_stacked_bar.png', width = 6, height = 3
+#' )
+PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3) {
+  mmo <- SwitchGroup(mmo, group_col)
+  feature_data <- mmo$feature_data
+  metadata <- mmo$metadata
 
+  # For each group, get features present in any sample
+  group_features <- lapply(unique(metadata$group), function(grp) {
+    samples <- metadata |> filter(.data$group == grp) |> pull(.data$sample)
+    present <- feature_data |> select(all_of(.data$samples))
+    feature_data$feature[base::rowSums(!is.na(present) & present > 0) > 0]
+  })
+  names(group_features) <- unique(metadata$group)
 
+  # Build long data frame: feature, group, NPC_pathway
+  annot <- mmo$sirius_annot[, c("feature", "NPC#pathway")]
+  colnames(annot) <- c("feature", "NPC_pathway")
+
+  bar_df <- do.call(rbind, lapply(names(group_features), function(grp) {
+    data.frame(
+      feature = group_features[[grp]],
+      group = grp,
+      stringsAsFactors = FALSE
+    )
+  }))
+  bar_df <- merge(bar_df, annot, by = "feature", all.x = TRUE)
+  bar_df <- bar_df[!is.na(bar_df$NPC_pathway) & bar_df$NPC_pathway != "", ]
+
+  # Count features per group and NPC_pathway
+  plot_df <- bar_df |>
+    dplyr::group_by(.data$group, .data$NPC_pathway) |>
+    dplyr::summarise(count = dplyr::n(), .groups = "drop")
+
+  # Set colors for NPC_pathway
+  npc_pathways <- unique(plot_df$NPC_pathway)
+  .require_pkg("RColorBrewer")
+  bar_colors <- setNames(RColorBrewer::brewer.pal(min(length(npc_pathways), 8), "Set2"), npc_pathways)
+
+  # Plot stacked bar by NPC_pathway
+  ggplot(plot_df, aes(x = .data$group, y = .data$count, fill = .data$NPC_pathway, label = .data$count)) +
+    geom_bar(stat = "identity", position = "stack") +
+    geom_text(aes(group = .data$NPC_pathway), position = position_stack(vjust = 0.5), size = 3, color = "white", fontface = "bold") +
+    scale_fill_manual(values = bar_colors) +
+    coord_flip() +
+    labs(x = "Group", y = "Feature Count", fill = "NPC Pathway") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  ggsave(output_file, width = width, height = height)
+}
 
 #' Enrichment analysis for Canopus-predicted terms
 #'
@@ -1533,6 +1597,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
 #' @param model The type of regression model to use. Options are 'lmm' for linear mixed model, 'lm' for simple linear regression, or 'pearson' for Pearson correlation (default: 'lmm')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
 #' @param output The output file path for the regression plot
+#' @export
 
 FeaturePerformanceRegression <- function(mmo, target, phenotype, groups, model = 'lmm', normalization = 'Z', output){
   .require_pkg("ggrepel")
@@ -1586,6 +1651,7 @@ FeaturePerformanceRegression <- function(mmo, target, phenotype, groups, model =
 #' @param DAM.list A list of DAMs to tag features
 #' @param comparisons A list of pairwise comparisons to add fold change columns
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
+#' @export
 #' @return A data frame containing regression results for each feature, including effect size, p-value, and fold change columns for specified comparisons.
 #'
 GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, comparisons, normalization = 'None'){
@@ -1638,6 +1704,7 @@ GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, co
 #' @param comparisons A list of pairwise comparisons to add fold change columns
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
 #' @return A data frame containing regression results for each feature, including effect size, p-value, and fold change columns for specified comparisons.
+#' @export
 GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, comparisons, normalization = 'Z'){
   feature <- GetNormFeature(mmo, normalization)
   # if (normalization == 'None'){
@@ -1699,6 +1766,7 @@ GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, compariso
 #' @param comparisons A list of pairwise comparisons to add fold change columns
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @return A data frame containing correlation results for each feature, including effect size (correlation coefficient), p-value, and fold change columns for specified comparisons.
+#' @export
 GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, comparisons, normalization = 'None'){
   feature <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
@@ -1747,6 +1815,7 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
 #' @param fold_change The name of the fold change column in the performance_regression dataframe
 #' @param color A vector of colors for the points in the plot
 #' @param output_dir The output file path for the regression plot
+#' @export
 PlotFoldchangeResistanceRegression <- function(performance_regression, fold_change, color, output_dir){
   ind_fit <- lm(data = performance_regression, formula = as.formula(paste("-effect.size ~", fold_change)))
   summary_fit <- summary(ind_fit)
@@ -1775,6 +1844,7 @@ PlotFoldchangeResistanceRegression <- function(performance_regression, fold_chan
 #' @param fold_change The name of the fold change column in the performance_regression dataframe
 #' @param color A vector of colors for the points in the plot
 #' @param output_dir The output file path for the regression plot
+#' @export
 PlotFoldchangeResistanceRegression_t <- function(performance_regression, fold_change, color, output_dir){
   ind_fit <- lm(data = performance_regression, formula = as.formula(paste(fold_change, "~ -effect.size")))
   summary_fit <- summary(ind_fit)
@@ -1803,6 +1873,7 @@ PlotFoldchangeResistanceRegression_t <- function(performance_regression, fold_ch
 #' @param fold_change The name of the fold change column in the performance_regression dataframe
 #' @param color A vector of colors for the points in the plot
 #' @param output_dir The output file path for the quadrant plot
+#' @export
 PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, color, output_dir){
   performance_regression <- performance_regression |>
   mutate(
@@ -1915,6 +1986,162 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
 }
 
 
+
+#' CalculateCumulativeRichness
+#' 
+#' This function calculates the cumulative richness of features across groups in the metadata.
+#' Cumulative richness is defined as the total number of unique features observed as groups are added sequentially.
+#' @param mmo The mmo object containing feature data and metadata
+#' @param groups A vector specifying the order of groups to consider for cumulative richness calculation
+#' @return A data frame containing the cumulative richness for each group in the specified order, with columns for group and cumulative richness.
+#' @export
+#' @examplesIf FALSE
+#' groups <- c("Control", "Treatment1", "Treatment2")
+#' cumulative_richness <- CalculateCumulativeRichness(mmo, groups)
+CalculateCumulativeRichness <- function(mmo, groups) {
+  feature_data <- mmo$feature_data
+  metadata <- mmo$metadata
+  cumulative_richness <- numeric(length(groups))
+  selected_features <- rep(FALSE, nrow(feature_data))
+  for (i in seq_along(groups)) {
+    selected_groups <- groups[1:i]
+    selected_samples <- metadata |> filter(.data$group %in% selected_groups) |> pull(.data$sample)
+    selected_data <- feature_data |> select(all_of(selected_samples))
+    selected_features <- selected_features | (rowSums(!is.na(selected_data)) > 0)
+    cumulative_richness[i] <- sum(selected_features)
+  }
+  data.frame(group = groups, cumulative_richness = cumulative_richness)
+}
+
+#' BootstrapCumulativeRichness
+#' 
+#' This function bootstraps the cumulative richness of features across groups in the metadata by randomizing the order of groups.
+#' It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
+#' @param mmo The mmo object containing feature data and metadata
+#' @param groups A vector of group names from the metadata to consider for cumulative richness calculation
+#' @param n_boot The number of bootstrap iterations to perform (default: 1000)
+#' @param ci The confidence interval width (e.g., 0.95 for 95% CI) (default: 0.95)
+#' @return A data frame containing the mean cumulative richness and confidence intervals for each group index, with columns for group index, mean, lower CI, and upper CI.
+#' @export
+#' @examplesIf FALSE
+#' groups <- c("Control", "Treatment1", "Treatment2")
+#' bootstrapped_richness <- BootstrapCumulativeRichness(mmo, groups, n_boot = 1000, ci = 0.95)
+BootstrapCumulativeRichness <- function(mmo, groups, n_boot = 1000, ci = 0.95) {
+  # Bootstraps cumulative richness by randomizing group order within a direction
+  # ci: confidence interval width (e.g., 0.5 for 25%-75%)
+  lower_q <- (1 - ci) / 2
+  upper_q <- 1 - lower_q
+  n_groups <- length(groups)
+  boot_mat <- matrix(NA, nrow = n_boot, ncol = n_groups)
+  for (i in seq_len(n_boot)) {
+    rand_order <- sample(groups)
+    boot_mat[i, ] <- CalculateCumulativeRichness(mmo, rand_order)$cumulative_richness
+  }
+  # Each row is a bootstrap, each column is the cumulative richness after adding that many groups
+  boot_df <- data.frame(
+    group_index = rep(seq_len(n_groups), times = n_boot),
+    bootstrap = rep(seq_len(n_boot), each = n_groups),
+    richness = as.vector(t(boot_mat))
+  )
+  boot_summary <- boot_df |>
+    dplyr::group_by(.data$group_index) |>
+    dplyr::summarise(
+      mean = mean(.data$richness),
+      lower = stats::quantile(.data$richness, lower_q),
+      upper = stats::quantile(.data$richness, upper_q)
+    ) |>
+    dplyr::ungroup()
+  as.data.frame(boot_summary)
+}
+
+#' CalculateNullCumulativeRichness
+#' 
+#' This function calculates the null model of cumulative richness by randomizing samples regardless of group.
+#' It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
+#' @param mmo The mmo object containing feature data and metadata
+#' @param n_boot The number of bootstrap iterations to perform (default: 1000)
+#' @param n_groups The number of groups to simulate for cumulative richness calculation 
+#' @param ci The confidence interval width (e.g., 0.95 for 95% CI) (default: 0.95)
+#' @return A data frame containing the mean cumulative richness and confidence intervals for each group index, with columns for group index, mean, lower CI, and upper CI.
+#' @export
+#' @examplesIf FALSE
+#' null_richness <- CalculateNullCumulativeRichness(mmo, n_boot = 1000, n_groups = 5, ci = 0.95)
+CalculateNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0.95) {
+  # Null model: randomize samples regardless of group, then add samples one by one
+  feature_data <- mmo$feature_data
+  metadata <- mmo$metadata
+  all_samples <- metadata$sample
+  n_features <- nrow(feature_data)
+  samples_per_group <- ceiling(length(all_samples) / n_groups)
+  boot_mat <- matrix(NA, nrow = n_boot, ncol = n_groups)
+  lower_q <- (1 - ci) / 2
+  upper_q <- 1 - lower_q
+  for (i in seq_len(n_boot)) {
+    rand_samples <- sample(all_samples)
+    selected_features <- rep(FALSE, n_features)
+    for (j in seq_len(n_groups)) {
+      end_idx <- min(j * samples_per_group, length(rand_samples))
+      selected_data <- feature_data |> select(all_of(rand_samples[1:end_idx]))
+      selected_features <- selected_features | (rowSums(!is.na(selected_data)) > 0)
+      boot_mat[i, j] <- sum(selected_features)
+    }
+  }
+  boot_df <- data.frame(
+    group_index = rep(seq_len(n_groups), times = n_boot),
+    bootstrap = rep(seq_len(n_boot), each = n_groups),
+    richness = as.vector(t(boot_mat))
+  )
+  boot_summary <- boot_df |>
+    dplyr::group_by(.data$group_index) |>
+    dplyr::summarise(
+      mean = mean(.data$richness),
+      lower = stats::quantile(.data$richness, lower_q),
+      upper = stats::quantile(.data$richness, upper_q)
+    ) |>
+    dplyr::ungroup()
+  as.data.frame(boot_summary)
+}
+
+#' CalcNormalizedAUC
+#' 
+#' This function calculates the normalized area under the curve (AUC) for a cumulative richness curve.
+#' The normalized AUC is computed by dividing the AUC by the maximum possible area, which is the product of the maximum group index and maximum cumulative richness.
+#' @param curve A data frame containing the cumulative richness curve with columns for group index and cumulative richness
+#' @return The normalized AUC value
+#' @export
+#' @examplesIf FALSE
+#' curve <- CalculateCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
+#' norm_auc <- CalcNormalizedAUC(curve)
+CalcNormalizedAUC <- function(curve) {
+  curve$group_index <- seq_len(nrow(curve))
+  x <- curve$group_index
+  y <- curve$cumulative_richness
+  auc <- sum(diff(x) * (utils::head(y, -1) + utils::tail(y, -1)) / 2)
+  norm_auc <- auc / (max(x) * max(y))
+  norm_auc
+}
+
+#' BootCumulRichnessAUC
+#' 
+#' This function bootstraps the normalized area under the curve (AUC) for cumulative richness by randomizing the order of groups.
+#' It performs multiple bootstrap iterations to estimate the distribution of normalized AUC values.
+#' @param mmo The mmo object containing feature data and metadata
+#' @param groups A vector of group names from the metadata to consider for cumulative richness calculation
+#' @param n_boot The number of bootstrap iterations to perform (default: 500)
+#' @return A numeric vector containing the normalized AUC values from each bootstrap iteration
+#' @export
+#' @examplesIf FALSE
+#' groups <- c("Control", "Treatment1", "Treatment2")
+#' bootstrapped_aucs <- BootCumulRichnessAUC(mmo, groups, n_boot = 500)
+BootCumulRichnessAUC <- function(mmo, groups, n_boot = 500) {
+  aucs <- numeric(n_boot)
+  for (i in seq_len(n_boot)) {
+    rand_order <- sample(groups)
+    curve <- CalculateCumulativeRichness(mmo, rand_order)
+    aucs[i] <- CalcNormalizedAUC(curve)
+  }
+  aucs
+}
 
 #' GetFunctionalHillNumber
 #'
@@ -2135,6 +2362,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))
 
   # Get feature matrix of relative proportion
+  metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
   if (filter_group == TRUE){
     samples <- c()
@@ -2143,7 +2371,6 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
     }
     feature <- feature |> dplyr::select(.data$id, .data$feature, all_of(samples))
   }
-  metadata <- mmo$metadata
   feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity))
   relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
   rownames(relative_proportions) <- feature$id

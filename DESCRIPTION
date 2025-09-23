@@ -42,7 +42,8 @@ Imports:
   data.table,
   fgsea,
   pairwiseAdonis,
-  ape
+  ape,
+  RColorBrewer
 Suggests:
     testthat (>= 3.0.0),
     knitr,

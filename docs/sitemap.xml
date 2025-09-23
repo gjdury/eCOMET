@@ -11,7 +11,12 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddCustomAnnot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddSiriusAnnot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AnovaBarPlot.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/BootCumulRichnessAUC.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/BootstrapCumulativeRichness.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/CalcNormalizedAUC.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/CalculateCumulativeRichness.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/CalculateGroupBetaDistance.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/CalculateNullCumulativeRichness.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/CanopusAllLevelEnrichmentPlot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/CanopusLevelEnrichmentAnal.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/CanopusLevelEnrichmentPlot.html</loc></url>
@@ -48,6 +53,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/PlotFoldchangeResistanceQuad.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/PlotFoldchangeResistanceRegression.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/PlotFoldchangeResistanceRegression_t.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/PlotNPCStackedBar.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ReorderGroups.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ReplaceZero.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/SwitchGroup.html</loc></url>

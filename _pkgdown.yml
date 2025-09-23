@@ -65,6 +65,12 @@ reference:
       - PCoAplot
       - CalculateGroupBetaDistance
       - GetSpecializationIndex
+      - PlotNPCStackedBar
+      - BootCumulRichnessAUC
+      - BootstrapCumulativeRichness
+      - CalcNormalizedAUC
+      - CalculateCumulativeRichness
+      - CalculateNullCumulativeRichness
 
   - title: Metadata regression analysis
     contents:
