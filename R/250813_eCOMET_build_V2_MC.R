@@ -931,7 +931,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
   permanova <- permanova_stat(feature_data_pca, metadata, mode = 'data', filter_group = filter_group, group_list = group_list)
   write.csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
   write.csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
   write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
   write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2value_matrix.csv'))
 }
