@@ -27,12 +27,12 @@ permanova_stat(
 \item{permutations}{The number of permutations for the PERMANOVA test (default: 5000)}
 }
 \value{
-A list containing the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values
+A list containing the PERMANOVA results, raw pairwise comparison results, and matrices of adjusted p-values, F values, and R square for pairwise comparisons
 }
 \description{
 This function performs PERMANOVA on the given data and metadata, with options for filtering groups.
 It also conducts post-hoc pairwise comparisons and adjusts p-values for multiple testing.
-The function returns the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values of pairwise comparisons.
+The function returns the PERMANOVA results, raw pairwise comparison results, and matrices of adjusted p-values, F values, and R square for pairwise comparisons
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

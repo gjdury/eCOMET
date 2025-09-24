@@ -616,7 +616,7 @@ write_anova <- function(anova_data, outdir, way='oneway'){
 #' 
 #' This function performs PERMANOVA on the given data and metadata, with options for filtering groups.
 #' It also conducts post-hoc pairwise comparisons and adjusts p-values for multiple testing.
-#' The function returns the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values of pairwise comparisons.
+#' The function returns the PERMANOVA results, raw pairwise comparison results, and matrices of adjusted p-values, F values, and R square for pairwise comparisons
 #' 
 #' @param data A data frame or distance matrix for PERMANOVA
 #' @param metadata A data frame containing sample metadata, including a 'group' column
@@ -624,7 +624,7 @@ write_anova <- function(anova_data, outdir, way='oneway'){
 #' @param filter_group Boolean to filter groups based on a provided list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param permutations The number of permutations for the PERMANOVA test (default: 5000)
-#' @return A list containing the PERMANOVA results, raw pairwise comparison results, and a matrix of adjusted p-values
+#' @return A list containing the PERMANOVA results, raw pairwise comparison results, and matrices of adjusted p-values, F values, and R square for pairwise comparisons
 #' @export
 #' @examplesIf FALSE
 #' permanova_results <- permanova_stat(
@@ -665,16 +665,36 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
     pairwise_permanova[[i+1]]$padj <- pvals_adj[i]
   }
   #Organize posthoc results for visual
-  pairwise_matrix <- matrix(NA, nrow = length(unique(metadata$group)), ncol = length(unique(metadata$group)))
-  rownames(pairwise_matrix) <- unique(metadata$group)
-  colnames(pairwise_matrix) <- unique(metadata$group)
+  pairwise_p_matrix <- matrix(NA, nrow = length(unique(metadata$group)), ncol = length(unique(metadata$group)))
+  rownames(pairwise_p_matrix) <- unique(metadata$group)
+  colnames(pairwise_p_matrix) <- unique(metadata$group)
   for (i in 2:length(pairwise_permanova)){
     group1 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][1]
     group2 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][2]
     pval <- pairwise_permanova[[i]][1,6]
-    pairwise_matrix[group2, group1] <- pval
+    pairwise_p_matrix[group2, group1] <- pval
   }
-  return(list(permanova_res = permanova_res, pairwise_raw = pairwise_permanova, pairwise_matrix = pairwise_matrix))
+  # Organize posthoc F values for visualization
+  pairwise_F_matrix <- matrix(NA, nrow = length(unique(metadata$group)), ncol = length(unique(metadata$group)))
+  rownames(pairwise_F_matrix) <- unique(metadata$group)
+  colnames(pairwise_F_matrix) <- unique(metadata$group)
+  for (i in 2:length(pairwise_permanova)){
+    group1 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][1]
+    group2 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][2]
+    Fval <- pairwise_permanova[[i]][1,4]
+    pairwise_F_matrix[group2, group1] <- Fval
+  }
+  # Organize posthoc R^2 values for visualization
+  pairwise_R2_matrix <- matrix(NA, nrow = length(unique(metadata$group)), ncol = length(unique(metadata$group)))
+  rownames(pairwise_R2_matrix) <- unique(metadata$group)
+  colnames(pairwise_R2_matrix) <- unique(metadata$group)
+  for (i in 2:length(pairwise_permanova)){
+    group1 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][1]
+    group2 <- stringr::str_split(names(pairwise_permanova)[i], '_vs_')[[1]][2]
+    R2val <- pairwise_permanova[[i]][1,3]
+    pairwise_R2_matrix[group2, group1] <- R2val
+  }
+  return(list(permanova_res = permanova_res, pairwise_raw = pairwise_permanova, pairwise_p_matrix = pairwise_p_matrix, pairwise_F_matrix = pairwise_F_matrix, pairwise_R2_matrix = pairwise_R2_matrix))
 }
 
 ########################################################################################
@@ -912,6 +932,8 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
   write.csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
   write.csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
   write.csv(as.data.frame(permanova$pairwise_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2value_matrix.csv'))
 }
 
 
@@ -2456,7 +2478,9 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
   permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
   write.csv(permanova$permanova_res, paste0(prefix, '_permanova_results.csv'))
   write.csv(as.data.frame(permanova$pairwise_raw), paste0(prefix, '_pairwise_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(prefix, '_pairwise_permanova_F_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(prefix, '_pairwise_permanova_R2_matrix.csv'))
 }
 
 #' PCoAplot
