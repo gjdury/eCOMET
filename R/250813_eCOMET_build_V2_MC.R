@@ -2519,7 +2519,9 @@ PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
   permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
   write.csv(permanova$permanova_res, paste0(prefix, '_permanova_results.csv'))
   write.csv(as.data.frame(permanova$pairwise_raw), paste0(prefix, '_pairwise_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(prefix, '_pairwise_permanova_F_matrix.csv'))
+  write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(prefix, '_pairwise_permanova_R2_matrix.csv'))
 }
 
 #' CalculateGroupBetaDistance
