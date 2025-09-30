@@ -2190,6 +2190,7 @@ GetFunctionalHillNumber <- function(mmo, normalization = 'None',q = 1, distance 
 
   if (filter_feature == TRUE){
     id_list <- FeatureToID(mmo, feature_list)
+    id_list <- rownames(distance_matrix)[rownames(distance_matrix) %in% id_list]
     distance_matrix <- distance_matrix[id_list, id_list]
   }
   scaled_dissimilarity <- distance_matrix / max(distance_matrix)
@@ -2308,7 +2309,11 @@ GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'weight
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
 #' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
 #' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
+#' @export
 #' @return A data frame containing the specialization index for each group in the metadata, with columns for group and specialization index.
+#' @examplesIf FALSE
+#' specialization_index <- GetSpecializationIndex(mmo, normalization = 'None', filter_group = FALSE)
+#' specialization_index <- GetSpecializationIndex(mmo, normalization = 'Z', filter_group = TRUE, group_list = c('Control', 'Treatment1'), filter_feature = TRUE
 GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = FALSE, group_list = NULL, filter_feature = FALSE, feature_list = NULL){
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
