@@ -1261,7 +1261,7 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
     all_feature$classifications_split <- all_feature[['ClassyFire#subclass']]
     subset_feature$classifications_split <- subset_feature[['ClassyFire#subclass']]
   } else if (term_level == "ClassyFire_level5") {
-    all_feature$classifications_split <- all_feature[['ClassyFire#level5']]
+    all_feature$classifications_split <- all_feature[['ClassyFire#level 5']]
     subset_feature$classifications_split <- subset_feature[['ClassyFire#level 5']]
   } else if (term_level == "ClassyFire_most_specific") {
     all_feature$classifications_split <- all_feature[['ClassyFire#most specific class']]
@@ -1447,7 +1447,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
   write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
   write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
   ggsave(paste0(prefix, '.pdf'), width = width, height = height)
-  return(df.EA.sig)
+  return(df.EA)
 }
 
 #' Generate a plot for enrichment analysis of Canopus-predicted terms across all levels
@@ -1529,7 +1529,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
   write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
   write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
   ggsave(paste0(prefix, '.pdf'), width = width, height = height)
-  return(df.EA.sig)
+  return(df.EA)
 }
 
 
