@@ -1433,7 +1433,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
         breaks = c(0,0.001, 0.01, 0.05, 1),
         labels = c("***", "**", "*", "")
     ))
-
+  
   enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
     geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
     geom_text()+
@@ -1447,6 +1447,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
   write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
   write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
   ggsave(paste0(prefix, '.pdf'), width = width, height = height)
+  return(df.EA.sig)
 }
 
 #' Generate a plot for enrichment analysis of Canopus-predicted terms across all levels
@@ -1528,6 +1529,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
   write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
   write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
   ggsave(paste0(prefix, '.pdf'), width = width, height = height)
+  return(df.EA.sig)
 }
 
 
