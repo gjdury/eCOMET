@@ -1247,25 +1247,25 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
     subset_feature$classifications_split <- subset_feature[['NPC#pathway']]
   } else if (term_level == "NPC_superclass") {
     all_feature$classifications_split <- all_feature[['NPC#superclass']]
-    subset_feature$classifications_split <- subset_feature[[34]]
+    subset_feature$classifications_split <- subset_feature[['NPC#superclass']]
   } else if (term_level == "NPC_class") {
-    all_feature$classifications_split <- all_feature[[36]]
-    subset_feature$classifications_split <- subset_feature[[36]]
+    all_feature$classifications_split <- all_feature[['NPC#class']]
+    subset_feature$classifications_split <- subset_feature[['NPC#class']]
   } else if (term_level == "ClassyFire_superclass") {
-    all_feature$classifications_split <- all_feature[[38]]
-    subset_feature$classifications_split <- subset_feature[[38]]
+    all_feature$classifications_split <- all_feature[['ClassyFire#superclass']]
+    subset_feature$classifications_split <- subset_feature[['ClassyFire#superclass']]
   } else if (term_level == "ClassyFire_class") {
-    all_feature$classifications_split <- all_feature[[40]]
-    subset_feature$classifications_split <- subset_feature[[40]]
+    all_feature$classifications_split <- all_feature[['ClassyFire#class']]
+    subset_feature$classifications_split <- subset_feature[['ClassyFire#class']]
   } else if (term_level == "ClassyFire_subclass") {
-    all_feature$classifications_split <- all_feature[[42]]
-    subset_feature$classifications_split <- subset_feature[[42]]
+    all_feature$classifications_split <- all_feature[['ClassyFire#subclass']]
+    subset_feature$classifications_split <- subset_feature[['ClassyFire#subclass']]
   } else if (term_level == "ClassyFire_level5") {
-    all_feature$classifications_split <- all_feature[[44]]
-    subset_feature$classifications_split <- subset_feature[[44]]
+    all_feature$classifications_split <- all_feature[['ClassyFire#level5']]
+    subset_feature$classifications_split <- subset_feature[['ClassyFire#level 5']]
   } else if (term_level == "ClassyFire_most_specific") {
-    all_feature$classifications_split <- all_feature[[46]]
-    subset_feature$classifications_split <- subset_feature[[46]]
+    all_feature$classifications_split <- all_feature[['ClassyFire#most specific class']]
+    subset_feature$classifications_split <- subset_feature[['ClassyFire#most specific class']]
   } else {
     stop("Invalid term level. Please choose a valid term level.")
   }
@@ -1579,9 +1579,9 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
   } else if (term_level == "ClassyFire_subclass") {
     metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#subclass']])
   } else if (term_level == "ClassyFire_level5") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#level5']])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#level 5']])
   } else if (term_level == "ClassyFire_most_specific") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#most_specific']])
+    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#most specific class']])
   } else {
     stop("Invalid term level. Please choose a valid term level.")
   }
