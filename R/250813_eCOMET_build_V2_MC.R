@@ -1430,8 +1430,8 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
   df.EA.sig <- df.EA.sig |>
     mutate(label = cut(
       .data$fdr,
-        breaks = c(0,0.001, 0.01, 0.05, 1),
-        labels = c("***", "**", "*", "")
+        breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
+        labels = c("***", "**", "*", ".", "")
     ))
   
   enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
@@ -1511,8 +1511,8 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
     df.EA.sig <- df.EA.sig |>
       mutate(label = cut(
         .data$fdr,
-          breaks = c(0,0.001, 0.01, 0.05, 1),
-          labels = c("***", "**", "*", "")
+          breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
+          labels = c("***", "**", "*", ".", "")
       ))
   }
   enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
