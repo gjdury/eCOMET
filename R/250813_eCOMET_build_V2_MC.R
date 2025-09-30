@@ -1170,7 +1170,7 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
   # For each group, get features present in any sample
   group_features <- lapply(unique(metadata$group), function(grp) {
     samples <- metadata |> filter(.data$group == grp) |> pull(.data$sample)
-    present <- feature_data |> select(all_of(.data$samples))
+    present <- feature_data |> select(all_of(samples))
     feature_data$feature[base::rowSums(!is.na(present) & present > 0) > 0]
   })
   names(group_features) <- unique(metadata$group)
@@ -1301,8 +1301,8 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
   results <- results |> filter(.data$term != 'None')
   # Filter for significantly enriched terms
   significant_terms <- results |>
-    filter(.data$pval < pthr) |>
-    arrange(.data$pval)
+    filter(.data$fdr < pthr) |>
+    arrange(.data$fdr)
   if(sig==TRUE){
     return(significant_terms)
   }else{
@@ -1336,7 +1336,7 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
     sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater'))
   }
   sig.canopus <- sig.canopus |> arrange(dplyr::desc(.data$foldenrichment))
-  ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$pval), size = .data$subsetcount)) +
+  ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
     geom_point() +
     scale_color_gradient(low = 'grey', high = 'red') +
     theme_classic()+
@@ -1375,7 +1375,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
   sig.canopus$term <- paste(sig.canopus$term, ';', sig.canopus$term_level)
   sig.canopus <- sig.canopus |> dplyr::slice_max(order_by = -.data$pval, n = topn)
   sig.canopus <- sig.canopus |> dplyr::arrange(dplyr::desc(.data$foldenrichment))
-  ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$pval), size = .data$subsetcount)) +
+  ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
     geom_point() +
     scale_color_gradient(low = 'grey', high = 'red') +
     theme_classic()+
@@ -1429,13 +1429,13 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
   df.EA.sig <- df.EA |> filter(.data$term %in% sig.terms)
   df.EA.sig <- df.EA.sig |>
     mutate(label = cut(
-      .data$pval,
+      .data$fdr,
         breaks = c(0,0.001, 0.01, 0.05, 1),
         labels = c("***", "**", "*", "")
     ))
 
   enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
-    geom_point(aes(size = .data$subsetcount, color = .data$pval))+
+    geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
     geom_text()+
     scale_size_area(name = 'Count', max_size = 10)+
     scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
@@ -1509,13 +1509,13 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
     df.EA.sig <- df.EA |> filter(.data$term %in% sig.terms)
     df.EA.sig <- df.EA.sig |>
       mutate(label = cut(
-        .data$pval,
+        .data$fdr,
           breaks = c(0,0.001, 0.01, 0.05, 1),
           labels = c("***", "**", "*", "")
       ))
   }
   enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
-    geom_point(aes(size = .data$subsetcount, color = .data$pval))+
+    geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
     geom_text()+
     scale_size_area(name = 'Count', max_size = 10)+
     scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
