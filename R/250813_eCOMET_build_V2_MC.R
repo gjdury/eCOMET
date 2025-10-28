@@ -2071,6 +2071,33 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
 }
 
 
+#' GetRichness
+#' 
+#' This function calculates the richness of features for each sample in the mmo object.
+#' Richness is defined as the number of non-missing features observed in each sample.
+#' @param mmo The mmo object containing feature data and metadata
+#' @param filter_feature A boolean indicating whether to filter features based on a provided list (default: FALSE)
+#' @param feature_list A list of features to include in the richness calculation if filter_feature is TRUE (default: NULL)
+#' @return A data frame containing the richness for each sample, with columns for sample, richness, and group.
+#' @export
+#' @examplesIf FALSE
+#' richness_df <- GetRichness(mmo)
+GetRichness <- function(mmo, filter_feature = FALSE, feature_list = NULL) {
+  feature_data <- mmo$feature_data
+  if (filter_feature) {
+    feature_data <- feature_data %>% filter(feature %in% feature_list)
+  }
+  richness <- apply(feature_data[, -(1:2)], 2, function(x) sum(!is.na(x)))
+  
+  metadata <- mmo$metadata
+  groups <- c()
+  for (col in colnames(feature_data)[-c(1, 2)]) {
+    groups <- append(groups, metadata[metadata$sample == col, ]$group)
+  }
+  
+  richness_df <- data.frame(sample = colnames(feature_data)[-c(1, 2)], richness = richness, group = groups)
+  return(richness_df)
+}
 
 #' CalculateCumulativeRichness
 #' 
