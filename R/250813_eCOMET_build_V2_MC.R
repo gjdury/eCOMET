@@ -56,6 +56,7 @@ SwitchGroup <- function(mmo, new_group_col) {
   mmo$metadata$group <- as.factor(mmo$metadata[[new_group_col]])
   print(paste0('Group column switched to ', new_group_col))
   print(paste0(length(unique(mmo$metadata$group)), ' groups in total'))
+  print(paste0('The list of groups are: ', paste(levels(mmo$metadata$group), collapse = ', ')))
   return(mmo)
 }
 
@@ -2551,7 +2552,6 @@ CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
   distances <- data.frame(group = character(), distance = numeric())
 
   for (group in groups) {
-    if (group != reference_group) {
       group_samples <- metadata |> filter(group == !!group) |> pull(sample)
       reference_samples <- metadata |> filter(group == !!reference_group) |> pull(sample)
 
@@ -2560,7 +2560,7 @@ CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
           distance <- beta_div[sample, ref_sample]
           distances <- rbind(distances, data.frame(group = group,sample = sample, distance = distance))
         }
-      }
+      
     }
   }
 

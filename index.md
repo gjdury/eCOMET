@@ -25,6 +25,8 @@
 ---
 
 ## Installation
+The eCOMET uses pairwiseAdonis for PERMANOVA; as it is not in CRAN, users may have to install it separately:
+https://github.com/pmartinezarbizu/pairwiseAdonis
 
 Install the development version from GitHub:
 
