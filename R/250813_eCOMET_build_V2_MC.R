@@ -6,36 +6,96 @@
 #' This function reads mzmine feature data and metadata from specified directories,
 #' to initiate a mmo object containing feature data and metadata
 #'
+#' Import mzmine feature data and metadata to create a mmo object
+#'
 #' @param mzmine_dir Path to the mzmine feature data CSV file
-#' @param metadata_dir Path to the metadata CSV file. The metadata file should contain columns: sample, mass, and at least one grouping column (e.g., treatment)
+#' @param metadata_dir Path to the metadata CSV file (must include sample_col and group_col)
 #' @param group_col Column name in the metadata file used for grouping samples
+#' @param sample_col Column in metadata with the EXACT filename (e.g., "I1_C1_1.mzML" or "I1_C1_1.mzXML")
+#' @param mz_col Optional m/z column name (defaults to "mz" or "row m/z")
+#' @param rt_col Optional RT column name (defaults to "rt" or "row retention time")
 #' @return A mmo object containing the feature data and metadata
 #' @export
-#' @examplesIf FALSE
-#' mmo <- GetMZmineFeature(mzmine_dir = "path/to/mzmine_feature.csv", metadata_dir = "path/to/metadata.csv", group_col = "treatment")
-
-GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col){
+GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
+                             mz_col = NULL, rt_col = NULL) {
   mmo <- list()
-  data <- read.csv(mzmine_dir)
-  #create feature column
-  data <- data |> mutate(feature = paste(.data$mz, .data$rt, sep = '_'))
-  area_columns <- grep("datafile.+\\.mzML.area", names(data), value = TRUE)
+  data <- read.csv(mzmine_dir, check.names = FALSE,stringsAsFactors = FALSE, na.strings = c("", "NA"))
+
+  metadata <- read.csv(metadata_dir, check.names = FALSE)
+
+  if (missing(group_col) || !(group_col %in% names(metadata)))
+    stop("group_col must be provided and exist in the metadata file.")
+  if (missing(sample_col) || !(sample_col %in% names(metadata)))
+    stop("sample_col must be provided and exist in the metadata file.")
+
+  # --- detect mz / rt (or use overrides) ---
+  if (is.null(mz_col))
+    mz_col <- if ("mz" %in% names(data)) "mz" else if ("row m/z" %in% names(data)) "row m/z" else stop("No m/z column found.")
+  if (is.null(rt_col))
+    rt_col <- if ("rt" %in% names(data)) "rt" else if ("row retention time" %in% names(data)) "row retention time" else stop("No RT column found.")
+
+  # --- feature column ---
+  data <- data |> mutate(feature = paste(.data[[mz_col]], .data[[rt_col]], sep = "_"))
+
+  # --- area columns from EXACT metadata filenames ---
+  samples <- trimws(metadata[[sample_col]])                     # e.g., "I1_C1_1.mzML"
+  expected_old <- paste0("datafile:", samples, ":area")         # old export column names
+  expected_new <- paste0(samples, " Peak area")                 # new export column names
+
+  area_columns <- intersect(expected_old, names(data))
+  if (length(area_columns) == 0)
+    area_columns <- intersect(expected_new, names(data))
+  if (length(area_columns) == 0)
+    stop("No area columns matched the EXACT names from metadata[[sample_col]].")
+
+  #make sure areas are treated numerically
+  data[area_columns] <- lapply(data[area_columns], function(x) as.numeric(gsub(",", "", x)))
+
+
+  # --- build feature_df (keep your original layout) ---
+  if (!("id" %in% names(data))) data$id <- seq_len(nrow(data))  # minimal safety
   feature_df <- data |> select(.data$id, .data$feature, all_of(area_columns))
   feature_df$id <- gsub(" ", "", feature_df$id)
+
+  # --- finalize metadata and output ---
+  metadata$sample <- paste0("datafile.", samples, ".area")
   mmo$feature_data <- feature_df
-  metadata <- read.csv(metadata_dir)
-  metadata$sample <- paste('datafile.', metadata$sample, '.area', sep = '')
   mmo$metadata <- metadata
   mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id)
-  if (missing(group_col) || !(group_col %in% colnames(metadata))) {
-    stop("group_col must be provided and must exist in the metadata file.")
-  }  
   mmo$metadata$group <- as.factor(mmo$metadata[[group_col]])
-  print('MMO object created.')
-  print(paste0('Feature number: ', nrow(mmo$feature_data)))
-  print(paste0(nrow(mmo$metadata), ' samples in ', length(unique(mmo$metadata$group)), ' groups'))
+
+  print("MMO object created.")
+  print(paste0("Feature number: ", nrow(mmo$feature_data)))
+  print(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
   return(mmo)
 }
+
+#' Add feature_info to an existing mmo from a full_feature CSV
+#'
+#' @param mmo An existing mmo list (will be returned with $feature_info added)
+#' @param full_feature_csv Path to the MZmine full feature table (CSV)
+#' @return The same mmo with mmo$feature_info set
+#' @export
+AddFeatureInfo <- function(mmo, mzmine_dir) {
+  required <- c(
+    "id","rt","rt_range:min","rt_range:max","mz","mz_range:min","mz_range:max",
+    "feature_group","ion_identities:iin_id","ion_identities:ion_identities"
+  )
+
+  ff <- read.csv(mzmine_dir, check.names = FALSE, stringsAsFactors = FALSE)
+
+  missing <- setdiff(required, names(ff))
+  if (length(missing)) {
+    stop("Missing required columns in mzmine_dir: ",
+         paste(missing, collapse = ", "))
+  }
+
+  # Keep only the required columns, in order
+  mmo$feature_info <- ff[required]
+  rownames(mmo$feature_info) <- NULL
+  return(mmo)
+}
+
 
 
 #' Switch the group column in the mmo object
