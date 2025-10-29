@@ -35,6 +35,6 @@ This function calculates the specialization index for a given mmo object, normal
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 specialization_index <- GetSpecializationIndex(mmo, normalization = 'None', filter_group = FALSE)
-specialization_index <- GetSpecializationIndex(mmo, normalization = 'Z', filter_group = TRUE, group_list = c('Control', 'Treatment1'), filter_feature = TRUE
+specialization_index <- GetSpecializationIndex(mmo, normalization = 'Z', filter_group = TRUE, group_list = c('Control', 'Treatment1'), filter_feature = TRUE)
 \dontshow{\}) # examplesIf}
 }

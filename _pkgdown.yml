@@ -23,6 +23,7 @@ reference:
   - title: "Core dataset processing"
     contents:
       - GetMZmineFeature
+      - AddFeatureInfo
       - AddSiriusAnnot
       - AddChemDist
       - AddCustomAnnot
@@ -57,6 +58,7 @@ reference:
 
   - title: Chemical diversity Analysis
     contents:
+      - GetRichness
       - GetAlphaDiversity
       - GetFunctionalHillNumber
       - GetHillNumbers

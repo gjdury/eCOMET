@@ -9,6 +9,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/news/index.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddChemDist.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddCustomAnnot.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/AddFeatureInfo.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AddSiriusAnnot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/AnovaBarPlot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/BootCumulRichnessAUC.html</loc></url>
@@ -39,6 +40,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetPerformanceFeatureCorrelation.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetPerformanceFeatureLMM.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetPerformanceFeatureRegression.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/GetRichness.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetSpecializationIndex.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/IDToFeature.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/LogNormalization.html</loc></url>

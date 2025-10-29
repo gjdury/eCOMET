@@ -76,17 +76,17 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 #' @param full_feature_csv Path to the MZmine full feature table (CSV)
 #' @return The same mmo with mmo$feature_info set
 #' @export
-AddFeatureInfo <- function(mmo, mzmine_dir) {
+AddFeatureInfo <- function(mmo, full_feature_csv) {
   required <- c(
     "id","rt","rt_range:min","rt_range:max","mz","mz_range:min","mz_range:max",
     "feature_group","ion_identities:iin_id","ion_identities:ion_identities"
   )
 
-  ff <- read.csv(mzmine_dir, check.names = FALSE, stringsAsFactors = FALSE)
+  ff <- read.csv(full_feature_csv, check.names = FALSE, stringsAsFactors = FALSE)
 
   missing <- setdiff(required, names(ff))
   if (length(missing)) {
-    stop("Missing required columns in mzmine_dir: ",
+    stop("Missing required columns in full_feature_csv: ",
          paste(missing, collapse = ", "))
   }
 
@@ -2080,12 +2080,10 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
 #' @param feature_list A list of features to include in the richness calculation if filter_feature is TRUE (default: NULL)
 #' @return A data frame containing the richness for each sample, with columns for sample, richness, and group.
 #' @export
-#' @examplesIf FALSE
-#' richness_df <- GetRichness(mmo)
 GetRichness <- function(mmo, filter_feature = FALSE, feature_list = NULL) {
   feature_data <- mmo$feature_data
   if (filter_feature) {
-    feature_data <- feature_data %>% filter(feature %in% feature_list)
+    feature_data <- feature_data |> filter(.data$feature %in% feature_list)
   }
   richness <- apply(feature_data[, -(1:2)], 2, function(x) sum(!is.na(x)))
   
@@ -2403,7 +2401,7 @@ GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'weight
 #' @return A data frame containing the specialization index for each group in the metadata, with columns for group and specialization index.
 #' @examplesIf FALSE
 #' specialization_index <- GetSpecializationIndex(mmo, normalization = 'None', filter_group = FALSE)
-#' specialization_index <- GetSpecializationIndex(mmo, normalization = 'Z', filter_group = TRUE, group_list = c('Control', 'Treatment1'), filter_feature = TRUE
+#' specialization_index <- GetSpecializationIndex(mmo, normalization = 'Z', filter_group = TRUE, group_list = c('Control', 'Treatment1'), filter_feature = TRUE)
 GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = FALSE, group_list = NULL, filter_feature = FALSE, feature_list = NULL){
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)

@@ -4,14 +4,27 @@
 \alias{GetMZmineFeature}
 \title{Import mzmine feature data and metadata to create a mmo object}
 \usage{
-GetMZmineFeature(mzmine_dir, metadata_dir, group_col)
+GetMZmineFeature(
+  mzmine_dir,
+  metadata_dir,
+  group_col,
+  sample_col,
+  mz_col = NULL,
+  rt_col = NULL
+)
 }
 \arguments{
 \item{mzmine_dir}{Path to the mzmine feature data CSV file}
 
-\item{metadata_dir}{Path to the metadata CSV file. The metadata file should contain columns: sample, mass, and at least one grouping column (e.g., treatment)}
+\item{metadata_dir}{Path to the metadata CSV file (must include sample_col and group_col)}
 
 \item{group_col}{Column name in the metadata file used for grouping samples}
+
+\item{sample_col}{Column in metadata with the EXACT filename (e.g., "I1_C1_1.mzML" or "I1_C1_1.mzXML")}
+
+\item{mz_col}{Optional m/z column name (defaults to "mz" or "row m/z")}
+
+\item{rt_col}{Optional RT column name (defaults to "rt" or "row retention time")}
 }
 \value{
 A mmo object containing the feature data and metadata
@@ -19,9 +32,6 @@ A mmo object containing the feature data and metadata
 \description{
 This function reads mzmine feature data and metadata from specified directories,
 to initiate a mmo object containing feature data and metadata
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-mmo <- GetMZmineFeature(mzmine_dir = "path/to/mzmine_feature.csv", metadata_dir = "path/to/metadata.csv", group_col = "treatment")
-\dontshow{\}) # examplesIf}
+
+Import mzmine feature data and metadata to create a mmo object
 }
