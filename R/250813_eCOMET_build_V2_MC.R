@@ -63,7 +63,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
   mmo$metadata <- metadata
   mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id)
   mmo$metadata$group <- as.factor(mmo$metadata[[group_col]])
-
+  colnames(mmo$feature_data)[-c(1,2)] <- mmo$metadata$sample
   print("MMO object created.")
   print(paste0("Feature number: ", nrow(mmo$feature_data)))
   print(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
@@ -1849,10 +1849,11 @@ GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, compariso
 #' @param groups A vector of group names from the metadata containing performance data
 #' @param DAM.list A list of DAMs to tag features
 #' @param comparisons A list of pairwise comparisons to add fold change columns
+#' @param cor_method The correlation method to use. Options are 'pearson', 'spearman', or 'kendall' (default: 'pearson')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @return A data frame containing correlation results for each feature, including effect size (correlation coefficient), p-value, and fold change columns for specified comparisons.
 #' @export
-GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, comparisons, normalization = 'None'){
+GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, comparisons, cor_method = 'pearson', normalization = 'None'){
   feature <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
 
@@ -1867,9 +1868,9 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
     feature_name <- feature$feature[i]
     feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
     combined_df <- merge(phenotype.df, feature_df, by='sample')
-    pearson <- cor.test(combined_df$performance, combined_df$feature_value)
-    pval <- pearson[[3]]
-    cor <- pearson[[4]]
+    cor <- cor.test(combined_df$performance, combined_df$feature_value, method = cor_method)
+    pval <- cor[[3]]
+    cor <- cor[[4]]
     tag <- "else"
     for (list_name in names(DAM.list)) {
       if (feature_name %in% DAM.list[[list_name]]) {

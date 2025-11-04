@@ -10,6 +10,7 @@ GetPerformanceFeatureCorrelation(
   groups,
   DAM.list,
   comparisons,
+  cor_method = "pearson",
   normalization = "None"
 )
 }
@@ -23,6 +24,8 @@ GetPerformanceFeatureCorrelation(
 \item{DAM.list}{A list of DAMs to tag features}
 
 \item{comparisons}{A list of pairwise comparisons to add fold change columns}
+
+\item{cor_method}{The correlation method to use. Options are 'pearson', 'spearman', or 'kendall' (default: 'pearson')}
 
 \item{normalization}{The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
 }
