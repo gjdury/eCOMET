@@ -19,7 +19,7 @@
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
                              mz_col = NULL, rt_col = NULL) {
   mmo <- list()
-  data <- read.csv(mzmine_dir, check.names = FALSE,stringsAsFactors = FALSE, na.strings = c("", "NA"))
+  data <- read.csv(mzmine_dir, stringsAsFactors = FALSE, na.strings = c("", "NA"))
 
   metadata <- read.csv(metadata_dir, check.names = FALSE)
 
@@ -63,10 +63,9 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
   mmo$metadata <- metadata
   mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id)
   mmo$metadata$group <- as.factor(mmo$metadata[[group_col]])
-  colnames(mmo$feature_data)[-c(1,2)] <- mmo$metadata$sample
-  print("MMO object created.")
-  print(paste0("Feature number: ", nrow(mmo$feature_data)))
-  print(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
+  message("MMO object created.")
+  message(paste0("Feature number: ", nrow(mmo$feature_data)))
+  message(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
   return(mmo)
 }
 
@@ -1611,6 +1610,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' @param width The width of the output plot in inches (default: 8)
 #' @param height The height of the output plot in inches (default: 12)
 #' @param sig A logical value indicating whether to return only significant terms (default: FALSE)
+#' @return A data frame containing the MSEA results, including pathway, NES, p-value, and adjusted p-value (FDR)
 #' @export 
 #' @examplesIf FALSE
 #' # Perform MSEA using NPC_class level
@@ -1667,6 +1667,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
     theme_classic() +
     theme(legend.position = "top", axis.text.y = element_text(size = 6)) 
   ggsave(paste0(prefix,'_', term_level,'.pdf'), width = width, height = height)
+  return (msea_res)
 }
 
 

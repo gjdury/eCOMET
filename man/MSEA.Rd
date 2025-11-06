@@ -38,6 +38,9 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 
 \item{sig}{A logical value indicating whether to return only significant terms (default: FALSE)}
 }
+\value{
+A data frame containing the MSEA results, including pathway, NES, p-value, and adjusted p-value (FDR)
+}
 \description{
 This function performs Metabolite Set Enrichment Analysis (MSEA) using the fgsea package.
 It takes a ranked list of feature scores and tests for enrichment of metabolite sets based on Canopus-predicted terms.
