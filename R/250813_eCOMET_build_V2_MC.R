@@ -10,8 +10,8 @@
 #'
 #' @param mzmine_dir Path to the mzmine feature data CSV file
 #' @param metadata_dir Path to the metadata CSV file (must include sample_col and group_col)
-#' @param group_col Column name in the metadata file used for grouping samples
-#' @param sample_col Column in metadata with the EXACT filename (e.g., "I1_C1_1.mzML" or "I1_C1_1.mzXML")
+#' @param group_col Column name in the metadata file used for grouping samples together i.e into treatments or species.
+#' @param sample_col Column in metadata file used to identify and match individual samples 
 #' @param mz_col Optional m/z column name (defaults to "mz" or "row m/z")
 #' @param rt_col Optional RT column name (defaults to "rt" or "row retention time")
 #' @return A mmo object containing the feature data and metadata
@@ -19,7 +19,7 @@
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
                              mz_col = NULL, rt_col = NULL) {
   mmo <- list()
-  data <- read.csv(mzmine_dir, stringsAsFactors = FALSE, na.strings = c("", "NA"))
+  data <- read.csv(mzmine_dir, check.names = FALSE,stringsAsFactors = FALSE, na.strings = c("", "NA"))
 
   metadata <- read.csv(metadata_dir, check.names = FALSE)
 
@@ -63,9 +63,10 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
   mmo$metadata <- metadata
   mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id)
   mmo$metadata$group <- as.factor(mmo$metadata[[group_col]])
-  message("MMO object created.")
-  message(paste0("Feature number: ", nrow(mmo$feature_data)))
-  message(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
+
+  print("MMO object created.")
+  print(paste0("Feature number: ", nrow(mmo$feature_data)))
+  print(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
   return(mmo)
 }
 
