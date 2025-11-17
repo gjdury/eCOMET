@@ -56,7 +56,8 @@ to initiate a mmo object containing feature data and metadata</p>
 <span>  <span class="va">group_col</span>,</span>
 <span>  <span class="va">sample_col</span>,</span>
 <span>  mz_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  rt_col <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  rt_col <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  check.names <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -73,11 +74,11 @@ to initiate a mmo object containing feature data and metadata</p>
 
 
 <dt id="arg-group-col">group_col<a class="anchor" aria-label="anchor" href="#arg-group-col"></a></dt>
-<dd><p>Column name in the metadata file used for grouping samples</p></dd>
+<dd><p>Column name in the metadata file used for grouping samples together i.e into treatments or species.</p></dd>
 
 
 <dt id="arg-sample-col">sample_col<a class="anchor" aria-label="anchor" href="#arg-sample-col"></a></dt>
-<dd><p>Column in metadata with the EXACT filename (e.g., "I1_C1_1.mzML" or "I1_C1_1.mzXML")</p></dd>
+<dd><p>Column in metadata file used to identify and match individual samples</p></dd>
 
 
 <dt id="arg-mz-col">mz_col<a class="anchor" aria-label="anchor" href="#arg-mz-col"></a></dt>
@@ -86,6 +87,10 @@ to initiate a mmo object containing feature data and metadata</p>
 
 <dt id="arg-rt-col">rt_col<a class="anchor" aria-label="anchor" href="#arg-rt-col"></a></dt>
 <dd><p>Optional RT column name (defaults to "rt" or "row retention time")</p></dd>
+
+
+<dt id="arg-check-names">check.names<a class="anchor" aria-label="anchor" href="#arg-check-names"></a></dt>
+<dd><p>Logical indicating whether to check and adjust column names when reading CSV files (default: FALSE)</p></dd>
 
 </dl></div>
     <div class="section level2">

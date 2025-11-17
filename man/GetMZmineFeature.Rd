@@ -10,7 +10,8 @@ GetMZmineFeature(
   group_col,
   sample_col,
   mz_col = NULL,
-  rt_col = NULL
+  rt_col = NULL,
+  check.names = FALSE
 )
 }
 \arguments{
@@ -18,13 +19,15 @@ GetMZmineFeature(
 
 \item{metadata_dir}{Path to the metadata CSV file (must include sample_col and group_col)}
 
-\item{group_col}{Column name in the metadata file used for grouping samples}
+\item{group_col}{Column name in the metadata file used for grouping samples together i.e into treatments or species.}
 
-\item{sample_col}{Column in metadata with the EXACT filename (e.g., "I1_C1_1.mzML" or "I1_C1_1.mzXML")}
+\item{sample_col}{Column in metadata file used to identify and match individual samples}
 
 \item{mz_col}{Optional m/z column name (defaults to "mz" or "row m/z")}
 
 \item{rt_col}{Optional RT column name (defaults to "rt" or "row retention time")}
+
+\item{check.names}{Logical indicating whether to check and adjust column names when reading CSV files (default: FALSE)}
 }
 \value{
 A mmo object containing the feature data and metadata

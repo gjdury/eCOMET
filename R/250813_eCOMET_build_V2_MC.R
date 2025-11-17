@@ -14,14 +14,15 @@
 #' @param sample_col Column in metadata file used to identify and match individual samples 
 #' @param mz_col Optional m/z column name (defaults to "mz" or "row m/z")
 #' @param rt_col Optional RT column name (defaults to "rt" or "row retention time")
+#' @param check.names Logical indicating whether to check and adjust column names when reading CSV files (default: FALSE)
 #' @return A mmo object containing the feature data and metadata
 #' @export
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
-                             mz_col = NULL, rt_col = NULL) {
+                             mz_col = NULL, rt_col = NULL, check.names = FALSE) {
   mmo <- list()
-  data <- read.csv(mzmine_dir, check.names = FALSE,stringsAsFactors = FALSE, na.strings = c("", "NA"))
+  data <- read.csv(mzmine_dir, check.names = check.names,stringsAsFactors = FALSE, na.strings = c("", "NA"))
 
-  metadata <- read.csv(metadata_dir, check.names = FALSE)
+  metadata <- read.csv(metadata_dir, check.names = check.names)
 
   if (missing(group_col) || !(group_col %in% names(metadata)))
     stop("group_col must be provided and exist in the metadata file.")
