@@ -40,7 +40,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 
   # --- area columns from EXACT metadata filenames ---
   samples <- trimws(metadata[[sample_col]])                     # e.g., "I1_C1_1.mzML"
-  expected_old <- paste0("datafile:", samples, ":area")         # old export column names
+  expected_old <- paste0("datafile.", samples, ".area")         # old export column names
   expected_new <- paste0(samples, " Peak area")                 # new export column names
 
   area_columns <- intersect(expected_old, names(data))
