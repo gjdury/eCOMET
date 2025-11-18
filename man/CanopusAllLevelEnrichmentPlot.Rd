@@ -13,7 +13,8 @@ CanopusAllLevelEnrichmentPlot(
   representation = "greater",
   prefix = "enrichment",
   height = 10,
-  width = 8
+  width = 8,
+  pval = "pval"
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ CanopusAllLevelEnrichmentPlot(
 \item{height}{The height of the output plot in inches (default: 10)}
 
 \item{width}{The width of the output plot in inches (default: 8)}
+
+\item{pval}{pvalue options-pval or fdr (default: 'pval')}
 }
 \description{
 This function generates a plot for enrichment analysis of Canopus-predicted terms across all levels,

@@ -1286,6 +1286,7 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
 #'               Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class', 'ClassyFire_superclass', 'ClassyFire_class',
 #'              'ClassyFire_subclass', 'ClassyFire_level5', or 'ClassyFire_most_specific' (default: 'NPC_pathway')
 #' @param representation The representation type for enrichment analysis. Options are 'greater' for overrepresentation (default: 'greater')
+#' @param pval pvalue options-pval or fdr (default: 'pval')
 #' @return A data frame containing the enrichment results, including term level, term name, subset count, total count, fold enrichment, p-value, and adjusted p-value (FDR)
 #' @export
 #' @examplesIf FALSE
@@ -1299,7 +1300,7 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
 #'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
 #'  sig = FALSE, term_level = 'ClassyFire_class', representation = 'greater'
 #' )
-CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term_level = 'NPC_pathway', representation = 'greater'){
+CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term_level = 'NPC_pathway', representation = 'greater', pval = 'pval'){
   all_feature <- mmo$sirius_annot
   subset_feature <- mmo$sirius_annot |> filter(.data$feature %in% list_test)
   # print(paste('total features:', nrow(all_feature), 'list_test features:', nrow(subset_feature)))
@@ -1362,9 +1363,17 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
   )
   results <- results |> filter(.data$term != 'None')
   # Filter for significantly enriched terms
-  significant_terms <- results |>
-    filter(.data$fdr < pthr) |>
-    arrange(.data$fdr)
+  if(pval == 'pval'){
+    significant_terms <- results |>
+      filter(.data$pval < pthr) |>
+      arrange(.data$pval)
+  } else if (pval == 'fdr'){
+    significant_terms <- results |>
+      filter(.data$fdr < pthr) |>
+      arrange(.data$fdr)
+  } else {
+    stop("Invalid pval option. Please choose 'pval' or 'fdr'.")
+  }
   if(sig==TRUE){
     return(significant_terms)
   }else{
@@ -1383,6 +1392,7 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' @param outdir The output file path for the enrichment plot
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
+#' @param pval pvalue options-pval or fdr (default: 'pval')
 #' @export 
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot(
@@ -1391,11 +1401,11 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #'  height = 5, width = 5
 #' )
 #' 
-CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5){
+CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, pval = 'pval'){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
   for (term_level in term_levels){
-    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater'))
+    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater', pval = pval))
   }
   sig.canopus <- sig.canopus |> arrange(dplyr::desc(.data$foldenrichment))
   ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
@@ -1421,6 +1431,7 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @param topn The number of top terms to display in the plot (default: 5)
+#' @param pval pvalue options-pval or fdr (default: 'pval')
 #' @export
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot_2(
@@ -1428,11 +1439,11 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #'  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf', 
 #'  height = 5, width = 5, topn = 5
 #' )
-CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5){
+CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5, pval = 'pval'){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
   for (term_level in term_levels){
-    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater'))
+    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater', pval = pval))
   }
   sig.canopus$term <- paste(sig.canopus$term, ';', sig.canopus$term_level)
   sig.canopus <- sig.canopus |> dplyr::slice_max(order_by = -.data$pval, n = topn)
@@ -1463,6 +1474,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #' @param prefix The prefix for output files (default: 'enrichment')
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
+#' @param pval pvalue options-pval or fdr (default: 'pval')
 #' @export
 #' @examplesIf FALSE
 #' # Perform enrichment analysis for multiple comparisons using NPC_pathway level
@@ -1475,26 +1487,35 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot', 
 #'  height = 5, width = 5
 #' )
-CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_pathway',pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 5, width = 5){
+CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_pathway',pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 5, width = 5, pval = 'pval'){
   df.EA <- data.frame()
   sig.terms <- c()
   for(list in names(comp.list)){
     # Calculate enrichment score for all terms
-    res <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=FALSE, pthr = pthr, representation = representation, term_level = term_level)
+    res <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=FALSE, pthr = pthr, representation = representation, term_level = term_level, pval = pval)
     res <- res |> mutate(comp = list)
     df.EA <- dplyr::bind_rows(df.EA, res)
     # get terms that are at least once enriched in one comparison
-    res.sig <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=TRUE, pthr = pthr, representation = representation, term_level = term_level)
+    res.sig <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=TRUE, pthr = pthr, representation = representation, term_level = term_level, pval = pval)
     sig.terms <- append(sig.terms, res.sig$term)
   }
   sig.terms <- unique(sig.terms)
   df.EA.sig <- df.EA |> filter(.data$term %in% sig.terms)
-  df.EA.sig <- df.EA.sig |>
-    mutate(label = cut(
-      .data$fdr,
+  if (pval == 'pval'){
+    df.EA.sig <- df.EA.sig |>
+      mutate(label = cut(
+        .data$pval,
         breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
         labels = c("***", "**", "*", ".", "")
-    ))
+      ))
+  } else if (pval == 'fdr'){
+    df.EA.sig <- df.EA.sig |>
+      mutate(label = cut(
+        .data$fdr,
+        breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
+        labels = c("***", "**", "*", ".", "")
+      ))
+  }  
   
   enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
     geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
@@ -1525,6 +1546,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #' @param prefix The prefix for output files (default: 'enrichment')
 #' @param height The height of the output plot in inches (default: 10)
 #' @param width The width of the output plot in inches (default: 8)
+#' @param pval pvalue options-pval or fdr (default: 'pval')
 #' @export
 #' @examplesIf FALSE
 #' comp.list <- list(
@@ -1546,7 +1568,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels', 
 #'  height = 10, width = 8
 #' )
-CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_terms', term_levels = NULL, pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 10, width = 8){
+CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_terms', term_levels = NULL, pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 10, width = 8, pval = 'pval'){
   df.EA <- data.frame()
   sig.terms <- c()
   if(terms == 'all_terms'){
@@ -1561,21 +1583,30 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
   for(term_level in term_levels){
     for(list in names(comp.list)){
       # Calculate enrichment score for all terms
-      res <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=FALSE, pthr = pthr, representation = representation, term_level = term_level)
+      res <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=FALSE, pthr = pthr, representation = representation, term_level = term_level, pval = pval)
       res <- res |> mutate(comp = list)
       df.EA <- dplyr::bind_rows(df.EA, res)
       # get terms that are at least once enriched in one comparison
-      res.sig <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=TRUE, pthr = pthr, representation = representation, term_level = term_level)
+      res.sig <- CanopusLevelEnrichmentAnal(mmo = mmo, list_test = comp.list[[list]],sig=TRUE, pthr = pthr, representation = representation, term_level = term_level, pval = pval)
       sig.terms <- append(sig.terms, res.sig$term)
     }
     sig.terms <- unique(sig.terms)
     df.EA.sig <- df.EA |> filter(.data$term %in% sig.terms)
-    df.EA.sig <- df.EA.sig |>
-      mutate(label = cut(
-        .data$fdr,
+    if (pval == 'pval'){
+      df.EA.sig <- df.EA.sig |>
+        mutate(label = cut(
+          .data$pval,
           breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
           labels = c("***", "**", "*", ".", "")
-      ))
+        ))
+    } else if (pval == 'fdr'){
+      df.EA.sig <- df.EA.sig |>
+        mutate(label = cut(
+          .data$fdr,
+          breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
+          labels = c("***", "**", "*", ".", "")
+        ))
+    }  
   }
   enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
     geom_point(aes(size = .data$subsetcount, color = .data$fdr))+

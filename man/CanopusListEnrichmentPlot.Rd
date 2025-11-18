@@ -10,7 +10,8 @@ CanopusListEnrichmentPlot(
   pthr = 0.05,
   outdir,
   height = 5,
-  width = 5
+  width = 5,
+  pval = "pval"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ CanopusListEnrichmentPlot(
 \item{height}{The height of the output plot in inches (default: 5)}
 
 \item{width}{The width of the output plot in inches (default: 5)}
+
+\item{pval}{pvalue options-pval or fdr (default: 'pval')}
 }
 \description{
 This function generates a plot for enrichment analysis of Canopus-predicted terms,

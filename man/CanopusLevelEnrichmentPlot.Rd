@@ -12,7 +12,8 @@ CanopusLevelEnrichmentPlot(
   representation = "greater",
   prefix = "enrichment",
   height = 5,
-  width = 5
+  width = 5,
+  pval = "pval"
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 \item{height}{The height of the output plot in inches (default: 5)}
 
 \item{width}{The width of the output plot in inches (default: 5)}
+
+\item{pval}{pvalue options-pval or fdr (default: 'pval')}
 }
 \description{
 This function generates a plot for enrichment analysis of Canopus-predicted terms at a specific level,

@@ -10,7 +10,8 @@ CanopusLevelEnrichmentAnal(
   pthr = 0.1,
   sig = TRUE,
   term_level = "NPC_pathway",
-  representation = "greater"
+  representation = "greater",
+  pval = "pval"
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class', 'ClassyFire_superclass
 'ClassyFire_subclass', 'ClassyFire_level5', or 'ClassyFire_most_specific' (default: 'NPC_pathway')}
 
 \item{representation}{The representation type for enrichment analysis. Options are 'greater' for overrepresentation (default: 'greater')}
+
+\item{pval}{pvalue options-pval or fdr (default: 'pval')}
 }
 \value{
 A data frame containing the enrichment results, including term level, term name, subset count, total count, fold enrichment, p-value, and adjusted p-value (FDR)

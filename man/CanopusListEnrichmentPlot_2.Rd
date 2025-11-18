@@ -11,7 +11,8 @@ CanopusListEnrichmentPlot_2(
   outdir,
   height = 5,
   width = 5,
-  topn = 5
+  topn = 5,
+  pval = "pval"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ CanopusListEnrichmentPlot_2(
 \item{width}{The width of the output plot in inches (default: 5)}
 
 \item{topn}{The number of top terms to display in the plot (default: 5)}
+
+\item{pval}{pvalue options-pval or fdr (default: 'pval')}
 }
 \description{
 This function generates a plot for enrichment analysis of Canopus-predicted terms across multiple levels,
