@@ -87,6 +87,8 @@ reference:
   - title: Output
     contents:
       - ExportFeaturesToCSV
+      - SaveMMO
+      - LoadMMO
 
   - title: misc
     contents:

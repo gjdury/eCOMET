@@ -2708,3 +2708,48 @@ CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
 
   return(distances)
 }
+
+#' Save entire mmo object to a file (RDS)
+#'
+#' @param mmo The mmo object (list) to save
+#' @param file File path to write (default: "mmo.rds")
+#' @param compress Compression type passed to saveRDS ("gzip", "bzip2", "xz", or logical) (default: "xz")
+#' @param include_session Logical; if TRUE attach sessionInfo() as an attribute to the saved object (default: TRUE)
+#' @return Invisibly returns the file path
+#' @export
+SaveMMO <- function(mmo, file = "mmo.rds", compress = "xz", include_session = TRUE) {
+  if (missing(mmo) || !is.list(mmo)) stop("mmo must be a list-like object")
+  if (include_session) {
+    attr(mmo, "saved_session_info") <- sessionInfo()
+  }
+  saveRDS(mmo, file = file, compress = compress)
+  message("Saved mmo to: ", file)
+  invisible(file)
+}
+
+
+#' Load an mmo object previously saved with SaveMMO
+#'
+#' This function returns the loaded mmo object (visible return). By default it prints basic
+#' information about the R version and recorded packages that were present when the object
+#' was saved.
+#'
+#' @param file Path to an RDS file created with SaveMMO
+#' @param check_session Logical; if TRUE and save-time session info is present, print a short summary (default: TRUE)
+#' @param verbose Logical; print messages about saved session info when available (default: TRUE)
+#' @return The loaded mmo object (list)
+#' @export
+LoadMMO <- function(file, check_session = TRUE, verbose = TRUE) {
+  if (!file.exists(file)) stop("File not found: ", file)
+  mmo <- readRDS(file)
+  if (check_session && !is.null(attr(mmo, "saved_session_info"))) {
+    saved_si <- attr(mmo, "saved_session_info")
+    if (verbose) {
+      message("mmo was saved with R: ", saved_si$R.version$version.string)
+      pkgs <- names(saved_si$otherPkgs)
+      if (length(pkgs) > 0) message("Top packages at save-time: ", paste(head(pkgs, 20), collapse = ", "))
+    }
+  }
+  return(mmo)
+}
+
