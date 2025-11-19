@@ -1508,6 +1508,15 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
         breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
         labels = c("***", "**", "*", ".", "")
       ))
+    enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+      geom_point(aes(size = .data$subsetcount, color = .data$pval))+
+      geom_text()+
+      scale_size_area(name = 'Count', max_size = 10)+
+      scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
+      theme_minimal()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))+
+      xlab('Comparisons')+
+      ylab('Chemical classes')
   } else if (pval == 'fdr'){
     df.EA.sig <- df.EA.sig |>
       mutate(label = cut(
@@ -1515,17 +1524,18 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
         breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
         labels = c("***", "**", "*", ".", "")
       ))
+    enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+      geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
+      geom_text()+
+      scale_size_area(name = 'Count', max_size = 10)+
+      scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
+      theme_minimal()+
+      theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))+
+      xlab('Comparisons')+
+      ylab('Chemical classes')
   }  
   
-  enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
-    geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
-    geom_text()+
-    scale_size_area(name = 'Count', max_size = 10)+
-    scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
-    theme_minimal()+
-    theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))+
-    xlab('Comparisons')+
-    ylab('Chemical classes')
+
   enrichment_plot
   write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
   write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
@@ -1599,6 +1609,16 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
           breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
           labels = c("***", "**", "*", ".", "")
         ))
+      enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+        geom_point(aes(size = .data$subsetcount, color = .data$pval))+
+        geom_text()+
+        scale_size_area(name = 'Count', max_size = 10)+
+        scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
+        theme_minimal()+
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))+
+        xlab('Comparisons')+
+        ylab('Chemical classes')+
+        facet_grid(term_level ~ ., scales = 'free_y', space = 'free', switch = 'y')
     } else if (pval == 'fdr'){
       df.EA.sig <- df.EA.sig |>
         mutate(label = cut(
@@ -1606,18 +1626,20 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
           breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
           labels = c("***", "**", "*", ".", "")
         ))
+      enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+        geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
+        geom_text()+
+        scale_size_area(name = 'Count', max_size = 10)+
+        scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
+        theme_minimal()+
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))+
+        xlab('Comparisons')+
+        ylab('Chemical classes')+
+        facet_grid(term_level ~ ., scales = 'free_y', space = 'free', switch = 'y')
     }  
   }
-  enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
-    geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
-    geom_text()+
-    scale_size_area(name = 'Count', max_size = 10)+
-    scale_color_gradient2(low = 'red', high = 'grey', mid = 'grey', midpoint = 0.4)+
-    theme_minimal()+
-    theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))+
-    xlab('Comparisons')+
-    ylab('Chemical classes')+
-    facet_grid(term_level ~ ., scales = 'free_y', space = 'free', switch = 'y')
+
+
   enrichment_plot
   write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
   write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
