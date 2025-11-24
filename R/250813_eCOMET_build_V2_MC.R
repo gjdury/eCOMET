@@ -11,18 +11,18 @@
 #' @param mzmine_dir Path to the mzmine feature data CSV file
 #' @param metadata_dir Path to the metadata CSV file (must include sample_col and group_col)
 #' @param group_col Column name in the metadata file used for grouping samples together i.e into treatments or species.
-#' @param sample_col Column in metadata file used to identify and match individual samples 
+#' @param sample_col Column in metadata file used to identify and match individual samples
 #' @param mz_col Optional m/z column name (defaults to "mz" or "row m/z")
 #' @param rt_col Optional RT column name (defaults to "rt" or "row retention time")
 #' @param check.names Logical indicating whether to check and adjust column names when reading CSV files (default: FALSE)
 #' @return A mmo object containing the feature data and metadata
 #' @export
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
-                             mz_col = NULL, rt_col = NULL, check.names = FALSE) {
+                             mz_col = NULL, rt_col = NULL) {
   mmo <- list()
-  data <- read.csv(mzmine_dir, check.names = check.names,stringsAsFactors = FALSE, na.strings = c("", "NA"))
+  data <- read.csv(mzmine_dir, check.names = F,stringsAsFactors = FALSE, na.strings = c("", "NA"))
 
-  metadata <- read.csv(metadata_dir, check.names = check.names)
+  metadata <- read.csv(metadata_dir, check.names = F)
 
   if (missing(group_col) || !(group_col %in% names(metadata)))
     stop("group_col must be provided and exist in the metadata file.")
@@ -36,30 +36,87 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
     rt_col <- if ("rt" %in% names(data)) "rt" else if ("row retention time" %in% names(data)) "row retention time" else stop("No RT column found.")
 
   # --- feature column ---
-  data <- data |> mutate(feature = paste(.data[[mz_col]], .data[[rt_col]], sep = "_"))
+  data <- data |> dplyr::mutate(feature = paste(.data[[mz_col]], .data[[rt_col]], sep = "_"))
 
   # --- area columns from EXACT metadata filenames ---
   samples <- trimws(metadata[[sample_col]])                     # e.g., "I1_C1_1.mzML"
-  expected_old <- paste0("datafile.", samples, ".area")         # old export column names
-  expected_new <- paste0(samples, " Peak area")                 # new export column names
+  samples_core <- sub("\\.(mzML|mzXML)$", "", samples, ignore.case = TRUE)
 
-  area_columns <- intersect(expected_old, names(data))
+  #might need to move this outside the function...
+  find_area_columns <- function(data, samples_core, max_distance = 5) {
+    colnames_all <- names(data)
+    # 1) Core sample names: drop .mzML / .mzXML (case-insensitive)
+
+    # 2) Restrict candidate columns to those that contain "area" (if requested)
+    area_idx <- grepl("area", colnames_all, ignore.case = TRUE)
+    if (!any(area_idx)) {
+      stop("No columns in `data` contain the word 'area' (case-insensitive).")
+      }
+      candidates <- colnames_all[area_idx]
+
+    # 3) For each sample_core, pick the best fuzzy match among candidates
+      strip_wrappers <- function(x) {
+        x <- sub("^datafile[:.]", "", x)                               # datafile: or datafile.
+        x <- sub("(?i)( Peak area|:area|\\.area)$", "", x, perl = TRUE) # ' Peak area', ':area', '.area'
+        x <- sub("(?i)\\.(mzml|mzxml)$", "", x, perl = TRUE)           # trailing .mzML/.mzXML if present
+        x
+      }
+      cand_core <- strip_wrappers(candidates)
+
+      # 4) Fuzzy distances: one big matrix, not a for-loop
+      #    rows = samples_core, cols = cand_core
+      D <- adist(samples_core, cand_core, ignore.case = TRUE)
+
+      best_idx <- apply(D, 1L, which.min)
+      best_d   <- D[cbind(seq_along(samples_core), best_idx)]
+
+      # 5) Enforce a max edit distance to avoid insane matches
+      if (any(!is.finite(best_d) | best_d > max_distance)) {
+        bad <- samples[!is.finite(best_d) | best_d > max_distance]
+        stop(
+          "No suitable fuzzy match (within max_distance = ", max_distance,
+          ") for these samples: ", paste(bad, collapse = ", ")
+        )
+      }
+
+      area_cols <- candidates[best_idx]
+
+      # 6) Sanity checks: 1–1 mapping and length match
+      if (any(duplicated(area_cols))) {
+        dup <- unique(area_cols[duplicated(area_cols)])
+        stop(
+          "Multiple samples matched the same area column(s): ",
+          paste(dup, collapse = ", ")
+        )
+      }
+
+      if (length(area_cols) != length(samples_core)) {
+        stop(
+          "Length mismatch: length(samples) = ", length(samples_core),
+          " but matched ", length(area_cols), " area columns."
+        )
+      }
+      return(area_cols)
+      }
+
+  area_columns <- find_area_columns(data, samples_core, max_distance = 5)
   if (length(area_columns) == 0)
-    area_columns <- intersect(expected_new, names(data))
-  if (length(area_columns) == 0)
-    stop("No area columns matched the EXACT names from metadata[[sample_col]].")
+      stop("No area columns matched the EXACT names from metadata[[sample_col]].")
 
   #make sure areas are treated numerically
   data[area_columns] <- lapply(data[area_columns], function(x) as.numeric(gsub(",", "", x)))
 
-
   # --- build feature_df (keep your original layout) ---
-  if (!("id" %in% names(data))) data$id <- seq_len(nrow(data))  # minimal safety
-  feature_df <- data |> select(.data$id, .data$feature, all_of(area_columns))
+  if (!("id" %in% names(data))) {"Stop no feature id column iddentified in the mzmine output"}
+  #if (!("id" %in% names(data))) data$id <- seq_len(nrow(data))  # minimal safety
+  feature_df <- data |>
+    dplyr::select(id, feature, all_of(area_columns)) |>
+    dplyr::rename_with(~ samples_core, .cols = all_of(area_columns))
   feature_df$id <- gsub(" ", "", feature_df$id)
 
   # --- finalize metadata and output ---
-  metadata$sample <- paste0("datafile.", samples, ".area")
+  metadata$sample <- samples_core
+  metadata$sample_full_exact <- samples
   mmo$feature_data <- feature_df
   mmo$metadata <- metadata
   mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id)
@@ -132,8 +189,8 @@ SwitchGroup <- function(mmo, new_group_col) {
 #' @return The mmo object with SIRIUS annotations added
 #' @export
 #' @examplesIf FALSE
-#' mmo <- AddSiriusAnnot(mmo, 
-#'  canopus_structuredir = "path/to/structure_identification.tsv", 
+#' mmo <- AddSiriusAnnot(mmo,
+#'  canopus_structuredir = "path/to/structure_identification.tsv",
 #'  canopus_formuladir = "path/to/canopus_formula_summary.tsv"
 #' )
 AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
@@ -142,7 +199,7 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
   canopus_formula_summary <- readr::read_tsv(canopus_formuladir, show_col_types = FALSE)
   canopus_formula_summary$mappingFeatureId <- gsub(" ", "", canopus_formula_summary$mappingFeatureId)
   siriused_ids <- unique(union(structure_identifications$mappingFeatureId, canopus_formula_summary$mappingFeatureId))
-  sirius_df <- mmo$feature_data |> select(.data$id, .data$feature)
+  sirius_df <- mmo$feature_data |> dplyr::select(id, feature)
   sirius_df <- sirius_df |>
   left_join(structure_identifications, by = c("id" = "mappingFeatureId")) |>
   left_join(canopus_formula_summary, by = c("id" = "mappingFeatureId"))
@@ -199,7 +256,7 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 
   mmo$custom_annot <- dplyr::select(
     annotated_features,
-    .data$id, .data$feature, .data$custom_annot
+    id, feature, custom_annot
   )
 
   message("Custom annotation added to mmo$custom_annot using ", DB_file)
@@ -218,33 +275,75 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 #' @export
 #' @examplesIf FALSE
 #' mmo <- ReplaceZero(mmo, method = 'one')
-ReplaceZero <- function(mmo, method = 'one') {
+# ReplaceZero <- function(mmo, method = 'one') {
+#   df <- mmo$feature_data
+#   df[] <- apply(df, 1, function(row) {
+#     # Convert the row to numeric, ignoring non-numeric columns
+#     numeric_row <- as.numeric(row[-c(1, 2)])  # Skip 'id' and 'feature' columns
+#     # Get the smallest non-zero, non-NA value in the row
+#     smallest_value <- min(numeric_row[numeric_row > 0], na.rm = TRUE)
+#     # Replace 0 and NA with half of the smallest_value
+#     row[-c(1, 2)] <- sapply(numeric_row, function(x) {
+#       if (is.na(x) || x == 0) {
+#         if (method == 'one') {
+#           return(1)
+#         } else if (method == 'half_mean') {
+#           return(smallest_value / 2)
+#         }
+#       } else {
+#         return(x)
+#       }
+#     })
+#
+#     return(row)
+#   }) |>
+#     t() |>
+#     as.data.frame()  # Convert back to dataframe
+#   mmo$feature_data <- df
+#   print(paste('Missing values were filled with', method))
+#   return(mmo)
+# }
+ReplaceZero <- function(mmo, method = "one") {
   df <- mmo$feature_data
-  df[] <- apply(df, 1, function(row) {
-    # Convert the row to numeric, ignoring non-numeric columns
-    numeric_row <- as.numeric(row[-c(1, 2)])  # Skip 'id' and 'feature' columns
-    # Get the smallest non-zero, non-NA value in the row
-    smallest_value <- min(numeric_row[numeric_row > 0], na.rm = TRUE)
-    # Replace 0 and NA with half of the smallest_value
-    row[-c(1, 2)] <- sapply(numeric_row, function(x) {
+
+  # assume first two cols are id, feature; everything else is numeric-ish
+  id_feat <- df[, 1:2]
+  num_df  <- df[, -(1:2), drop = FALSE]
+
+  # force numeric matrix (without dragging id/feature in)
+  num_mat <- as.matrix(sapply(num_df, as.numeric))
+
+  new_mat <- t(apply(num_mat, 1, function(numeric_row) {
+    # smallest non-zero, non-NA
+    smallest_value <- suppressWarnings(
+      min(numeric_row[numeric_row > 0], na.rm = TRUE)
+    )
+
+    # replace per element
+    vapply(numeric_row, function(x) {
       if (is.na(x) || x == 0) {
-        if (method == 'one') {
-          return(1)
-        } else if (method == 'half_mean') {
-          return(smallest_value / 2)
+        if (method == "one") {
+          1
+        } else if (method == "half_mean") {
+          smallest_value / 2
+        } else {
+          x
         }
       } else {
-        return(x)
+        x
       }
-    })
+    }, numeric(1))
+  }))
 
-    return(row)
-  }) |>
-    t() |>
-    as.data.frame()  # Convert back to dataframe
-  mmo$feature_data <- df
-  print(paste('Missing values were filled with', method))
-  return(mmo)
+  # rebuild data.frame with original id/feature + numeric matrix
+  num_df_out <- as.data.frame(new_mat, stringsAsFactors = FALSE)
+  names(num_df_out) <- names(num_df)
+
+  df_out <- cbind(id_feat, num_df_out)
+
+  mmo$feature_data <- df_out
+  message(sprintf("Missing values were filled with %s", method))
+  mmo
 }
 #' Use sample mass in the metadata file to normalize the peak area
 #'
@@ -274,7 +373,7 @@ MassNormalization <- function(mmo){
 #'
 #' This function applies log2 transformation to the peak area in the feature data of the mmo object.
 #' Run ReplaceZero() before this function to avoid -Inf values.
-#' 
+#'
 #' @param mmo The mmo object
 #' @return The mmo object with log-normalized feature data (mmo$log)
 #' @export
@@ -340,9 +439,9 @@ ZNormalization <- function(mmo){
 #' @return The mmo object with dissimilarity matrices added (mmo$cos.dissim, mmo$dreams.dissim, mmo$m2ds.dissim)
 #' @export
 #' @examplesIf FALSE
-#' mmo <- AddChemDist(mmo, 
-#'  cos_dir = "path/to/cosine_similarity.csv", 
-#'  dreams_dir = "path/to/dreams_similarity.csv", 
+#' mmo <- AddChemDist(mmo,
+#'  cos_dir = "path/to/cosine_similarity.csv",
+#'  dreams_dir = "path/to/dreams_similarity.csv",
 #'  m2ds_dir = "path/to/ms2deepscore_similarity.csv"
 #' )
 AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL) {
@@ -355,60 +454,60 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
     # Ensure cluster IDs are clean characters
     sim$cluster1 <- trimws(as.character(sim$cluster1))
     sim$cluster2 <- trimws(as.character(sim$cluster2))
-    
+
     # Build mapping
     clusters <- unique(c(sim$cluster1, sim$cluster2))
     cluster_index <- stats::setNames(seq_along(clusters), clusters)
-    
+
     # Map clusters to integer indices
     i <- cluster_index[sim$cluster1]
     j <- cluster_index[sim$cluster2]
-    
+
     # Check for problems
     if (anyNA(i) || anyNA(j)) {
       bad <- unique(c(sim$cluster1[is.na(i)], sim$cluster2[is.na(j)]))
       stop("Cluster IDs not found in mapping: ", paste(bad, collapse = ", "))
     }
-    
+
     # Preallocate full dense matrix
     n <- length(clusters)
     dissim_mat <- matrix(1, nrow = n, ncol = n)
     diag(dissim_mat) <- 0
-    
+
     # Fill dissimilarities
     dissim_mat[cbind(i, j)] <- sim$dissimilarity
     dissim_mat[cbind(j, i)] <- sim$dissimilarity
-    
+
     # Add names
     dimnames(dissim_mat) <- list(clusters, clusters)
-    
+
     # Reduce memory footprint
     mode(dissim_mat) <- "single"
-    
+
     mmo[[slot_name]] <- dissim_mat
     message(slot_name, " added to mmo")
     return(mmo)
   }
-  
+
   if (!is.null(cos_dir))    mmo <- add_dissim_matrix(mmo, cos_dir,    "cos.dissim")
   if (!is.null(dreams_dir)) mmo <- add_dissim_matrix(mmo, dreams_dir, "dreams.dissim")
   if (!is.null(m2ds_dir))   mmo <- add_dissim_matrix(mmo, m2ds_dir,   "m2ds.dissim")
-  
+
   if (is.null(cos_dir) && is.null(dreams_dir) && is.null(m2ds_dir)) {
     stop("Please provide at least one valid directory.")
   }
-  
+
   return(mmo)
 }
 
 
 
 #' Reorder samples in the mmo object based on group order
-#' 
+#'
 #' This function reorders the samples in the mmo object based on a specified group order.
 #' The function updates the order of samples in the feature data, log-normalized data, z-score data, and mean-centered data.
 #' Use this function before plotting heatmaps or other visualizations to ensure consistent group ordering.
-#' 
+#'
 #' @param mmo The mmo object
 #' @param group_order A vector specifying the desired order of groups
 #' @return The mmo object with reordered samples
@@ -421,13 +520,13 @@ ReorderGroups <- function(mmo, group_order) {
   ordered_samples <- unlist(lapply(group_order, function(g) metadata$sample[metadata$group == g]))
   # Reorder columns: id, feature, then ordered samples
   mmo$feature_data <- mmo$feature_data |>
-    dplyr::select(.data$id, .data$feature, all_of(ordered_samples))
+    dplyr::select(id, feature, all_of(ordered_samples))
   mmo$log <- mmo$log |>
-    dplyr::select(.data$id, .data$feature, all_of(ordered_samples))
+    dplyr::select(id, feature, all_of(ordered_samples))
   mmo$zscore <- mmo$zscore |>
-    dplyr::select(.data$id, .data$feature, all_of(ordered_samples))
+    dplyr::select(id, feature, all_of(ordered_samples))
   mmo$meancentered <- mmo$meancentered |>
-    dplyr::select(.data$id, .data$feature, all_of(ordered_samples))
+    dplyr::select(id, feature, all_of(ordered_samples))
   return(mmo)
 }
 
@@ -489,18 +588,18 @@ GetDistanceMat <- function(mmo, distance = 'dreams'){
 #' @param mmo The mmo object
 #' @param feature_names A vector of feature names to convert
 #' @return A vector of feature IDs corresponding to the input feature names
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' feature_ids <- FeatureToID(mmo, feature_names = c("100.0_5.0", "150.0_10.0"))
 #' feature_ids <- FeatureToID(mmo, feature_names = mmo$feature_data$feature[1:10])
-#' feature_ids <- FeatureToID(mmo, 
+#' feature_ids <- FeatureToID(mmo,
 #'  feature_names = Glucosinolates
 #' ) # if Glucosinolates is a vector of feature names
 FeatureToID <- function(mmo, feature_names) {
   feature_data <- mmo$feature_data
   feature_ids <- feature_data |>
     filter(.data$feature %in% feature_names) |>
-    select(.data$feature, .data$id)
+    dplyr::select(feature, id)
   # Match the order of feature_names
   feature_ids <- feature_ids$id[match(feature_names, feature_ids$feature)]
   return(feature_ids)
@@ -517,14 +616,14 @@ FeatureToID <- function(mmo, feature_names) {
 #' @examplesIf FALSE
 #' feature_names <- IDToFeature(mmo, feature_ids = c("1219", "2250", "3360"))
 #' feature_names <- IDToFeature(mmo, feature_ids = mmo$feature_data$id[1:10])
-#' feature_names <- IDToFeature(mmo, 
+#' feature_names <- IDToFeature(mmo,
 #'  feature_ids = FeatureToID(mmo, feature_names = Glucosinolates)
 #' ) # if Glucosinolates is a vector of feature names
 IDToFeature <- function(mmo, feature_ids) {
   feature_data <- mmo$feature_data
   feature_names <- feature_data |>
     filter(.data$id %in% feature_ids) |>
-    select(.data$id, .data$feature)
+    dplyr::select(id, feature)
   # Match the order of feature_ids
   feature_names <- feature_names$feature[match(feature_ids, feature_names$id)]
   return(feature_names)
@@ -545,20 +644,20 @@ IDToFeature <- function(mmo, feature_ids) {
 #' @export
 #' @examplesIf FALSE
 #' group_means <- GetGroupMeans(mmo, normalization = 'Log')
-#' group_means <- GetGroupMeans(mmo, 
-#'  normalization = 'None', 
+#' group_means <- GetGroupMeans(mmo,
+#'  normalization = 'None',
 #'  filter_feature = TRUE, feature_list = Glucosinolates
 #' ) # if Glucosinolates is a vector of feature names
-#' group_means <- GetGroupMeans(mmo, 
-#'  normalization = 'Z', 
-#'  filter_group = TRUE, 
+#' group_means <- GetGroupMeans(mmo,
+#'  normalization = 'Z',
+#'  filter_group = TRUE,
 #'  group_list = c("Control", "Treatment1")
 #' )
-#' group_means <- GetGroupMeans(mmo, 
-#'  normalization = 'Meancentered', 
-#'  filter_feature = TRUE, feature_list = Glucosinolates, 
+#' group_means <- GetGroupMeans(mmo,
+#'  normalization = 'Meancentered',
+#'  filter_feature = TRUE, feature_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1")
-#' ) # if Glucosinolates is a vector of feature names   
+#' ) # if Glucosinolates is a vector of feature names
 GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL) {
   feature_data <- GetNormFeature(mmo, normalization = normalization)
   metadata <- mmo$metadata
@@ -580,7 +679,7 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, f
   }
   # Calculate group means
   group_means <- merged_data |>
-    dplyr::group_by(.data$group, .data$id) |>
+    dplyr::group_by(group, id) |>
     dplyr::summarise(mean_value = mean(.data$feature_value, na.rm = TRUE), .groups = "drop") |>
     tidyr::pivot_wider(
       names_from = .data$group,
@@ -598,7 +697,7 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, f
 #'
 #' This function calculates and returns a dataframe of log2 fold change values for each group compared to a specified control group.
 #' Takes inputs from GetGroupMeans() function.
-#' 
+#'
 #' @param group_means A data frame containing the mean feature values for each group
 #' @param control_group The name of the control group to compare against
 #' @return A data frame with log2 fold change values for each group compared to the control group
@@ -608,7 +707,7 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, f
 GetLog2FoldChange <- function(group_means, control_group) {
   control_means <- group_means[[control_group]]
   fold_change <- group_means |>
-    mutate(across(-.data$id, ~ log2(. / control_means)))
+    mutate(across(-id, ~ log2(. / control_means)))
 
   return(fold_change)
 }
@@ -642,10 +741,10 @@ anova_tukey_dunnett <- function(df, formula) {
 #' @param anova_data A list containing the results of ANOVA and Tukey's HSD test
 #' @param outdir The output directory where the results will be saved
 #' @param way The type of ANOVA test to perform. Options are 'oneway' or 'twoway'
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' write_anova(anova_data = anova_results, outdir = "anova_tukey_results.csv", way = 'oneway')
-#' 
+#'
 write_anova <- function(anova_data, outdir, way='oneway'){
   way_num <- switch(way, oneway = 1, twoway = 3)
   # Perform ANOVA and Tukey HSD
@@ -675,11 +774,11 @@ write_anova <- function(anova_data, outdir, way='oneway'){
 }
 
 #' Perform PERMANOVA and pairwise comparisons
-#' 
+#'
 #' This function performs PERMANOVA on the given data and metadata, with options for filtering groups.
 #' It also conducts post-hoc pairwise comparisons and adjusts p-values for multiple testing.
 #' The function returns the PERMANOVA results, raw pairwise comparison results, and matrices of adjusted p-values, F values, and R square for pairwise comparisons
-#' 
+#'
 #' @param data A data frame or distance matrix for PERMANOVA
 #' @param metadata A data frame containing sample metadata, including a 'group' column
 #' @param mode The mode of the input data: 'data' for raw data or 'distance' for a distance matrix
@@ -690,15 +789,15 @@ write_anova <- function(anova_data, outdir, way='oneway'){
 #' @export
 #' @examplesIf FALSE
 #' permanova_results <- permanova_stat(
-#'  data = feature_data, metadata = mmo$metadata, 
-#'  mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"), 
+#'  data = feature_data, metadata = mmo$metadata,
+#'  mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"),
 #'  permutations = 5000
 #' )
 #' permanova_results <- permanova_stat(
-#'  data = betadiv, metadata = mmo$metadata, 
+#'  data = betadiv, metadata = mmo$metadata,
 #'  mode = 'distance', permutations = 10000
 #' )
-permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_list = NULL, permutations = 5000){ 
+permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_list = NULL, permutations = 5000){
   .require_pkg("vegan")
   .require_pkg("stringr")
   .require_pkg("pairwiseAdonis")
@@ -784,8 +883,8 @@ PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
   group1_samples <- metadata |> filter(.data$group == group1) |> pull(sample)
   group2_samples <- metadata |> filter(.data$group == group2) |> pull(sample)
   #Get data from the samples
-  group1_data <- feature |> select(.data$id, .data$feature, all_of(group1_samples))
-  group2_data <- feature |> select(.data$id, .data$feature, all_of(group2_samples))
+  group1_data <- feature |> dplyr::select(id, feature, all_of(group1_samples))
+  group2_data <- feature |> dplyr::select(id, feature, all_of(group2_samples))
   #Make empty column
   log2FC <- numeric(nrow(feature))
   pval <- numeric(nrow(feature))
@@ -876,16 +975,16 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
 #' @param outdir The output file path for the volcano plot (default: 'volcano.png')
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' VolcanoPlot(
-#'  mmo, comp = 'Control_vs_Treatment1', 
-#'  topk = 10, pthr = 0.05, 
+#'  mmo, comp = 'Control_vs_Treatment1',
+#'  topk = 10, pthr = 0.05,
 #'  outdir = 'volcano_con_tre1.png', height = 5, width = 5
 #' )
 VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png', height = 5, width = 5){
   .require_pkg("ggrepel")
-  VolData <- mmo$pairwise |> select(.data$feature,all_of(c(paste(comp, 'log2FC', sep = '_'), paste(comp, 'padj', sep = '_'))))
+  VolData <- mmo$pairwise |> dplyr::select(feature,all_of(c(paste(comp, 'log2FC', sep = '_'), paste(comp, 'padj', sep = '_'))))
   colnames(VolData) <- c('feature', 'log2FC', 'padj')
   VolData <- VolData |>
     mutate(
@@ -926,7 +1025,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 
 
 #' Plots PCA and performs PERMANOVA
-#' 
+#'
 #' This function performs PCA analysis and generates a PCA plot with optional filtering of features and groups.
 #' It also conducts PERMANOVA and saves the results to CSV files.
 #'
@@ -939,20 +1038,20 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param label Boolean to indicate whether to label points with sample names (default: TRUE)
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' PCAplot(
-#'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
-#'  outdir = 'PCA_plot', normalization = 'None', 
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
+#'  outdir = 'PCA_plot', normalization = 'None',
 #'  filter_feature = FALSE, filter_group = FALSE, label = FALSE
 #' )
 #' PCAplot(
-#'  mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
-#'  outdir = 'PCA_plot', normalization = 'Z', 
-#'  filter_feature = TRUE, feature_list = Glucosinolates, 
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red"),
+#'  outdir = 'PCA_plot', normalization = 'Z',
+#'  filter_feature = TRUE, feature_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
 #' )
-PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE){
+PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE,save_output=T){
   .require_pkg("ggrepel")
   .require_pkg("stats")
   metadata <- mmo$metadata
@@ -987,7 +1086,8 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
       scale_color_manual(values = color)+
       stat_ellipse(aes(group = .data$group), level = 0.90)
   }
-  plot
+  print(plot)
+  if(save_output == T){
   ggsave(paste0(outdir, '.pdf'), width = 6, height = 6)
 
   permanova <- permanova_stat(feature_data_pca, metadata, mode = 'data', filter_group = filter_group, group_list = group_list)
@@ -996,6 +1096,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
   write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
   write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
   write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2value_matrix.csv'))
+  }
 }
 
 
@@ -1014,17 +1115,17 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
 #' @param feature_list A vector of feature names to filter (default: NULL)
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' PLSDAplot(
-#'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
-#'  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z', 
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
+#'  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z',
 #'  filter_feature = FALSE, filter_group = FALSE
 #' )
 #' PLSDAplot(
-#'  mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
-#'  topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log', 
-#'  filter_feature = TRUE, feature_list = Glucosinolates, 
+#'  mmo, color = c("Control" = "blue", "Treatment1" = "red"),
+#'  topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log',
+#'  filter_feature = TRUE, feature_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1")
 #' )
 PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL) {
@@ -1122,7 +1223,7 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #' @examplesIf FALSE
 #' # Generate heatmap inputs to visualize fold change values with log normalization and dreams distance
 #' heatmap_inputs <- GenerateHeatmapInputs(
-#'  mmo, summarize = 'fold_change', control_group = 'Control', 
+#'  mmo, summarize = 'fold_change', control_group = 'Control',
 #'  normalization = 'None', distance = 'dreams'
 #' )
 #' # Generate heatmap inputs to visualize mean values
@@ -1131,14 +1232,14 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #' )
 #' # The resulting list contains FC_matrix, dist_matrix, row_label, and heatmap_data
 #' # A heatmap can be generated using pheatmap
-#' # 'clustering_distance_rows' option make the dendrogram follows chemical distances of features. 
+#' # 'clustering_distance_rows' option make the dendrogram follows chemical distances of features.
 #' #  -Delete this option to visualize the heatmap following cannonical clustering
-#' pheatmap(mat = heatmap_inputs$FC_matrix, 
+#' pheatmap(mat = heatmap_inputs$FC_matrix,
 #'     cluster_rows = TRUE, #do not change
-#'     clustering_distance_rows = heatmap_inputs$dist_matrix, 
-#'     cluster_cols = TRUE, 
+#'     clustering_distance_rows = heatmap_inputs$dist_matrix,
+#'     cluster_cols = TRUE,
 #'     clustering_method = "average", #UPGMA
-#'     show_rownames = TRUE, 
+#'     show_rownames = TRUE,
 #'     show_colnames = TRUE,
 #'     cellwidth = 25,
 #'     cellheight = 0.05,
@@ -1208,11 +1309,11 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
 }
 
 #' PlotNPCStackedBar
-#' 
+#'
 #' This function generates a stacked bar plot showing the count of features in each group categorized by NPC_pathway.
 #' It uses the mmo object with sirius annotation and normalized data.
 #' Make sure you don't run ReplaceZero() before using this function, as it may remove presence/absence information.
-#' 
+#'
 #' @param mmo The mmo object with sirius annotation and normalized data
 #' @param group_col The column name in metadata to use for grouping samples
 #' @param output_file The output file path for the stacked bar plot (e.g., 'NPC_stacked_bar.png')
@@ -1221,7 +1322,7 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
 #' @export
 #' @examplesIf FALSE
 #' PlotNPCStackedBar(
-#'  mmo, group_col = 'treatment', 
+#'  mmo, group_col = 'treatment',
 #'  output_file = 'NPC_stacked_bar.png', width = 6, height = 3
 #' )
 PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3) {
@@ -1232,7 +1333,7 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
   # For each group, get features present in any sample
   group_features <- lapply(unique(metadata$group), function(grp) {
     samples <- metadata |> filter(.data$group == grp) |> pull(.data$sample)
-    present <- feature_data |> select(all_of(samples))
+    present <- feature_data |> dplyr::select(all_of(samples))
     feature_data$feature[base::rowSums(!is.na(present) & present > 0) > 0]
   })
   names(group_features) <- unique(metadata$group)
@@ -1253,7 +1354,7 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
 
   # Count features per group and NPC_pathway
   plot_df <- bar_df |>
-    dplyr::group_by(.data$group, .data$NPC_pathway) |>
+    dplyr::group_by(group, NPC_pathway) |>
     dplyr::summarise(count = dplyr::n(), .groups = "drop")
 
   # Set colors for NPC_pathway
@@ -1292,12 +1393,12 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
 #' @examplesIf FALSE
 #' # Perform enrichment analysis for a list of features using NPC_pathway level
 #' sig_terms <- CanopusLevelEnrichmentAnal(
-#'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
+#'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1,
 #'  sig = TRUE, term_level = 'NPC_pathway', representation = 'greater'
 #' )
 #' # Perform enrichment analysis for a list of features using ClassyFire_class level and return all terms
 #' all_terms <- CanopusLevelEnrichmentAnal(
-#'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
+#'  mmo, list_test = c("feature1", "feature2"), pthr = 0.1,
 #'  sig = FALSE, term_level = 'ClassyFire_class', representation = 'greater'
 #' )
 CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term_level = 'NPC_pathway', representation = 'greater', pval = 'pval'){
@@ -1393,14 +1494,14 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @param pval pvalue options-pval or fdr (default: 'pval')
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot(
-#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up, 
-#'  pthr = 0.05, outdir = 'canopus_enrichment_plot.pdf', 
+#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+#'  pthr = 0.05, outdir = 'canopus_enrichment_plot.pdf',
 #'  height = 5, width = 5
 #' )
-#' 
+#'
 CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, pval = 'pval'){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
@@ -1435,8 +1536,8 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #' @export
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot_2(
-#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up, 
-#'  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf', 
+#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+#'  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf',
 #'  height = 5, width = 5, topn = 5
 #' )
 CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5, pval = 'pval'){
@@ -1483,8 +1584,8 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #'   comparison2 = DAMs_up$control_vs_treatment2.up
 #' )
 #' CanopusLevelEnrichmentPlot(
-#'  mmo, comp.list = comp.list, term_level = 'NPC_pathway', 
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot', 
+#'  mmo, comp.list = comp.list, term_level = 'NPC_pathway',
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot',
 #'  height = 5, width = 5
 #' )
 CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_pathway',pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 5, width = 5, pval = 'pval'){
@@ -1533,8 +1634,8 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
       theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))+
       xlab('Comparisons')+
       ylab('Chemical classes')
-  }  
-  
+  }
+
 
   enrichment_plot
   write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
@@ -1564,18 +1665,18 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #'   comparison2 = DAMs_up$control_vs_treatment2.up
 #' )
 #' CanopusAllLevelEnrichmentPlot(
-#'  mmo, comp.list = comp.list, terms = 'all_terms', 
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels', 
+#'  mmo, comp.list = comp.list, terms = 'all_terms',
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels',
 #'  height = 10, width = 8
 #' )
 #' CanopusAllLevelEnrichmentPlot(
-#'  mmo, comp.list = comp.list, terms = 'NPC', 
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_NPC_levels', 
+#'  mmo, comp.list = comp.list, terms = 'NPC',
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_NPC_levels',
 #'  height = 10, width = 8
 #' )
 #' CanopusAllLevelEnrichmentPlot(
-#'  mmo, comp.list = comp.list, terms = 'ClassyFire', 
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels', 
+#'  mmo, comp.list = comp.list, terms = 'ClassyFire',
+#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels',
 #'  height = 10, width = 8
 #' )
 CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_terms', term_levels = NULL, pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 10, width = 8, pval = 'pval'){
@@ -1636,7 +1737,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
         xlab('Comparisons')+
         ylab('Chemical classes')+
         facet_grid(term_level ~ ., scales = 'free_y', space = 'free', switch = 'y')
-    }  
+    }
   }
 
 
@@ -1649,7 +1750,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 
 
 #' Metabolite Set Enrichment Analysis (MSEA)
-#' 
+#'
 #' This function performs Metabolite Set Enrichment Analysis (MSEA) using the fgsea package.
 #' It takes a ranked list of feature scores and tests for enrichment of metabolite sets based on Canopus-predicted terms.
 #' The results are saved as a CSV file and a PDF plot.
@@ -1666,12 +1767,12 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' @param height The height of the output plot in inches (default: 12)
 #' @param sig A logical value indicating whether to return only significant terms (default: FALSE)
 #' @return A data frame containing the MSEA results, including pathway, NES, p-value, and adjusted p-value (FDR)
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' # Perform MSEA using NPC_class level
 #' MSEA(
-#'  mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange, 
-#'  term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class', 
+#'  mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange,
+#'  term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class',
 #'  width = 8, height = 12, sig = FALSE
 #' )
 MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA', width = 8, height = 12, sig = FALSE){
@@ -1720,7 +1821,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
     guides(shape = "none") +
     labs(x = "Metabolite Class", y = "Normalized Enrichment Score (NES)", title = "MSEA Results", color = "-log10(padj)", size = "Set Size") +
     theme_classic() +
-    theme(legend.position = "top", axis.text.y = element_text(size = 6)) 
+    theme(legend.position = "top", axis.text.y = element_text(size = 6))
   ggsave(paste0(prefix,'_', term_level,'.pdf'), width = width, height = height)
   return (msea_res)
 }
@@ -1800,7 +1901,7 @@ GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, co
   metadata <- mmo$metadata
 
   # phenotype.sample <- metadata |> filter(group %in% groups) |> pull(sample)
-  # phenotype.area <- feature |> select(id, feature, all_of(phenotype.sample))
+  # phenotype.area <- feature |> dplyr::select(id, feature, all_of(phenotype.sample))
 
   performance.linreg <- data.frame(pval = double(), effect.size = double())
   phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, performance = metadata[,phenotype]) |> filter(.data$group %in% groups)
@@ -1914,7 +2015,7 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
   metadata <- mmo$metadata
 
   # phenotype.sample <- metadata |> filter(group %in% groups) |> pull(sample)
-  # phenotype.area <- feature |> select(id, feature, all_of(phenotype.sample))
+  # phenotype.area <- feature |> dplyr::select(id, feature, all_of(phenotype.sample))
 
   performance.linreg <- data.frame(pval = double(), effect.size = double())
   phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, performance = metadata[,phenotype]) |> filter(.data$group %in% groups)
@@ -2060,7 +2161,7 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #' @examplesIf FALSE
 #' AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
 #' AnovaBarPlot(
-#'  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z', 
+#'  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z',
 #'  filter_group = TRUE, group_list = c("Group1", "Group2")
 #' )
 AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL) {
@@ -2074,7 +2175,7 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
     # Extract feature values and merge with metadata
     feature_values <- feature_data |>
       filter(.data$id == target_id) |>
-      select(-.data$id, -.data$feature) |>
+      dplyr::select(-id, -feature) |>
       t() |>
       as.data.frame()
     colnames(feature_values) <- "value"
@@ -2114,7 +2215,7 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
 #' @examplesIf FALSE
 #' ExportFeaturesToCSV(mmo, feature_list = Glucosinolates, normalization = 'Z', output_dir = 'output.csv')
 #' ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up, normalization = 'None', output_dir = 'output.csv')
-#' 
+#'
 ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', output_dir){
   feature <- GetNormFeature(mmo, normalization = normalization) # Get normalized feature data
   # Filter the feature data, annotation, and DA analysis for the list provided
@@ -2129,7 +2230,7 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
 
 
 #' GetRichness
-#' 
+#'
 #' This function calculates the richness of features for each sample in the mmo object.
 #' Richness is defined as the number of non-missing features observed in each sample.
 #' @param mmo The mmo object containing feature data and metadata
@@ -2143,19 +2244,19 @@ GetRichness <- function(mmo, filter_feature = FALSE, feature_list = NULL) {
     feature_data <- feature_data |> filter(.data$feature %in% feature_list)
   }
   richness <- apply(feature_data[, -(1:2)], 2, function(x) sum(!is.na(x)))
-  
+
   metadata <- mmo$metadata
   groups <- c()
   for (col in colnames(feature_data)[-c(1, 2)]) {
     groups <- append(groups, metadata[metadata$sample == col, ]$group)
   }
-  
+
   richness_df <- data.frame(sample = colnames(feature_data)[-c(1, 2)], richness = richness, group = groups)
   return(richness_df)
 }
 
 #' CalculateCumulativeRichness
-#' 
+#'
 #' This function calculates the cumulative richness of features across groups in the metadata.
 #' Cumulative richness is defined as the total number of unique features observed as groups are added sequentially.
 #' @param mmo The mmo object containing feature data and metadata
@@ -2173,7 +2274,7 @@ CalculateCumulativeRichness <- function(mmo, groups) {
   for (i in seq_along(groups)) {
     selected_groups <- groups[1:i]
     selected_samples <- metadata |> filter(.data$group %in% selected_groups) |> pull(.data$sample)
-    selected_data <- feature_data |> select(all_of(selected_samples))
+    selected_data <- feature_data |> dplyr::select(all_of(selected_samples))
     selected_features <- selected_features | (rowSums(!is.na(selected_data)) > 0)
     cumulative_richness[i] <- sum(selected_features)
   }
@@ -2181,7 +2282,7 @@ CalculateCumulativeRichness <- function(mmo, groups) {
 }
 
 #' BootstrapCumulativeRichness
-#' 
+#'
 #' This function bootstraps the cumulative richness of features across groups in the metadata by randomizing the order of groups.
 #' It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
 #' @param mmo The mmo object containing feature data and metadata
@@ -2211,7 +2312,7 @@ BootstrapCumulativeRichness <- function(mmo, groups, n_boot = 1000, ci = 0.95) {
     richness = as.vector(t(boot_mat))
   )
   boot_summary <- boot_df |>
-    dplyr::group_by(.data$group_index) |>
+    dplyr::group_by(group_index) |>
     dplyr::summarise(
       mean = mean(.data$richness),
       lower = stats::quantile(.data$richness, lower_q),
@@ -2222,12 +2323,12 @@ BootstrapCumulativeRichness <- function(mmo, groups, n_boot = 1000, ci = 0.95) {
 }
 
 #' CalculateNullCumulativeRichness
-#' 
+#'
 #' This function calculates the null model of cumulative richness by randomizing samples regardless of group.
 #' It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
 #' @param mmo The mmo object containing feature data and metadata
 #' @param n_boot The number of bootstrap iterations to perform (default: 1000)
-#' @param n_groups The number of groups to simulate for cumulative richness calculation 
+#' @param n_groups The number of groups to simulate for cumulative richness calculation
 #' @param ci The confidence interval width (e.g., 0.95 for 95% CI) (default: 0.95)
 #' @return A data frame containing the mean cumulative richness and confidence intervals for each group index, with columns for group index, mean, lower CI, and upper CI.
 #' @export
@@ -2248,7 +2349,7 @@ CalculateNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0
     selected_features <- rep(FALSE, n_features)
     for (j in seq_len(n_groups)) {
       end_idx <- min(j * samples_per_group, length(rand_samples))
-      selected_data <- feature_data |> select(all_of(rand_samples[1:end_idx]))
+      selected_data <- feature_data |> dplyr::select(all_of(rand_samples[1:end_idx]))
       selected_features <- selected_features | (rowSums(!is.na(selected_data)) > 0)
       boot_mat[i, j] <- sum(selected_features)
     }
@@ -2259,7 +2360,7 @@ CalculateNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0
     richness = as.vector(t(boot_mat))
   )
   boot_summary <- boot_df |>
-    dplyr::group_by(.data$group_index) |>
+    dplyr::group_by(group_index) |>
     dplyr::summarise(
       mean = mean(.data$richness),
       lower = stats::quantile(.data$richness, lower_q),
@@ -2270,7 +2371,7 @@ CalculateNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0
 }
 
 #' CalcNormalizedAUC
-#' 
+#'
 #' This function calculates the normalized area under the curve (AUC) for a cumulative richness curve.
 #' The normalized AUC is computed by dividing the AUC by the maximum possible area, which is the product of the maximum group index and maximum cumulative richness.
 #' @param curve A data frame containing the cumulative richness curve with columns for group index and cumulative richness
@@ -2289,7 +2390,7 @@ CalcNormalizedAUC <- function(curve) {
 }
 
 #' BootCumulRichnessAUC
-#' 
+#'
 #' This function bootstraps the normalized area under the curve (AUC) for cumulative richness by randomizing the order of groups.
 #' It performs multiple bootstrap iterations to estimate the distribution of normalized AUC values.
 #' @param mmo The mmo object containing feature data and metadata
@@ -2322,7 +2423,7 @@ BootCumulRichnessAUC <- function(mmo, groups, n_boot = 500) {
 #' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
 #' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
 #' @return A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 1, distance = 'dreams', filter_feature = FALSE)
 #' hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 3, distance = 'dreams', filter_feature = TRUE, feature_list = Glucosinolates)
@@ -2374,7 +2475,7 @@ GetFunctionalHillNumber <- function(mmo, normalization = 'None',q = 1, distance 
 #' GetHillNumbers
 #'
 #' This function calculates the Hill numbers for a given mmo object, normalization method, and order of the Hill number without considering feature dissimilarity.
-#' 
+#'
 #'
 #' @param mmo The mmo object containing feature data and metadata
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
@@ -2419,7 +2520,7 @@ GetHillNumbers <- function(mmo, normalization = 'None', q = 0, filter_feature = 
 #'
 #' This function calculates the alpha diversity for a given mmo object, order of the Hill number, normalization method, mode (weighted or unweighted), distance metric, and optional feature filtering.
 #' Unweighted mode uses Hill numbers without considering feature dissimilarity, while weighted mode uses functional Hill numbers that account for feature dissimilarity.
-#' 
+#'
 #' @param mmo The mmo object containing feature data and metadata
 #' @param q The order of the Hill number to calculate (default: 1)
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
@@ -2430,9 +2531,9 @@ GetHillNumbers <- function(mmo, normalization = 'None', q = 0, filter_feature = 
 #' @return A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
 #' @export
 #' @examplesIf FALSE
-#' alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None', 
+#' alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
 #'  mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
-#' alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z', 
+#' alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
 #'  mode = 'unweighted', filter_feature = TRUE, feature_list = Glucosinolates)
 GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'weighted', distance = 'dreams', filter_feature = FALSE, feature_list = NULL){
   if (mode == 'weighted'){
@@ -2472,7 +2573,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
     for (group in group_list){
       samples <- append(samples, metadata |> filter(.data$group == !!group) |> pull(.data$sample))
     }
-    feature <- feature |> select(.data$id, .data$feature, all_of(samples))
+    feature <- feature |> dplyr::select(id, feature, all_of(samples))
   }
 
   # Get frequency matrix
@@ -2489,7 +2590,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 
   # Get specialization index
   Pi <- colSums(Pij)/nrow(Pij) # average frequency of each metabolite
-  
+
   Si <- t((t(Pij)/Pi) * log((t(Pij)/Pi), base = 2)) # specialized degree
   Si[is.na(Si)] = 0
   Si <- colSums(Si)/ncol(Pij) # for each feature get average specialization index
@@ -2519,10 +2620,10 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @return A distance matrix of beta diversity values between samples.
 #' @export
 #' @examplesIf FALSE
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'bray', 
-#'  normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates, 
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
+#'  normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
 GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL){
   # Get compound distance and build tree for UniFrac
@@ -2541,7 +2642,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
     for (group in group_list){
       samples <- append(samples, metadata |> filter(.data$group == !!group) |> pull(sample))
     }
-    feature <- feature |> dplyr::select(.data$id, .data$feature, all_of(samples))
+    feature <- feature |> dplyr::select(id, feature, all_of(samples))
   }
   feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity))
   relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
@@ -2595,9 +2696,9 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 #' @param color A vector of colors for the groups in the plot
 #' @export
 #' @examplesIf FALSE
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-#' # Use method = 'bray' or 'jaccard' if you want to use just feature abundance 
+#' # Use method = 'bray' or 'jaccard' if you want to use just feature abundance
 #' # without considering feature spectral dissimilarity
 #' NMDSplot(mmo, betadiv = beta_diversity, prefix = 'output/NMDS', width = 6, height = 6)
 NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
@@ -2605,7 +2706,7 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
   .require_pkg("ggrepel")
   metadata <- mmo$metadata
   nmds <- vegan::metaMDS(betadiv, k = 2, try = 50, trymax = 100)
-  
+
   # Extract NMDS coordinates
   nmds_coords <- as.data.frame(vegan::scores(nmds, display = "sites"))
   groups <- c()
@@ -2613,7 +2714,7 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
     groups <- append(groups, metadata[metadata$sample == row, ]$group)
   }
   nmds_coords$group <- groups
-  
+
   # Plot NMDS
   ggplot(nmds_coords, aes(x = .data$NMDS1, y = .data$NMDS2, color = .data$group)) +
     geom_point(size = 3) +
@@ -2634,7 +2735,7 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
 }
 
 #' PCoAplot
-#' 
+#'
 #' This function generates a Principal Coordinates Analysis (PCoA) plot based on the provided beta diversity distance matrix.
 #' It also performs PERMANOVA analysis to assess the significance of group differences and saves the
 #' results to CSV files.
@@ -2646,7 +2747,7 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
 #' @param color A vector of colors for the points in the plot
 #' @export
 #' @examplesIf FALSE
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 #' PCoAplot(mmo, betadiv = beta_diversity, prefix = 'output/PCoA', width = 6, height = 6)
 PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
@@ -2656,7 +2757,7 @@ PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
   pcoa_coords <- as.data.frame(pcoa_res$vectors[, 1:2])
   colnames(pcoa_coords) <- c("PCoA1", "PCoA2")
   pcoa_coords$group <- metadata$group[match(rownames(pcoa_coords), metadata$sample)]
-  
+
   ggplot(pcoa_coords, aes(x = .data$PCoA1, y = .data$PCoA2, color = .data$group)) +
     geom_point(size = 3) +
     stat_ellipse(level = 0.90) +
@@ -2665,7 +2766,7 @@ PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
     scale_color_manual(values = color) +
     theme(legend.position = "right")
   ggsave(paste0(prefix, '_PCoA.pdf'), height = height, width = width)
-  
+
   permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
   write.csv(permanova$permanova_res, paste0(prefix, '_permanova_results.csv'))
   write.csv(as.data.frame(permanova$pairwise_raw), paste0(prefix, '_pairwise_permanova_results.csv'))
@@ -2685,9 +2786,9 @@ PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
 #' @return A data frame containing the group names, sample names, and their corresponding beta diversity distances from the reference group.
 #' @export
 #' @examplesIf FALSE
-#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+#' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-#' group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity, 
+#' group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity,
 #'  reference_group = 'Control', groups = c('Control', 'Treatment1', 'Treatment2'))
 CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
   metadata <- mmo$metadata
@@ -2702,7 +2803,7 @@ CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
           distance <- beta_div[sample, ref_sample]
           distances <- rbind(distances, data.frame(group = group,sample = sample, distance = distance))
         }
-      
+
     }
   }
 

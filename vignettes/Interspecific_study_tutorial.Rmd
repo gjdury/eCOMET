@@ -1,0 +1,48 @@
+---
+title: "Interspecific Ecometabolomics Tutorial"
+output: html_notebook
+---
+
+This Relative Paths will work if you open the .Rjroject. 
+```{r}
+library(here)
+here()
+```
+
+```{r}
+setwd('/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/tutorial/tutorial_1_treatment_based/')
+
+demo_feature <- "raw_data/feature_table_demo.csv"
+demo_metadata <- "raw_data/metadata_demo.csv"
+demo_sirius_formula <- "raw_data/canopus_formula_summary.tsv"
+demo_sirius_structure <- "raw_data/structure_identifications.tsv"
+demo_dreams <- "raw_data/dreams_sim_demo.csv"
+gls_db <- "raw_data/custom_DB_glucosinolates.csv"
+
+# Initialize eCOMET object
+mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group',sample_col = "sample")
+# Add normalizations
+mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
+mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
+mmo <- MeancenterNormalization(mmo) # Add mean-centered area
+mmo <- LogNormalization(mmo) # Add log-transformed area
+mmo <- ZNormalization(mmo) # Add Zscore
+
+
+
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```
+
+```{r}
+```

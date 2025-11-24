@@ -3,7 +3,7 @@ library(ecomet)
 library(dplyr)
 library(stringr)
 #Load demo data
-setwd('/home/minsoo/software/eCOMET/demo/tutorial_1_treatment_based')
+setwd('/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/tutorial/tutorial_1_treatment_based/')
 
 demo_feature <- "raw_data/feature_table_demo.csv"
 demo_metadata <- "raw_data/metadata_demo.csv"
@@ -13,7 +13,7 @@ demo_dreams <- "raw_data/dreams_sim_demo.csv"
 gls_db <- "raw_data/custom_DB_glucosinolates.csv"
 
 # Initialize eCOMET object
-mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group')
+mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group',sample_col = "sample")
 # Add normalizations
 mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
 mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
@@ -71,7 +71,7 @@ VennInput <- list(
 require(ggvenn)
 library(ggvenn)
 ggvenn(VennInput, stroke_size = 0.5, set_name_size = 4, show_percentage = FALSE) +
-  theme(legend.position = "none") 
+  theme(legend.position = "none")
 ggsave("plot/Venn_Upreg.pdf", height = 5, width = 5)
 # UpSet plot
 require(UpSetR)
@@ -94,16 +94,16 @@ library(pheatmap)
 # distance is one of the chemical distance (cosine, m2ds, and dreams) for clustering rows
 # The values can be either fold_change or mean (use option 'summarize')
 heatmap_inputs <- GenerateHeatmapInputs(
-  mmo, summarize = 'fold_change', control_group = 'ctrl', 
+  mmo, summarize = 'fold_change', control_group = 'ctrl',
   normalization = 'None', distance = 'dreams'
 ) # This generates fold change matrix between each treatment and control
 
 # The resulting list contains FC_matrix, dist_matrix, row_label, and heatmap_data
 # A heatmap can be generated using pheatmap
 pdf("plot/Heatmap_FC_dreams.pdf", width = 10, height = 10)
-pheatmap(mat = heatmap_inputs$FC_matrix, 
-     clustering_distance_rows = heatmap_inputs$dist_matrix,  
-     clustering_method = "average", 
+pheatmap(mat = heatmap_inputs$FC_matrix,
+     clustering_distance_rows = heatmap_inputs$dist_matrix,
+     clustering_method = "average",
      cellwidth = 100,
      cellheight = 0.3,
      treeheight_row = 100,
@@ -116,12 +116,12 @@ dev.off()
 # Either, you can visualize mean normalized values across samples
 heatmap_inputs <- GenerateHeatmapInputs(
   mmo, summarize = 'mean', normalization = 'Z', distance = 'dreams'
-) 
-# 'clustering_distance_rows' option make the dendrogram follows chemical distances of features. 
+)
+# 'clustering_distance_rows' option make the dendrogram follows chemical distances of features.
 #  -Delete this option to visualize the heatmap following cannonical clustering
 pdf("plot/Heatmap_Mean_Z_clustering.pdf", width = 10, height = 10)
-pheatmap(mat = heatmap_inputs$FC_matrix, 
-     #clustering_distance_rows = heatmap_inputs$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering 
+pheatmap(mat = heatmap_inputs$FC_matrix,
+     #clustering_distance_rows = heatmap_inputs$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering
      clustering_method = "average", #UPGMA
      cellwidth = 100,
      cellheight = 0.3,
@@ -139,10 +139,10 @@ dev.off()
 heatmap_inputs_GLS <- GenerateHeatmapInputs(
   mmo, summarize = 'mean', normalization = 'Z', distance = 'dreams',
   filter_feature = TRUE, feature_list = GLSs
-) 
+)
 pdf("plot/Heatmap_Mean_Z_GLS.pdf", width = 10, height = 10)
-pheatmap(mat = heatmap_inputs_GLS$FC_matrix, 
-     #clustering_distance_rows = heatmap_inputs_GLS$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering 
+pheatmap(mat = heatmap_inputs_GLS$FC_matrix,
+     #clustering_distance_rows = heatmap_inputs_GLS$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering
      clustering_method = "average", #UPGMA
      cellwidth = 100,
      cellheight = 8,
@@ -214,7 +214,7 @@ CSCS <- GetBetaDiversity(mmo, method = 'CSCS', normalization = 'Log', distance =
 NMDSplot(mmo, betadiv = bray, prefix = 'plots/NMDS_bray', color = colors)
 PCoAplot(mmo, betadiv = guni.05, prefix = 'plots/PCoA_guni.05', color = colors)
 
-# Or, distance against a group can be extracted 
+# Or, distance against a group can be extracted
 group_distances <- CalculateGroupBetaDistance(mmo, beta_div = guni.05, reference_group = 'ctrl', groups = c('le1', 'sl1'))
 ggplot(group_distances, aes(x = group, y = distance)) +
       geom_boxplot(outlier.shape = NA) +
