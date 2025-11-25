@@ -1268,6 +1268,10 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param label Boolean to indicate whether to label points with sample names (default: TRUE)
+#' @param save_output Logical; if TRUE (default) write plot (.pdf) and PERMANOVA
+#'   tables using `outdir` as prefix. If FALSE, nothing is written.
+#' @return A list with elements `plot` (ggplot), `scores` (PCA scores with groups),
+#'   and `permanova` (results from `permanova_stat`).
 #' @export
 #' @examplesIf FALSE
 #' PCAplot(
@@ -1281,7 +1285,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #'  filter_feature = TRUE, feature_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
 #' )
-PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE,save_output=T){
+PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE, save_output = TRUE){
   .require_pkg("ggrepel")
   .require_pkg("stats")
   metadata <- mmo$metadata
@@ -1316,17 +1320,18 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
       scale_color_manual(values = color)+
       stat_ellipse(aes(group = .data$group), level = 0.90)
   }
-  print(plot)
-  if(save_output == T){
-  ggsave(paste0(outdir, '.pdf'), width = 6, height = 6)
-
   permanova <- permanova_stat(feature_data_pca, metadata, mode = 'data', filter_group = filter_group, group_list = group_list)
-  write.csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
-  write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
-  write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2value_matrix.csv'))
+
+  if (isTRUE(save_output)) {
+    ggsave(paste0(outdir, '.pdf'), width = 6, height = 6)
+    write.csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
+    write.csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
+    write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+    write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
+    write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
   }
+
+  return(invisible(list(plot = plot, scores = pca_df, permanova = permanova)))
 }
 
 
@@ -3083,4 +3088,3 @@ LoadMMO <- function(file, check_session = TRUE, verbose = TRUE) {
   }
   return(mmo)
 }
-
