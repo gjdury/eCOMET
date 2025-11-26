@@ -33,7 +33,7 @@ This function generates bar plots for a specified feature across different group
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
 AnovaBarPlot(
- mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z', 
+ mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z',
  filter_group = TRUE, group_list = c("Group1", "Group2")
 )
 \dontshow{\}) # examplesIf}

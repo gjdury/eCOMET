@@ -52,7 +52,7 @@ distance matrix, and row labels for custom-annotated features.
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 # Generate heatmap inputs to visualize fold change values with log normalization and dreams distance
 heatmap_inputs <- GenerateHeatmapInputs(
- mmo, summarize = 'fold_change', control_group = 'Control', 
+ mmo, summarize = 'fold_change', control_group = 'Control',
  normalization = 'None', distance = 'dreams'
 )
 # Generate heatmap inputs to visualize mean values
@@ -61,14 +61,14 @@ heatmap_inputs <- GenerateHeatmapInputs(
 )
 # The resulting list contains FC_matrix, dist_matrix, row_label, and heatmap_data
 # A heatmap can be generated using pheatmap
-# 'clustering_distance_rows' option make the dendrogram follows chemical distances of features. 
+# 'clustering_distance_rows' option make the dendrogram follows chemical distances of features.
 #  -Delete this option to visualize the heatmap following cannonical clustering
-pheatmap(mat = heatmap_inputs$FC_matrix, 
+pheatmap(mat = heatmap_inputs$FC_matrix,
     cluster_rows = TRUE, #do not change
-    clustering_distance_rows = heatmap_inputs$dist_matrix, 
-    cluster_cols = TRUE, 
+    clustering_distance_rows = heatmap_inputs$dist_matrix,
+    cluster_cols = TRUE,
     clustering_method = "average", #UPGMA
-    show_rownames = TRUE, 
+    show_rownames = TRUE,
     show_colnames = TRUE,
     cellwidth = 25,
     cellheight = 0.05,

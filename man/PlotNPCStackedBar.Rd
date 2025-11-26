@@ -25,7 +25,7 @@ Make sure you don't run ReplaceZero() before using this function, as it may remo
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 PlotNPCStackedBar(
- mmo, group_col = 'treatment', 
+ mmo, group_col = 'treatment',
  output_file = 'NPC_stacked_bar.png', width = 6, height = 3
 )
 \dontshow{\}) # examplesIf}

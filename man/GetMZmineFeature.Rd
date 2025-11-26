@@ -10,8 +10,7 @@ GetMZmineFeature(
   group_col,
   sample_col,
   mz_col = NULL,
-  rt_col = NULL,
-  check.names = FALSE
+  rt_col = NULL
 )
 }
 \arguments{
@@ -26,8 +25,6 @@ GetMZmineFeature(
 \item{mz_col}{Optional m/z column name (defaults to "mz" or "row m/z")}
 
 \item{rt_col}{Optional RT column name (defaults to "rt" or "row retention time")}
-
-\item{check.names}{Logical indicating whether to check and adjust column names when reading CSV files (default: FALSE)}
 }
 \value{
 A mmo object containing the feature data and metadata

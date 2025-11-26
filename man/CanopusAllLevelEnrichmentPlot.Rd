@@ -49,18 +49,18 @@ comp.list <- list(
   comparison2 = DAMs_up$control_vs_treatment2.up
 )
 CanopusAllLevelEnrichmentPlot(
- mmo, comp.list = comp.list, terms = 'all_terms', 
- pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels', 
+ mmo, comp.list = comp.list, terms = 'all_terms',
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels',
  height = 10, width = 8
 )
 CanopusAllLevelEnrichmentPlot(
- mmo, comp.list = comp.list, terms = 'NPC', 
- pthr = 0.1, representation = 'greater', prefix = 'enrichment_NPC_levels', 
+ mmo, comp.list = comp.list, terms = 'NPC',
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_NPC_levels',
  height = 10, width = 8
 )
 CanopusAllLevelEnrichmentPlot(
- mmo, comp.list = comp.list, terms = 'ClassyFire', 
- pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels', 
+ mmo, comp.list = comp.list, terms = 'ClassyFire',
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels',
  height = 10, width = 8
 )
 \dontshow{\}) # examplesIf}

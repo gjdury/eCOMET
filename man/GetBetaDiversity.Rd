@@ -43,10 +43,10 @@ Bray-Curtis and Jaccard methods are calculated using the vegan package, not cons
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-beta_diversity <- GetBetaDiversity(mmo, method = 'bray', 
- normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates, 
+beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
+ normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates,
  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
 \dontshow{\}) # examplesIf}
 }

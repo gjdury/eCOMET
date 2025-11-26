@@ -50,8 +50,8 @@ comp.list <- list(
   comparison2 = DAMs_up$control_vs_treatment2.up
 )
 CanopusLevelEnrichmentPlot(
- mmo, comp.list = comp.list, term_level = 'NPC_pathway', 
- pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot', 
+ mmo, comp.list = comp.list, term_level = 'NPC_pathway',
+ pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot',
  height = 5, width = 5
 )
 \dontshow{\}) # examplesIf}

@@ -36,19 +36,19 @@ Use SwitchGroup() to change the grouping variable before running this function.
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 group_means <- GetGroupMeans(mmo, normalization = 'Log')
-group_means <- GetGroupMeans(mmo, 
- normalization = 'None', 
+group_means <- GetGroupMeans(mmo,
+ normalization = 'None',
  filter_feature = TRUE, feature_list = Glucosinolates
 ) # if Glucosinolates is a vector of feature names
-group_means <- GetGroupMeans(mmo, 
- normalization = 'Z', 
- filter_group = TRUE, 
+group_means <- GetGroupMeans(mmo,
+ normalization = 'Z',
+ filter_group = TRUE,
  group_list = c("Control", "Treatment1")
 )
-group_means <- GetGroupMeans(mmo, 
- normalization = 'Meancentered', 
- filter_feature = TRUE, feature_list = Glucosinolates, 
+group_means <- GetGroupMeans(mmo,
+ normalization = 'Meancentered',
+ filter_feature = TRUE, feature_list = Glucosinolates,
  filter_group = TRUE, group_list = c("Control", "Treatment1")
-) # if Glucosinolates is a vector of feature names   
+) # if Glucosinolates is a vector of feature names
 \dontshow{\}) # examplesIf}
 }

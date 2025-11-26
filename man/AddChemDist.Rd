@@ -24,9 +24,9 @@ then transform the similarity to distance and adds the dissimilarity matrices to
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-mmo <- AddChemDist(mmo, 
- cos_dir = "path/to/cosine_similarity.csv", 
- dreams_dir = "path/to/dreams_similarity.csv", 
+mmo <- AddChemDist(mmo,
+ cos_dir = "path/to/cosine_similarity.csv",
+ dreams_dir = "path/to/dreams_similarity.csv",
  m2ds_dir = "path/to/ms2deepscore_similarity.csv"
 )
 \dontshow{\}) # examplesIf}

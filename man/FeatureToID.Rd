@@ -21,7 +21,7 @@ This function converts feature names to their corresponding IDs in the mmo objec
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 feature_ids <- FeatureToID(mmo, feature_names = c("100.0_5.0", "150.0_10.0"))
 feature_ids <- FeatureToID(mmo, feature_names = mmo$feature_data$feature[1:10])
-feature_ids <- FeatureToID(mmo, 
+feature_ids <- FeatureToID(mmo,
  feature_names = Glucosinolates
 ) # if Glucosinolates is a vector of feature names
 \dontshow{\}) # examplesIf}

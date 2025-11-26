@@ -37,12 +37,12 @@ The function returns the PERMANOVA results, raw pairwise comparison results, and
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 permanova_results <- permanova_stat(
- data = feature_data, metadata = mmo$metadata, 
- mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"), 
+ data = feature_data, metadata = mmo$metadata,
+ mode = 'data', filter_group = TRUE, group_list = c("Control", "Treatment1"),
  permutations = 5000
 )
 permanova_results <- permanova_stat(
- data = betadiv, metadata = mmo$metadata, 
+ data = betadiv, metadata = mmo$metadata,
  mode = 'distance', permutations = 10000
 )
 \dontshow{\}) # examplesIf}

@@ -41,14 +41,14 @@ PLS-DA plot with feature loadings
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 PLSDAplot(
- mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
- topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z', 
+ mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
+ topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z',
  filter_feature = FALSE, filter_group = FALSE
 )
 PLSDAplot(
- mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
- topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log', 
- filter_feature = TRUE, feature_list = Glucosinolates, 
+ mmo, color = c("Control" = "blue", "Treatment1" = "red"),
+ topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log',
+ filter_feature = TRUE, feature_list = Glucosinolates,
  filter_group = TRUE, group_list = c("Control", "Treatment1")
 )
 \dontshow{\}) # examplesIf}

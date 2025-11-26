@@ -26,7 +26,7 @@ results to CSV files.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 PCoAplot(mmo, betadiv = beta_diversity, prefix = 'output/PCoA', width = 6, height = 6)
 \dontshow{\}) # examplesIf}

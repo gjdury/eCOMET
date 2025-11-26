@@ -41,12 +41,12 @@ This function performs enrichment analysis for Canopus-predicted terms on a give
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 # Perform enrichment analysis for a list of features using NPC_pathway level
 sig_terms <- CanopusLevelEnrichmentAnal(
- mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
+ mmo, list_test = c("feature1", "feature2"), pthr = 0.1,
  sig = TRUE, term_level = 'NPC_pathway', representation = 'greater'
 )
 # Perform enrichment analysis for a list of features using ClassyFire_class level and return all terms
 all_terms <- CanopusLevelEnrichmentAnal(
- mmo, list_test = c("feature1", "feature2"), pthr = 0.1, 
+ mmo, list_test = c("feature1", "feature2"), pthr = 0.1,
  sig = FALSE, term_level = 'ClassyFire_class', representation = 'greater'
 )
 \dontshow{\}) # examplesIf}

@@ -36,8 +36,8 @@ highlighting upregulated and downregulated features based on log2 fold change an
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 VolcanoPlot(
- mmo, comp = 'Control_vs_Treatment1', 
- topk = 10, pthr = 0.05, 
+ mmo, comp = 'Control_vs_Treatment1',
+ topk = 10, pthr = 0.05,
  outdir = 'volcano_con_tre1.png', height = 5, width = 5
 )
 \dontshow{\}) # examplesIf}

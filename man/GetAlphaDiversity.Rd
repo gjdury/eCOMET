@@ -38,9 +38,9 @@ Unweighted mode uses Hill numbers without considering feature dissimilarity, whi
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None', 
+alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
  mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
-alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z', 
+alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
  mode = 'unweighted', filter_feature = TRUE, feature_list = Glucosinolates)
 \dontshow{\}) # examplesIf}
 }

@@ -13,7 +13,8 @@ PCAplot(
   feature_list = NULL,
   filter_group = FALSE,
   group_list = NULL,
-  label = TRUE
+  label = TRUE,
+  save_output = TRUE
 )
 }
 \arguments{
@@ -34,6 +35,13 @@ PCAplot(
 \item{group_list}{A vector of group names to filter (default: NULL)}
 
 \item{label}{Boolean to indicate whether to label points with sample names (default: TRUE)}
+
+\item{save_output}{Logical; if TRUE (default) write plot (.pdf) and PERMANOVA
+tables using \code{outdir} as prefix. If FALSE, nothing is written.}
+}
+\value{
+A list with elements \code{plot} (ggplot), \code{scores} (PCA scores with groups),
+and \code{permanova} (results from \code{permanova_stat}).
 }
 \description{
 This function performs PCA analysis and generates a PCA plot with optional filtering of features and groups.
@@ -42,14 +50,14 @@ It also conducts PERMANOVA and saves the results to CSV files.
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 PCAplot(
- mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"), 
- outdir = 'PCA_plot', normalization = 'None', 
+ mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
+ outdir = 'PCA_plot', normalization = 'None',
  filter_feature = FALSE, filter_group = FALSE, label = FALSE
 )
 PCAplot(
- mmo, color = c("Control" = "blue", "Treatment1" = "red"), 
- outdir = 'PCA_plot', normalization = 'Z', 
- filter_feature = TRUE, feature_list = Glucosinolates, 
+ mmo, color = c("Control" = "blue", "Treatment1" = "red"),
+ outdir = 'PCA_plot', normalization = 'Z',
+ filter_feature = TRUE, feature_list = Glucosinolates,
  filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
 )
 \dontshow{\}) # examplesIf}

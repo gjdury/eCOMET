@@ -23,7 +23,6 @@ if (!exists(".require_pkg", mode = "function")) {
 #' @param sample_col Column in metadata file used to identify and match individual samples
 #' @param mz_col Optional m/z column name (defaults to "mz" or "row m/z")
 #' @param rt_col Optional RT column name (defaults to "rt" or "row retention time")
-#' @param check.names Logical indicating whether to check and adjust column names when reading CSV files (default: FALSE)
 #' @return A mmo object containing the feature data and metadata
 #' @export
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
@@ -49,7 +48,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 
   # --- area columns from EXACT metadata filenames ---
   samples <- trimws(metadata[[sample_col]])                     # e.g., "I1_C1_1.mzML"
-  samples_core <- sub("\\.(mzML|mzXML)$", "", samples, ignore.case = TRUE)
+  samples_core <- sub("\\.(mzML|mzXML|raw)$", "", samples, ignore.case = TRUE)
 
   #might need to move this outside the function...
   find_area_columns <- function(data, samples_core, max_distance = 5) {
@@ -67,7 +66,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
       strip_wrappers <- function(x) {
         x <- sub("^datafile[:.]", "", x)                               # datafile: or datafile.
         x <- sub("(?i)( Peak area|:area|\\.area)$", "", x, perl = TRUE) # ' Peak area', ':area', '.area'
-        x <- sub("(?i)\\.(mzml|mzxml)$", "", x, perl = TRUE)           # trailing .mzML/.mzXML if present
+        x <- sub("(?i)\\.(mzml|mzxml|raw)$", "", x, perl = TRUE)           # trailing .mzML/.mzXML if present
         x
       }
       cand_core <- strip_wrappers(candidates)

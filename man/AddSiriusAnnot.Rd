@@ -22,8 +22,8 @@ and adds the annotations to the mmo object.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-mmo <- AddSiriusAnnot(mmo, 
- canopus_structuredir = "path/to/structure_identification.tsv", 
+mmo <- AddSiriusAnnot(mmo,
+ canopus_structuredir = "path/to/structure_identification.tsv",
  canopus_formuladir = "path/to/canopus_formula_summary.tsv"
 )
 \dontshow{\}) # examplesIf}
