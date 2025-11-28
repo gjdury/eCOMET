@@ -10,10 +10,11 @@ MSEA(
   feature_score,
   term_level = "NPC_class",
   pthr = 0.05,
-  prefix = "MSEA",
+  outdir = "MSEA",
   width = 8,
   height = 12,
-  sig = FALSE
+  sig = FALSE,
+  save_output = TRUE
 )
 }
 \arguments{
@@ -30,16 +31,18 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 
 \item{pthr}{The threshold for adjusted p-value to be considered significant (default: 0.05)}
 
-\item{prefix}{The prefix for output files (default: 'MSEA')}
+\item{outdir}{The directory to save the output files (default: 'MSEA')}
 
 \item{width}{The width of the output plot in inches (default: 8)}
 
 \item{height}{The height of the output plot in inches (default: 12)}
 
 \item{sig}{A logical value indicating whether to return only significant terms (default: FALSE)}
+
+\item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
 }
 \value{
-A data frame containing the MSEA results, including pathway, NES, p-value, and adjusted p-value (FDR)
+A list of the plot and the enrichment results
 }
 \description{
 This function performs Metabolite Set Enrichment Analysis (MSEA) using the fgsea package.

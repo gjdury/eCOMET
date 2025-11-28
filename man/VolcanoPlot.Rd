@@ -11,7 +11,8 @@ VolcanoPlot(
   pthr = 0.05,
   outdir = "volcano.png",
   height = 5,
-  width = 5
+  width = 5,
+  save_output = TRUE
 )
 }
 \arguments{
@@ -28,6 +29,11 @@ VolcanoPlot(
 \item{height}{The height of the output plot in inches (default: 5)}
 
 \item{width}{The width of the output plot in inches (default: 5)}
+
+\item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
+}
+\value{
+A list containing the volcano plot and the data used to generate it
 }
 \description{
 This function generates a volcano plot using data from mmo$pairwise (PairwiseComp(mmo, 'group1', 'group2') should be precended),

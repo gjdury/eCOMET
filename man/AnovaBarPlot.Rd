@@ -10,7 +10,10 @@ AnovaBarPlot(
   outdir,
   normalization = "None",
   filter_group = FALSE,
-  group_list = NULL
+  group_list = NULL,
+  save_output = TRUE,
+  width = 6,
+  height = 6
 )
 }
 \arguments{
@@ -25,6 +28,15 @@ AnovaBarPlot(
 \item{filter_group}{A boolean indicating whether to filter the feature values by a specific group list (default: FALSE)}
 
 \item{group_list}{A list of groups to filter the feature values by, if filter_group is TRUE (default: NULL)}
+
+\item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
+
+\item{width}{The width of the output plot in inches (default: 6)}
+
+\item{height}{The height of the output plot in inches (default: 6)}
+}
+\value{
+A list containing the bar plot and the ANOVA results
 }
 \description{
 This function generates bar plots for a specified feature across different groups in the metadata, performing ANOVA and Tukey's HSD test for post-hoc analysis.

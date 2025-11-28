@@ -8,7 +8,10 @@ PlotFoldchangeResistanceQuad(
   performance_regression,
   fold_change,
   color,
-  output_dir
+  output_dir,
+  save_output = TRUE,
+  width = 6,
+  height = 6
 )
 }
 \arguments{
@@ -19,6 +22,15 @@ PlotFoldchangeResistanceQuad(
 \item{color}{A vector of colors for the points in the plot}
 
 \item{output_dir}{The output file path for the quadrant plot}
+
+\item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
+
+\item{width}{The width of the output plot in inches (default: 6)}
+
+\item{height}{The height of the output plot in inches (default: 6)}
+}
+\value{
+A list containing the quadrant plot and the performance regression data frame
 }
 \description{
 This function plots the fold change resistance in a quadrant plot, categorizing points into quadrants based on their effect size and fold change.

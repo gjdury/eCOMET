@@ -13,7 +13,8 @@ PLSDAplot(
   filter_feature = FALSE,
   feature_list = NULL,
   filter_group = FALSE,
-  group_list = NULL
+  group_list = NULL,
+  save_output = TRUE
 )
 }
 \arguments{
@@ -34,6 +35,13 @@ PLSDAplot(
 \item{filter_group}{Boolean to filter groups by group_list (default: FALSE)}
 
 \item{group_list}{A vector of group names to filter (default: NULL)}
+
+\item{save_output}{Boolean; if TRUE (default) write plot (.pdf) and loadings
+tables using \code{outdir} as prefix. If FALSE, nothing is written.}
+}
+\value{
+A list with elements \code{plot} (ggplot), \code{df} (raw data to generate plots),
+and \code{loadings} (loadings for PLSDA).
 }
 \description{
 PLS-DA plot with feature loadings

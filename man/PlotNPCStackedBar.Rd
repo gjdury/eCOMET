@@ -4,18 +4,30 @@
 \alias{PlotNPCStackedBar}
 \title{PlotNPCStackedBar}
 \usage{
-PlotNPCStackedBar(mmo, group_col, output_file, width = 6, height = 3)
+PlotNPCStackedBar(
+  mmo,
+  group_col,
+  outdir,
+  width = 6,
+  height = 3,
+  save_output = TRUE
+)
 }
 \arguments{
 \item{mmo}{The mmo object with sirius annotation and normalized data}
 
 \item{group_col}{The column name in metadata to use for grouping samples}
 
-\item{output_file}{The output file path for the stacked bar plot (e.g., 'NPC_stacked_bar.png')}
+\item{outdir}{The output file path for the stacked bar plot (e.g., 'NPC_stacked_bar.png')}
 
 \item{width}{The width of the output plot}
 
 \item{height}{The height of the output plot}
+
+\item{save_output}{boolean, whether to save the output plot}
+}
+\value{
+A list containing the stacked bar plot and the data used to generate it
 }
 \description{
 This function generates a stacked bar plot showing the count of features in each group categorized by NPC_pathway.
@@ -26,7 +38,7 @@ Make sure you don't run ReplaceZero() before using this function, as it may remo
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 PlotNPCStackedBar(
  mmo, group_col = 'treatment',
- output_file = 'NPC_stacked_bar.png', width = 6, height = 3
+ outdir = 'NPC_stacked_bar.png', width = 6, height = 3
 )
 \dontshow{\}) # examplesIf}
 }

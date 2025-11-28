@@ -11,7 +11,10 @@ FeaturePerformanceRegression(
   groups,
   model = "lmm",
   normalization = "Z",
-  output
+  outdir = "FeaturePerformanceRegression",
+  width = 6,
+  height = 6,
+  save_output = TRUE
 )
 }
 \arguments{
@@ -27,7 +30,16 @@ FeaturePerformanceRegression(
 
 \item{normalization}{The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')}
 
-\item{output}{The output file path for the regression plot}
+\item{outdir}{The directory to save the output files}
+
+\item{width}{The width of the output plot in inches (defa ult: 8)}
+
+\item{height}{The height of the output plot in inches (default: 12)}
+
+\item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
+}
+\value{
+A list of the plot and the raw data
 }
 \description{
 This function performs regression analysis of a specific feature against a phenotype performance in the metadata.

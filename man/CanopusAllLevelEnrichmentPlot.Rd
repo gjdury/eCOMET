@@ -11,10 +11,11 @@ CanopusAllLevelEnrichmentPlot(
   term_levels = NULL,
   pthr = 0.1,
   representation = "greater",
-  prefix = "enrichment",
+  outdir = "enrichment",
   height = 10,
   width = 8,
-  pval = "pval"
+  pval = "pval",
+  save_output = TRUE
 )
 }
 \arguments{
@@ -30,13 +31,18 @@ CanopusAllLevelEnrichmentPlot(
 
 \item{representation}{The representation type for enrichment analysis. Options are 'greater' for overrepresentation (default: 'greater')}
 
-\item{prefix}{The prefix for output files (default: 'enrichment')}
+\item{outdir}{The output directory for saving the plot and the enrichment results (default: 'enrichment')}
 
 \item{height}{The height of the output plot in inches (default: 10)}
 
 \item{width}{The width of the output plot in inches (default: 8)}
 
 \item{pval}{pvalue options-pval or fdr (default: 'pval')}
+
+\item{save_output}{boolean, whether to save the output plot (default: TRUE)}
+}
+\value{
+A list of the plot and the enrichment results
 }
 \description{
 This function generates a plot for enrichment analysis of Canopus-predicted terms across all levels,

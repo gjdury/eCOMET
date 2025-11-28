@@ -4,20 +4,33 @@
 \alias{NMDSplot}
 \title{NMDSplot}
 \usage{
-NMDSplot(mmo, betadiv, prefix, width = 6, height = 6, color)
+NMDSplot(
+  mmo,
+  betadiv,
+  outdir,
+  width = 6,
+  height = 6,
+  color,
+  save_output = TRUE
+)
 }
 \arguments{
 \item{mmo}{The mmo object containing metadata}
 
 \item{betadiv}{The beta diversity distance matrix, output of GetBetaDiversity()}
 
-\item{prefix}{The prefix for the output files}
+\item{outdir}{The outdir for the output files}
 
 \item{width}{The width of the output NMDS plot (default: 6)}
 
 \item{height}{The height of the output NMDS plot (default: 6)}
 
 \item{color}{A vector of colors for the groups in the plot}
+
+\item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
+}
+\value{
+A list containing the NMDS plot, the NMDS coordinates, and the PERMANOVA results
 }
 \description{
 This function generates a Non-metric Multidimensional Scaling (NMDS) plot based on the provided beta diversity distance matrix.
@@ -29,6 +42,6 @@ beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 # Use method = 'bray' or 'jaccard' if you want to use just feature abundance
 # without considering feature spectral dissimilarity
-NMDSplot(mmo, betadiv = beta_diversity, prefix = 'output/NMDS', width = 6, height = 6)
+NMDSplot(mmo, betadiv = beta_diversity, outdir = 'output/NMDS', width = 6, height = 6)
 \dontshow{\}) # examplesIf}
 }

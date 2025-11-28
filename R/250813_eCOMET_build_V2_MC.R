@@ -1385,6 +1385,8 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
 #' @param outdir The output file path for the volcano plot (default: 'volcano.png')
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)  
+#' @return A list containing the volcano plot and the data used to generate it
 #' @export
 #' @examplesIf FALSE
 #' VolcanoPlot(
@@ -1392,7 +1394,7 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
 #'  topk = 10, pthr = 0.05,
 #'  outdir = 'volcano_con_tre1.png', height = 5, width = 5
 #' )
-VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png', height = 5, width = 5){
+VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png', height = 5, width = 5, save_output = TRUE){
   .require_pkg("ggrepel")
   VolData <- mmo$pairwise |> dplyr::select(feature,all_of(c(paste(comp, 'log2FC', sep = '_'), paste(comp, 'padj', sep = '_'))))
   colnames(VolData) <- c('feature', 'log2FC', 'padj')
@@ -1414,7 +1416,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
       head(topk)
   )
 
-  volcano <- ggplot(VolData, aes(x = .data$log2FC, y = -log(.data$padj, 10))) +
+  plot <- ggplot(VolData, aes(x = .data$log2FC, y = -log(.data$padj, 10))) +
     geom_point(aes(color = .data$Expression), size = 0.4)+
     xlab(expression("log"[2]*"FC")) +
     ylab(expression("-log"[10]*"FDR"))+
@@ -1425,8 +1427,12 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
                     mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature),
                     size = 2)
 
-  volcano
-  ggsave(outdir, height = height, width = width)
+  plot
+  if (save_output){
+    ggsave(outdir, height = height, width = width)
+    write_csv(VolData, paste0(outdir, '_volcano_data.csv'))
+  }
+  return(list(plot = plot, df = VolData))
 }
 
 ########################################################################################
@@ -1448,9 +1454,9 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param label Boolean to indicate whether to label points with sample names (default: TRUE)
-#' @param save_output Logical; if TRUE (default) write plot (.pdf) and PERMANOVA
+#' @param save_output Boolean; if TRUE (default) write plot (.pdf) and PERMANOVA
 #'   tables using `outdir` as prefix. If FALSE, nothing is written.
-#' @return A list with elements `plot` (ggplot), `scores` (PCA scores with groups),
+#' @return A list with elements `plot` (ggplot), `df` (raw data to generate plots),
 #'   and `permanova` (results from `permanova_stat`).
 #' @export
 #' @examplesIf FALSE
@@ -1501,17 +1507,17 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
       stat_ellipse(aes(group = .data$group), level = 0.90)
   }
   permanova <- permanova_stat(feature_data_pca, metadata, mode = 'data', filter_group = filter_group, group_list = group_list)
-
+  plot
   if (isTRUE(save_output)) {
     ggsave(paste0(outdir, '.pdf'), width = 6, height = 6)
-    write.csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
-    write.csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
-    write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
-    write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
-    write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
+    write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
+    write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
+    write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+    write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
+    write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
   }
 
-  return(invisible(list(plot = plot, scores = pca_df, permanova = permanova)))
+  return(invisible(list(plot = plot, df = pca_df, permanova = permanova)))
 }
 
 
@@ -1530,6 +1536,10 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
 #' @param feature_list A vector of feature names to filter (default: NULL)
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
+#' @param save_output Boolean; if TRUE (default) write plot (.pdf) and loadings
+#'   tables using `outdir` as prefix. If FALSE, nothing is written.
+#' @return A list with elements `plot` (ggplot), `df` (raw data to generate plots),
+#'   and `loadings` (loadings for PLSDA).
 #' @export
 #' @examplesIf FALSE
 #' PLSDAplot(
@@ -1543,7 +1553,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
 #'  filter_feature = TRUE, feature_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1")
 #' )
-PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL) {
+PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, save_output = TRUE) {
   .require_pkg("caret")
   .require_pkg("ggrepel")
 
@@ -1594,25 +1604,27 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
     plsda_df <- plsda_df |> filter(.data$Group %in% group_list)
   }
 
-  ggplot(plsda_df, aes(x = .data$Comp1, y = .data$Comp2, color = .data$Group)) +
-  geom_point(size = 3) +
-  theme_classic() +
-  stat_ellipse(level = 0.90) +
-  ggtitle("PLS-DA Plot") +
-  labs(x = "Component 1", y = "Component 2") +
-  scale_color_manual(values = color) +
-  theme(legend.position = "right")+
-  geom_segment(data = top_features,
-               aes(x = 0, y = 0, xend = .data$Comp1_Loading * loading_scale, yend = .data$Comp2_Loading * loading_scale),  # Scale the arrows
-               arrow = grid::arrow(length = grid::unit(0.3, "cm")), color = "grey", linewidth = 1) +
-  # Add labels for the top 10 features
-  ggrepel::geom_text_repel(data = top_features,
-            aes(x = .data$Comp1_Loading * loading_scale, y = .data$Comp2_Loading * loading_scale, label = .data$Feature),
-            color = "black", vjust = 1.5, size = 3)
-
-  ggsave(outdir, height = 6, width = 6)
-  write.csv(loadings_df, 'PLSDA_loadings.csv')
-  print(paste(normalization, '-normalized feature was used'))
+ plot <-  ggplot(plsda_df, aes(x = .data$Comp1, y = .data$Comp2, color = .data$Group)) +
+    geom_point(size = 3) +
+    theme_classic() +
+    stat_ellipse(level = 0.90) +
+    ggtitle("PLS-DA Plot") +
+    labs(x = "Component 1", y = "Component 2") +
+    scale_color_manual(values = color) +
+    theme(legend.position = "right")+
+    geom_segment(data = top_features,
+                aes(x = 0, y = 0, xend = .data$Comp1_Loading * loading_scale, yend = .data$Comp2_Loading * loading_scale),  # Scale the arrows
+                arrow = grid::arrow(length = grid::unit(0.3, "cm")), color = "grey", linewidth = 1) +
+    # Add labels for the top 10 features
+    ggrepel::geom_text_repel(data = top_features,
+              aes(x = .data$Comp1_Loading * loading_scale, y = .data$Comp2_Loading * loading_scale, label = .data$Feature),
+              color = "black", vjust = 1.5, size = 3)
+  plot
+  if (save_output) {
+    ggsave(paste0(outdir, 'PLSDA_plot.pdf'), height = 6, width = 6)
+    write_csv(loadings_df, paste0(outdir, 'PLSDA_loadings.csv'))
+  }
+  return(list(plot = plot, df = plsda_df, loadings = loadings_df))
 }
 
 #' Generate input files to be used for pheatmap from the mmo object
@@ -1731,16 +1743,18 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
 #'
 #' @param mmo The mmo object with sirius annotation and normalized data
 #' @param group_col The column name in metadata to use for grouping samples
-#' @param output_file The output file path for the stacked bar plot (e.g., 'NPC_stacked_bar.png')
+#' @param outdir The output file path for the stacked bar plot (e.g., 'NPC_stacked_bar.png')
 #' @param width The width of the output plot
 #' @param height The height of the output plot
+#' @param save_output boolean, whether to save the output plot
+#' @return A list containing the stacked bar plot and the data used to generate it
 #' @export
 #' @examplesIf FALSE
 #' PlotNPCStackedBar(
 #'  mmo, group_col = 'treatment',
-#'  output_file = 'NPC_stacked_bar.png', width = 6, height = 3
+#'  outdir = 'NPC_stacked_bar.png', width = 6, height = 3
 #' )
-PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3) {
+PlotNPCStackedBar <- function(mmo, group_col, outdir, width = 6, height = 3, save_output = TRUE) {
   mmo <- SwitchGroup(mmo, group_col)
   feature_data <- mmo$feature_data
   metadata <- mmo$metadata
@@ -1778,7 +1792,7 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
   bar_colors <- setNames(RColorBrewer::brewer.pal(min(length(npc_pathways), 8), "Set2"), npc_pathways)
 
   # Plot stacked bar by NPC_pathway
-  ggplot(plot_df, aes(x = .data$group, y = .data$count, fill = .data$NPC_pathway, label = .data$count)) +
+  plot <- ggplot(plot_df, aes(x = .data$group, y = .data$count, fill = .data$NPC_pathway, label = .data$count)) +
     geom_bar(stat = "identity", position = "stack") +
     geom_text(aes(group = .data$NPC_pathway), position = position_stack(vjust = 0.5), size = 3, color = "white", fontface = "bold") +
     scale_fill_manual(values = bar_colors) +
@@ -1786,8 +1800,11 @@ PlotNPCStackedBar <- function(mmo, group_col, output_file, width = 6, height = 3
     labs(x = "Group", y = "Feature Count", fill = "NPC Pathway") +
     theme_classic() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-  ggsave(output_file, width = width, height = height)
+  if (save_output){
+    ggsave(paste0(outdir, 'NPC_stacked_bar.pdf'), width = width, height = height)
+    write_csv(plot_df, paste0(outdir, 'NPC_stacked_bar.csv'))
+  }
+  return(list(plot = plot, df = plot_df))
 }
 
 #' Enrichment analysis for Canopus-predicted terms
@@ -1909,6 +1926,8 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @param pval pvalue options-pval or fdr (default: 'pval')
+#' @param save_output boolean, whether to save the output plot (default: TRUE)
+#' @return A list containing the enrichment plot and the enrichment results
 #' @export
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot(
@@ -1917,22 +1936,27 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #'  height = 5, width = 5
 #' )
 #'
-CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, pval = 'pval'){
+CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, pval = 'pval', save_output = TRUE){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
   for (term_level in term_levels){
     sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater', pval = pval))
   }
   sig.canopus <- sig.canopus |> arrange(dplyr::desc(.data$foldenrichment))
-  ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
+  plot <- ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
     geom_point() +
     scale_color_gradient(low = 'grey', high = 'red') +
     theme_classic()+
     facet_grid(term_level ~ ., scales = 'free_y', space = 'free', switch = 'y')+
     xlim(0,max(sig.canopus$foldenrichment+1))
     #facet_wrap(~term_level, ncol = 1, scales = 'free_y', strip.position = 'right', shrink = TRUE)
+  plot
 
-  ggsave(outdir, height = height, width = width)
+  if (save_output){
+    ggsave(paste0(outdir, 'enrichment.pdf'), height = height, width = width)
+    write_csv(sig.canopus, paste0(outdir, 'enrichment.csv'))
+  }
+  return(list(plot = plot, df = sig.canopus))
 }
 
 #' Generate a plot for enrichment analysis of Canopus-predicted terms across multiple levels
@@ -1948,6 +1972,8 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #' @param width The width of the output plot in inches (default: 5)
 #' @param topn The number of top terms to display in the plot (default: 5)
 #' @param pval pvalue options-pval or fdr (default: 'pval')
+#' @param save_output boolean, whether to save the output plot (default: TRUE)
+#' @return A list containing the enrichment plot and the enrichment results
 #' @export
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot_2(
@@ -1955,7 +1981,7 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #'  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf',
 #'  height = 5, width = 5, topn = 5
 #' )
-CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5, pval = 'pval'){
+CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5, pval = 'pval', save_output = TRUE){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
   for (term_level in term_levels){
@@ -1964,14 +1990,18 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
   sig.canopus$term <- paste(sig.canopus$term, ';', sig.canopus$term_level)
   sig.canopus <- sig.canopus |> dplyr::slice_max(order_by = -.data$pval, n = topn)
   sig.canopus <- sig.canopus |> dplyr::arrange(dplyr::desc(.data$foldenrichment))
-  ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
+  plot <- ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
     geom_point() +
     scale_color_gradient(low = 'grey', high = 'red') +
     theme_classic()+
     xlim(0,max(sig.canopus$foldenrichment+1))+
     ylab('Chemical Class')
-
-  ggsave(outdir, height = height, width = width)
+  plot
+  if (save_output){
+    ggsave(outdir, height = height, width = width)
+    write_csv(sig.canopus, paste0(outdir, 'enrichment.csv'))
+  }
+  return(list(plot = plot, df = sig.canopus))
 }
 
 #' Generate a plot for enrichment analysis of Canopus-predicted terms at a specific level using a list of vectors of features
@@ -1987,10 +2017,12 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #'             'ClassyFire_level5', or 'ClassyFire_most_specific' (default: 'NPC_pathway')
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.1)
 #' @param representation The representation type for enrichment analysis. Options are 'greater' for overrepresentation (default: 'greater')
-#' @param prefix The prefix for output files (default: 'enrichment')
+#' @param outdir The output directory for saving the plot and the enrichment results (default: 'enrichment')
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @param pval pvalue options-pval or fdr (default: 'pval')
+#' @param save_output boolean, whether to save the output plot (default: TRUE)
+#' @return A list containing the enrichment plot and the enrichment results
 #' @export
 #' @examplesIf FALSE
 #' # Perform enrichment analysis for multiple comparisons using NPC_pathway level
@@ -2003,7 +2035,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot',
 #'  height = 5, width = 5
 #' )
-CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_pathway',pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 5, width = 5, pval = 'pval'){
+CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_pathway',pthr = 0.1, representation = 'greater', outdir = 'enrichment', height = 5, width = 5, pval = 'pval', save_output = TRUE){
   df.EA <- data.frame()
   sig.terms <- c()
   for(list in names(comp.list)){
@@ -2024,7 +2056,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
         breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
         labels = c("***", "**", "*", ".", "")
       ))
-    enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+    plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
       geom_point(aes(size = .data$subsetcount, color = .data$pval))+
       geom_text()+
       scale_size_area(name = 'Count', max_size = 10)+
@@ -2040,7 +2072,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
         breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
         labels = c("***", "**", "*", ".", "")
       ))
-    enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+    plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
       geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
       geom_text()+
       scale_size_area(name = 'Count', max_size = 10)+
@@ -2050,13 +2082,13 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
       xlab('Comparisons')+
       ylab('Chemical classes')
   }
-
-
-  enrichment_plot
-  write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
-  write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
-  ggsave(paste0(prefix, '.pdf'), width = width, height = height)
-  return(df.EA)
+  plot
+  if (save_output){
+    ggsave(paste0(outdir, '.pdf'), width = width, height = height)
+    write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
+    write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
+  }
+  return(list(plot = plot, df = df.EA))
 }
 
 #' Generate a plot for enrichment analysis of Canopus-predicted terms across all levels
@@ -2069,11 +2101,13 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #' @param term_levels list of custom term levels to use
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.1)
 #' @param representation The representation type for enrichment analysis. Options are 'greater' for overrepresentation (default: 'greater')
-#' @param prefix The prefix for output files (default: 'enrichment')
+#' @param outdir The output directory for saving the plot and the enrichment results (default: 'enrichment')
 #' @param height The height of the output plot in inches (default: 10)
 #' @param width The width of the output plot in inches (default: 8)
 #' @param pval pvalue options-pval or fdr (default: 'pval')
-#' @export
+#' @param save_output boolean, whether to save the output plot (default: TRUE)
+#' @return A list of the plot and the enrichment results
+#' @export 
 #' @examplesIf FALSE
 #' comp.list <- list(
 #'   comparison1 = DAMs_up$control_vs_treatment1.up,
@@ -2094,7 +2128,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels',
 #'  height = 10, width = 8
 #' )
-CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_terms', term_levels = NULL, pthr = 0.1, representation = 'greater', prefix = 'enrichment', height = 10, width = 8, pval = 'pval'){
+CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_terms', term_levels = NULL, pthr = 0.1, representation = 'greater', outdir = 'enrichment', height = 10, width = 8, pval = 'pval', save_output = TRUE){
   df.EA <- data.frame()
   sig.terms <- c()
   if(terms == 'all_terms'){
@@ -2125,7 +2159,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
           breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
           labels = c("***", "**", "*", ".", "")
         ))
-      enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+      plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
         geom_point(aes(size = .data$subsetcount, color = .data$pval))+
         geom_text()+
         scale_size_area(name = 'Count', max_size = 10)+
@@ -2142,7 +2176,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
           breaks = c(0,0.001, 0.01, 0.05, 0.1, 1),
           labels = c("***", "**", "*", ".", "")
         ))
-      enrichment_plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
+      plot <- ggplot(data = df.EA.sig, aes(x = .data$comp, y = .data$term, label = .data$label))+
         geom_point(aes(size = .data$subsetcount, color = .data$fdr))+
         geom_text()+
         scale_size_area(name = 'Count', max_size = 10)+
@@ -2154,13 +2188,13 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
         facet_grid(term_level ~ ., scales = 'free_y', space = 'free', switch = 'y')
     }
   }
-
-
-  enrichment_plot
-  write.csv(df.EA, paste0(prefix, '.csv'), row.names = FALSE)
-  write.csv(df.EA.sig, paste0(prefix, '_sig.csv'), row.names = FALSE)
-  ggsave(paste0(prefix, '.pdf'), width = width, height = height)
-  return(df.EA)
+  plot
+  if (save_output){
+    ggsave(paste0(outdir, '.pdf'), width = width, height = height)
+    write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
+    write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
+  }
+  return(list(plot = plot, df = df.EA))
 }
 
 
@@ -2177,11 +2211,12 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #'              'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass',
 #'             'ClassyFire_level5', or 'ClassyFire_most_specific' (default: 'NPC_class')
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.05)
-#' @param prefix The prefix for output files (default: 'MSEA')
+#' @param outdir The directory to save the output files (default: 'MSEA')
 #' @param width The width of the output plot in inches (default: 8)
 #' @param height The height of the output plot in inches (default: 12)
 #' @param sig A logical value indicating whether to return only significant terms (default: FALSE)
-#' @return A data frame containing the MSEA results, including pathway, NES, p-value, and adjusted p-value (FDR)
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @return A list of the plot and the enrichment results
 #' @export
 #' @examplesIf FALSE
 #' # Perform MSEA using NPC_class level
@@ -2190,7 +2225,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #'  term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class',
 #'  width = 8, height = 12, sig = FALSE
 #' )
-MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA', width = 8, height = 12, sig = FALSE){
+MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pthr = 0.05, outdir = 'MSEA', width = 8, height = 12, sig = FALSE, save_output = TRUE){
   # Create a named vector of feature scores
   .require_pkg("fgsea")
   ranked_list <- feature_score
@@ -2227,7 +2262,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
   if (sig) {
     msea_res <- msea_res |> filter(.data$padj < pthr)
   }
-  ggplot(msea_res, aes(x = reorder(.data$pathway, .data$NES), y = .data$NES)) +
+  plot <- ggplot(msea_res, aes(x = reorder(.data$pathway, .data$NES), y = .data$NES)) +
     geom_point(shape = 21, aes(color = .data$padj < 0.05, size = .data$size, fill = -log(.data$padj)), stroke = 1) +
     coord_flip() +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey") +
@@ -2237,8 +2272,12 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
     labs(x = "Metabolite Class", y = "Normalized Enrichment Score (NES)", title = "MSEA Results", color = "-log10(padj)", size = "Set Size") +
     theme_classic() +
     theme(legend.position = "top", axis.text.y = element_text(size = 6))
-  ggsave(paste0(prefix,'_', term_level,'.pdf'), width = width, height = height)
-  return (msea_res)
+  plot
+  if (save_output){
+    ggsave(paste0(outdir,'_', term_level,'.pdf'), width = width, height = height)
+    write_csv(msea_res, paste0(outdir,'_', term_level,'_results.csv'))
+  }
+  return (list(plot = plot, df = msea_res))
 }
 
 
@@ -2253,10 +2292,14 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
 #' @param groups A vector of group names from the metadata containing performance data
 #' @param model The type of regression model to use. Options are 'lmm' for linear mixed model, 'lm' for simple linear regression, or 'pearson' for Pearson correlation (default: 'lmm')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
-#' @param output The output file path for the regression plot
+#' @param outdir The directory to save the output files 
+#' @param width The width of the output plot in inches (defa ult: 8)
+#' @param height The height of the output plot in inches (default: 12)
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @return A list of the plot and the raw data
 #' @export
 
-FeaturePerformanceRegression <- function(mmo, target, phenotype, groups, model = 'lmm', normalization = 'Z', output){
+FeaturePerformanceRegression <- function(mmo, target, phenotype, groups, model = 'lmm', normalization = 'Z', outdir = 'FeaturePerformanceRegression', width = 6, height = 6, save_output = TRUE){
   .require_pkg("ggrepel")
   feature <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
@@ -2281,7 +2324,7 @@ FeaturePerformanceRegression <- function(mmo, target, phenotype, groups, model =
   }
 
   # Plot the fit using ggplot
-  ggplot(combined_df, aes(x = .data$feature_value, y = .data$performance, color = .data$group)) +
+  plot <-ggplot(combined_df, aes(x = .data$feature_value, y = .data$performance, color = .data$group)) +
     geom_point(size = 3) +
     geom_smooth(method = "lm", se = TRUE, color = "black") +
     ggrepel::geom_text_repel(aes(label = sample), size = 2.5, show.legend = FALSE) +
@@ -2292,8 +2335,12 @@ FeaturePerformanceRegression <- function(mmo, target, phenotype, groups, model =
     theme(legend.position = "right") +
     annotate("text", x = Inf, y = Inf, label = paste("p-value:", signif(p_value, digits = 4)),
              hjust = 1.1, vjust = 1.1, size = 3, color = "black")
-
-  ggsave(output, height = 6, width = 6)
+  plot
+  if (save_output){ 
+    ggsave(paste0(outdir,'_', target,'_vs_', phenotype,'.pdf'), height = height, width = width)
+    # write_csv(combined_df, paste0(outdir,'_', target,'_vs_', phenotype,'_data.csv'))
+  }
+  return (list(plot = plot, df = combined_df))
 }
 
 
@@ -2472,15 +2519,19 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
 #' @param performance_regression The regression results data frame containing effect size, fold change, and tag. The output from GetPerformanceFeatureRegression, GetPerformanceFeatureLMM, or GetPerformanceFeatureCorrelation.
 #' @param fold_change The name of the fold change column in the performance_regression dataframe
 #' @param color A vector of colors for the points in the plot
-#' @param output_dir The output file path for the regression plot
+#' @param outdir The output file path for the regression plot
+#' @param width The width of the output plot in inches (default: 6)
+#' @param height The height of the output plot in inches (default: 6)
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @return A list containing the regression plot and the performance regression data frame
 #' @export
-PlotFoldchangeResistanceRegression <- function(performance_regression, fold_change, color, output_dir){
+PlotFoldchangeResistanceRegression <- function(performance_regression, fold_change, color, outdir, width = 6, height = 6, save_output = TRUE){
   ind_fit <- lm(data = performance_regression, formula = as.formula(paste("-effect.size ~", fold_change)))
   summary_fit <- summary(ind_fit)
   p_value <- summary_fit$coefficients[2, 4]
   r_squared <- summary_fit$r.squared
 
-  ggplot(performance_regression, aes(x = !!rlang::sym(fold_change), y = -.data$effect.size)) +
+  plot <- ggplot(performance_regression, aes(x = !!rlang::sym(fold_change), y = -.data$effect.size)) +
     geom_point(size = 0.5, aes(color = .data$tag)) +
     geom_smooth(method = "lm", se = TRUE, color = "black", level = 0.95) +
     xlab(fold_change) +
@@ -2490,7 +2541,12 @@ PlotFoldchangeResistanceRegression <- function(performance_regression, fold_chan
     annotate("text", x = Inf, y = Inf, label = paste("p-value:", round(p_value, 500), "\nR-squared:", round(r_squared, 4)),
             hjust = 1.1, vjust = 1.1, size = 3, color = "black")+
     geom_hline(yintercept = 0, linetype = "dashed", color = "black")
-  ggsave(output_dir, height = 6, width = 6)
+  plot  
+  if (save_output){
+    ggsave(paste0(outdir, ".png"), plot, height = height, width = width)
+    write_csv(performance_regression, file = paste0(outdir, ".csv"))
+  }
+  return(list(plot = plot, df = performance_regression))
 }
 
 #' PlotFoldchangeResistanceRegression_t
@@ -2502,14 +2558,18 @@ PlotFoldchangeResistanceRegression <- function(performance_regression, fold_chan
 #' @param fold_change The name of the fold change column in the performance_regression dataframe
 #' @param color A vector of colors for the points in the plot
 #' @param output_dir The output file path for the regression plot
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @param width The width of the output plot in inches (default: 6)
+#' @param height The height of the output plot in inches (default: 6)
+#' @return A list containing the regression plot and the performance regression data frame
 #' @export
-PlotFoldchangeResistanceRegression_t <- function(performance_regression, fold_change, color, output_dir){
+PlotFoldchangeResistanceRegression_t <- function(performance_regression, fold_change, color, output_dir, save_output = TRUE, width = 6, height = 6){
   ind_fit <- lm(data = performance_regression, formula = as.formula(paste(fold_change, "~ -effect.size")))
   summary_fit <- summary(ind_fit)
   p_value <- summary_fit$coefficients[4]
   r_squared <- summary_fit$r.squared
 
-  ggplot(performance_regression, aes(x = -.data$effect.size, y = !!rlang::sym(fold_change))) +
+  plot <- ggplot(performance_regression, aes(x = -.data$effect.size, y = !!rlang::sym(fold_change))) +
     geom_point(size = 0.5, aes(color = .data$tag)) +
     geom_smooth(method = "lm", se = TRUE, color = "black", level = 0.95) +
     xlab('-effect.size') +
@@ -2520,7 +2580,11 @@ PlotFoldchangeResistanceRegression_t <- function(performance_regression, fold_ch
             hjust = 1.1, vjust = 1.1, size = 3, color = "black")+
     geom_hline(yintercept = 0, linetype = "dashed", color = "black")+
     geom_vline(xintercept = 0, linetype = "dashed", color = "black")
-  ggsave(output_dir, height = 6, width = 6)
+  if (save_output){
+    ggsave(paste0(output_dir, ".png"), plot, height = height, width = width)
+    write_csv(performance_regression, file = paste0(output_dir, ".csv"))
+  }
+  return(list(plot = plot, df = performance_regression))
 }
 
 #' PlotFoldchangeResistanceQuad
@@ -2531,8 +2595,12 @@ PlotFoldchangeResistanceRegression_t <- function(performance_regression, fold_ch
 #' @param fold_change The name of the fold change column in the performance_regression dataframe
 #' @param color A vector of colors for the points in the plot
 #' @param output_dir The output file path for the quadrant plot
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @param width The width of the output plot in inches (default: 6)
+#' @param height The height of the output plot in inches (default: 6)
+#' @return A list containing the quadrant plot and the performance regression data frame
 #' @export
-PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, color, output_dir){
+PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, color, output_dir, save_output = TRUE, width = 6, height = 6){
   performance_regression <- performance_regression |>
   mutate(
     quadrant = dplyr::case_when(
@@ -2548,7 +2616,7 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
   q24 <- sum(q_counts[c("Q2", "Q4")], na.rm = TRUE)
   binom_test <- binom.test(q13, q13+q24, p = 0.5, alternative = "two.sided")
 
-  ggplot(performance_regression, aes(x = -.data$effect.size, y = !!sym(fold_change))) +
+  plot <- ggplot(performance_regression, aes(x = -.data$effect.size, y = !!sym(fold_change))) +
     geom_point(size = 0.5, aes(color = .data$tag)) +
     xlab('-effect.size') +
     ylab(fold_change) +
@@ -2558,7 +2626,12 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
             hjust = 1.1, vjust = 1.1, size = 3, color = "black")+
     geom_hline(yintercept = 0, linetype = "dashed", color = "black")+
     geom_vline(xintercept = 0, linetype = "dashed", color = "black")
-  ggsave(output_dir, height = 6, width = 6)
+  plot
+  if (save_output){
+    ggsave(paste0(output_dir, ".png"), plot, height = height, width = width)
+    write_csv(performance_regression, file = paste0(output_dir, ".csv"))
+  }
+  return(list(plot = plot, df = performance_regression))
 }
 ################### Singlevariate analyses ###################
 
@@ -2572,14 +2645,18 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @param filter_group A boolean indicating whether to filter the feature values by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature values by, if filter_group is TRUE (default: NULL)
-#' @export
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @param width The width of the output plot in inches (default: 6)
+#' @param height The height of the output plot in inches (default: 6) 
+#' @export 
+#' @return A list containing the bar plot and the ANOVA results
 #' @examplesIf FALSE
 #' AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
 #' AnovaBarPlot(
 #'  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z',
 #'  filter_group = TRUE, group_list = c("Group1", "Group2")
 #' )
-AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL) {
+AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL, save_output = TRUE, width = 6, height = 6) {
   .require_pkg("ggbeeswarm")
   # Extract metadata and feature data
   metadata <- mmo$metadata
@@ -2601,20 +2678,23 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
     }
     # Perform ANOVA
     anova <- anova_tukey_dunnett(feature_values, 'value ~ group')
-    write_anova(anova, outdir = paste0(outdir,'/', target_id, '_anova.csv'), way = 'oneway')
+    
 
 
     # Generate bar plot
-    p <- ggplot(feature_values, aes(x = .data$group, y = .data$value, fill = .data$group)) +
+    plot <- ggplot(feature_values, aes(x = .data$group, y = .data$value, fill = .data$group)) +
       geom_bar(stat = "summary", fun = "mean", position = "dodge") +
       geom_errorbar(stat = "summary", fun.data = "mean_se", position = position_dodge(width = 0.9), width = 0.2) +
       ggbeeswarm::geom_beeswarm() +
       theme_classic() +
       labs(title = paste("Feature:", target_id), x = "Group", y = "Value") +
       theme(legend.position = "none", axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-
-    # Save the plot
-    ggsave(file.path(outdir, paste0(target_id, "_barplot.png")), plot = p, width = 6, height = 4)
+    plot
+    if (save_output){
+      ggsave(file.path(outdir, paste0(target_id, "_barplot.pdf")), plot = plot, width = width, height = height)
+      write_anova(anova, outdir = paste0(outdir,'/', target_id, '_anova.csv'), way = 'oneway')
+    }
+    return(list(plot = plot, anova = anova))
   }
 }
 
@@ -2640,7 +2720,7 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
   merged_df <- merge(mmo$sirius_annot, selected_feature, by = 'feature')
   merged_df <- merge(merged_df, selected_pairwise, by = 'feature')
 
-  write.csv(merged_df, output_dir)
+  write_csv(merged_df, output_dir)
 }
 
 
@@ -3105,18 +3185,20 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 #' It also performs PERMANOVA analysis to assess the significance of group differences and saves the results to CSV files.
 #' @param mmo The mmo object containing metadata
 #' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity()
-#' @param prefix The prefix for the output files
+#' @param outdir The outdir for the output files
 #' @param width The width of the output NMDS plot (default: 6)
 #' @param height The height of the output NMDS plot (default: 6)
 #' @param color A vector of colors for the groups in the plot
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @return A list containing the NMDS plot, the NMDS coordinates, and the PERMANOVA results
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 #' # Use method = 'bray' or 'jaccard' if you want to use just feature abundance
 #' # without considering feature spectral dissimilarity
-#' NMDSplot(mmo, betadiv = beta_diversity, prefix = 'output/NMDS', width = 6, height = 6)
-NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
+#' NMDSplot(mmo, betadiv = beta_diversity, outdir = 'output/NMDS', width = 6, height = 6)
+NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_output = TRUE){
   .require_pkg("vegan")
   .require_pkg("ggrepel")
   metadata <- mmo$metadata
@@ -3131,7 +3213,7 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
   nmds_coords$group <- groups
 
   # Plot NMDS
-  ggplot(nmds_coords, aes(x = .data$NMDS1, y = .data$NMDS2, color = .data$group)) +
+  plot <- ggplot(nmds_coords, aes(x = .data$NMDS1, y = .data$NMDS2, color = .data$group)) +
     geom_point(size = 3) +
     #geom_text_repel(aes(label = group), size = 3) +
     theme_classic() +
@@ -3139,14 +3221,17 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
     labs(x = "NMDS1", y = "NMDS2") +
     scale_color_manual(values = color) +
     theme(legend.position = "right")
-  ggsave(paste0(prefix, '_NMDS.pdf'), height = height, width = width)
-
+  plot
   permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
-  write.csv(permanova$permanova_res, paste0(prefix, '_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_raw), paste0(prefix, '_pairwise_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
-  write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(prefix, '_pairwise_permanova_F_matrix.csv'))
-  write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(prefix, '_pairwise_permanova_R2_matrix.csv'))
+  if (save_output){
+    ggsave(paste0(outdir, '_NMDS.pdf'), height = height, width = width)
+    write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
+    write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
+    write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+    write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_F_matrix.csv'))
+    write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
+  }
+  return(list(plot = plot, df = nmds_coords, permanova = permanova))
 }
 
 #' PCoAplot
@@ -3156,16 +3241,18 @@ NMDSplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
 #' results to CSV files.
 #' @param mmo The mmo object containing metadata
 #' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity
-#' @param prefix The prefix for the output files
+#' @param outdir The prefix for the output files
 #' @param width The width of the output PCoA plot (default: 6
 #' @param height The height of the output PCoA plot (default: 6)
 #' @param color A vector of colors for the points in the plot
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @return A list containing the PCoA plot, the PCoA coordinates, and the PERMANOVA results
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-#' PCoAplot(mmo, betadiv = beta_diversity, prefix = 'output/PCoA', width = 6, height = 6)
-PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
+#' PCoAplot(mmo, betadiv = beta_diversity, outdir = 'output/PCoA', width = 6, height = 6)
+PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_output = TRUE){
   .require_pkg('ape')
   metadata <- mmo$metadata
   pcoa_res <- ape::pcoa(betadiv)
@@ -3173,21 +3260,24 @@ PCoAplot <- function(mmo, betadiv, prefix, width = 6, height = 6, color){
   colnames(pcoa_coords) <- c("PCoA1", "PCoA2")
   pcoa_coords$group <- metadata$group[match(rownames(pcoa_coords), metadata$sample)]
 
-  ggplot(pcoa_coords, aes(x = .data$PCoA1, y = .data$PCoA2, color = .data$group)) +
+  plot <- ggplot(pcoa_coords, aes(x = .data$PCoA1, y = .data$PCoA2, color = .data$group)) +
     geom_point(size = 3) +
     stat_ellipse(level = 0.90) +
     theme_classic() +
     labs(x = "PCoA1", y = "PCoA2") +
     scale_color_manual(values = color) +
     theme(legend.position = "right")
-  ggsave(paste0(prefix, '_PCoA.pdf'), height = height, width = width)
-
+  plot
   permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
-  write.csv(permanova$permanova_res, paste0(prefix, '_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_raw), paste0(prefix, '_pairwise_permanova_results.csv'))
-  write.csv(as.data.frame(permanova$pairwise_p_matrix), paste0(prefix, '_pairwise_permanova_pvalue_matrix.csv'))
-  write.csv(as.data.frame(permanova$pairwise_F_matrix), paste0(prefix, '_pairwise_permanova_F_matrix.csv'))
-  write.csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(prefix, '_pairwise_permanova_R2_matrix.csv'))
+  if (save_output){
+    ggsave(paste0(outdir, '_PCoA.pdf'), height = height, width = width)
+    write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
+    write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
+    write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+    write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_F_matrix.csv'))
+    write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
+  }
+  return(list(plot = plot, df = pcoa_coords, permanova = permanova))
 }
 
 #' CalculateGroupBetaDistance

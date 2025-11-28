@@ -4,20 +4,33 @@
 \alias{PCoAplot}
 \title{PCoAplot}
 \usage{
-PCoAplot(mmo, betadiv, prefix, width = 6, height = 6, color)
+PCoAplot(
+  mmo,
+  betadiv,
+  outdir,
+  width = 6,
+  height = 6,
+  color,
+  save_output = TRUE
+)
 }
 \arguments{
 \item{mmo}{The mmo object containing metadata}
 
 \item{betadiv}{The beta diversity distance matrix, output of GetBetaDiversity}
 
-\item{prefix}{The prefix for the output files}
+\item{outdir}{The prefix for the output files}
 
 \item{width}{The width of the output PCoA plot (default: 6}
 
 \item{height}{The height of the output PCoA plot (default: 6)}
 
 \item{color}{A vector of colors for the points in the plot}
+
+\item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
+}
+\value{
+A list containing the PCoA plot, the PCoA coordinates, and the PERMANOVA results
 }
 \description{
 This function generates a Principal Coordinates Analysis (PCoA) plot based on the provided beta diversity distance matrix.
@@ -28,6 +41,6 @@ results to CSV files.
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
-PCoAplot(mmo, betadiv = beta_diversity, prefix = 'output/PCoA', width = 6, height = 6)
+PCoAplot(mmo, betadiv = beta_diversity, outdir = 'output/PCoA', width = 6, height = 6)
 \dontshow{\}) # examplesIf}
 }

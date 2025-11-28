@@ -36,11 +36,11 @@ PCAplot(
 
 \item{label}{Boolean to indicate whether to label points with sample names (default: TRUE)}
 
-\item{save_output}{Logical; if TRUE (default) write plot (.pdf) and PERMANOVA
+\item{save_output}{Boolean; if TRUE (default) write plot (.pdf) and PERMANOVA
 tables using \code{outdir} as prefix. If FALSE, nothing is written.}
 }
 \value{
-A list with elements \code{plot} (ggplot), \code{scores} (PCA scores with groups),
+A list with elements \code{plot} (ggplot), \code{df} (raw data to generate plots),
 and \code{permanova} (results from \code{permanova_stat}).
 }
 \description{
