@@ -73,6 +73,7 @@ reference:
       - CalcNormalizedAUC
       - CalculateCumulativeRichness
       - CalculateNullCumulativeRichness
+      - FeatureDendrogram
 
   - title: Metadata regression analysis
     contents:
@@ -99,6 +100,8 @@ reference:
       - permanova_stat
       - GetDistanceMat
       - GetNormFeature
+      - filter_mmo
+      - print.mmo
 news:
   one_page: true
 

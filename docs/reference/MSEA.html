@@ -11,7 +11,7 @@ The results are saved as a CSV file and a PDF plot."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,7 +22,8 @@ The results are saved as a CSV file and a PDF plot."></head><body>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Interspecific_study_tutorial.html">Interspecific Ecometabolomics Tutorial</a></li>
+    <li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
     <li><a class="dropdown-item" href="../articles/Treatment-based_study_tutorial.html">Treatment-based_study_tutorial</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -56,10 +57,11 @@ The results are saved as a CSV file and a PDF plot.</p>
 <span>  <span class="va">feature_score</span>,</span>
 <span>  term_level <span class="op">=</span> <span class="st">"NPC_class"</span>,</span>
 <span>  pthr <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  prefix <span class="op">=</span> <span class="st">"MSEA"</span>,</span>
+<span>  outdir <span class="op">=</span> <span class="st">"MSEA"</span>,</span>
 <span>  width <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  height <span class="op">=</span> <span class="fl">12</span>,</span>
-<span>  sig <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  sig <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  save_output <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -90,8 +92,8 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 <dd><p>The threshold for adjusted p-value to be considered significant (default: 0.05)</p></dd>
 
 
-<dt id="arg-prefix">prefix<a class="anchor" aria-label="anchor" href="#arg-prefix"></a></dt>
-<dd><p>The prefix for output files (default: 'MSEA')</p></dd>
+<dt id="arg-outdir">outdir<a class="anchor" aria-label="anchor" href="#arg-outdir"></a></dt>
+<dd><p>The directory to save the output files (default: 'MSEA')</p></dd>
 
 
 <dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
@@ -105,10 +107,14 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 <dt id="arg-sig">sig<a class="anchor" aria-label="anchor" href="#arg-sig"></a></dt>
 <dd><p>A logical value indicating whether to return only significant terms (default: FALSE)</p></dd>
 
+
+<dt id="arg-save-output">save_output<a class="anchor" aria-label="anchor" href="#arg-save-output"></a></dt>
+<dd><p>A logical value indicating whether to save the output plot (default: TRUE)</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame containing the MSEA results, including pathway, NES, p-value, and adjusted p-value (FDR)</p>
+    <p>A list of the plot and the enrichment results</p>
     </div>
 
     <div class="section level2">
@@ -116,8 +122,8 @@ Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="co"># Perform MSEA using NPC_class level</span></span></span>
 <span class="r-in"><span><span class="fu">MSEA</span><span class="op">(</span></span></span>
-<span class="r-in"><span> <span class="va">mmo</span>, feature_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span>, feature_score <span class="op">=</span> <span class="va">DE_results</span><span class="op">$</span><span class="va">log2FoldChange</span>, </span></span>
-<span class="r-in"><span> term_level <span class="op">=</span> <span class="st">'NPC_class'</span>, pthr <span class="op">=</span> <span class="fl">0.05</span>, prefix <span class="op">=</span> <span class="st">'MSEA_NPC_class'</span>, </span></span>
+<span class="r-in"><span> <span class="va">mmo</span>, feature_name <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">DE_results</span><span class="op">)</span>, feature_score <span class="op">=</span> <span class="va">DE_results</span><span class="op">$</span><span class="va">log2FoldChange</span>,</span></span>
+<span class="r-in"><span> term_level <span class="op">=</span> <span class="st">'NPC_class'</span>, pthr <span class="op">=</span> <span class="fl">0.05</span>, prefix <span class="op">=</span> <span class="st">'MSEA_NPC_class'</span>,</span></span>
 <span class="r-in"><span> width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">12</span>, sig <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>

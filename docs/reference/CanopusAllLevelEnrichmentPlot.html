@@ -9,7 +9,7 @@ showing fold enrichment, p-value, and subset count for each term level."></head>
 
     <a class="navbar-brand me-2" href="../index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,7 +20,8 @@ showing fold enrichment, p-value, and subset count for each term level."></head>
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Interspecific_study_tutorial.html">Interspecific Ecometabolomics Tutorial</a></li>
+    <li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
     <li><a class="dropdown-item" href="../articles/Treatment-based_study_tutorial.html">Treatment-based_study_tutorial</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -54,10 +55,11 @@ showing fold enrichment, p-value, and subset count for each term level.</p>
 <span>  term_levels <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pthr <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  representation <span class="op">=</span> <span class="st">"greater"</span>,</span>
-<span>  prefix <span class="op">=</span> <span class="st">"enrichment"</span>,</span>
+<span>  outdir <span class="op">=</span> <span class="st">"enrichment"</span>,</span>
 <span>  height <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  width <span class="op">=</span> <span class="fl">8</span>,</span>
-<span>  pval <span class="op">=</span> <span class="st">"pval"</span></span>
+<span>  pval <span class="op">=</span> <span class="st">"pval"</span>,</span>
+<span>  save_output <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,8 +91,8 @@ showing fold enrichment, p-value, and subset count for each term level.</p>
 <dd><p>The representation type for enrichment analysis. Options are 'greater' for overrepresentation (default: 'greater')</p></dd>
 
 
-<dt id="arg-prefix">prefix<a class="anchor" aria-label="anchor" href="#arg-prefix"></a></dt>
-<dd><p>The prefix for output files (default: 'enrichment')</p></dd>
+<dt id="arg-outdir">outdir<a class="anchor" aria-label="anchor" href="#arg-outdir"></a></dt>
+<dd><p>The output directory for saving the plot and the enrichment results (default: 'enrichment')</p></dd>
 
 
 <dt id="arg-height">height<a class="anchor" aria-label="anchor" href="#arg-height"></a></dt>
@@ -104,7 +106,15 @@ showing fold enrichment, p-value, and subset count for each term level.</p>
 <dt id="arg-pval">pval<a class="anchor" aria-label="anchor" href="#arg-pval"></a></dt>
 <dd><p>pvalue options-pval or fdr (default: 'pval')</p></dd>
 
+
+<dt id="arg-save-output">save_output<a class="anchor" aria-label="anchor" href="#arg-save-output"></a></dt>
+<dd><p>boolean, whether to save the output plot (default: TRUE)</p></dd>
+
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>A list of the plot and the enrichment results</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -114,18 +124,18 @@ showing fold enrichment, p-value, and subset count for each term level.</p>
 <span class="r-in"><span>  comparison2 <span class="op">=</span> <span class="va">DAMs_up</span><span class="op">$</span><span class="va">control_vs_treatment2.up</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">CanopusAllLevelEnrichmentPlot</span><span class="op">(</span></span></span>
-<span class="r-in"><span> <span class="va">mmo</span>, comp.list <span class="op">=</span> <span class="va">comp.list</span>, terms <span class="op">=</span> <span class="st">'all_terms'</span>, </span></span>
-<span class="r-in"><span> pthr <span class="op">=</span> <span class="fl">0.1</span>, representation <span class="op">=</span> <span class="st">'greater'</span>, prefix <span class="op">=</span> <span class="st">'enrichment_all_levels'</span>, </span></span>
+<span class="r-in"><span> <span class="va">mmo</span>, comp.list <span class="op">=</span> <span class="va">comp.list</span>, terms <span class="op">=</span> <span class="st">'all_terms'</span>,</span></span>
+<span class="r-in"><span> pthr <span class="op">=</span> <span class="fl">0.1</span>, representation <span class="op">=</span> <span class="st">'greater'</span>, prefix <span class="op">=</span> <span class="st">'enrichment_all_levels'</span>,</span></span>
 <span class="r-in"><span> height <span class="op">=</span> <span class="fl">10</span>, width <span class="op">=</span> <span class="fl">8</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">CanopusAllLevelEnrichmentPlot</span><span class="op">(</span></span></span>
-<span class="r-in"><span> <span class="va">mmo</span>, comp.list <span class="op">=</span> <span class="va">comp.list</span>, terms <span class="op">=</span> <span class="st">'NPC'</span>, </span></span>
-<span class="r-in"><span> pthr <span class="op">=</span> <span class="fl">0.1</span>, representation <span class="op">=</span> <span class="st">'greater'</span>, prefix <span class="op">=</span> <span class="st">'enrichment_NPC_levels'</span>, </span></span>
+<span class="r-in"><span> <span class="va">mmo</span>, comp.list <span class="op">=</span> <span class="va">comp.list</span>, terms <span class="op">=</span> <span class="st">'NPC'</span>,</span></span>
+<span class="r-in"><span> pthr <span class="op">=</span> <span class="fl">0.1</span>, representation <span class="op">=</span> <span class="st">'greater'</span>, prefix <span class="op">=</span> <span class="st">'enrichment_NPC_levels'</span>,</span></span>
 <span class="r-in"><span> height <span class="op">=</span> <span class="fl">10</span>, width <span class="op">=</span> <span class="fl">8</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">CanopusAllLevelEnrichmentPlot</span><span class="op">(</span></span></span>
-<span class="r-in"><span> <span class="va">mmo</span>, comp.list <span class="op">=</span> <span class="va">comp.list</span>, terms <span class="op">=</span> <span class="st">'ClassyFire'</span>, </span></span>
-<span class="r-in"><span> pthr <span class="op">=</span> <span class="fl">0.1</span>, representation <span class="op">=</span> <span class="st">'greater'</span>, prefix <span class="op">=</span> <span class="st">'enrichment_ClassyFire_levels'</span>, </span></span>
+<span class="r-in"><span> <span class="va">mmo</span>, comp.list <span class="op">=</span> <span class="va">comp.list</span>, terms <span class="op">=</span> <span class="st">'ClassyFire'</span>,</span></span>
+<span class="r-in"><span> pthr <span class="op">=</span> <span class="fl">0.1</span>, representation <span class="op">=</span> <span class="st">'greater'</span>, prefix <span class="op">=</span> <span class="st">'enrichment_ClassyFire_levels'</span>,</span></span>
 <span class="r-in"><span> height <span class="op">=</span> <span class="fl">10</span>, width <span class="op">=</span> <span class="fl">8</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>

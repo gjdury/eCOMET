@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,8 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Interspecific_study_tutorial.html">Interspecific Ecometabolomics Tutorial</a></li>
+    <li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
     <li><a class="dropdown-item" href="../articles/Treatment-based_study_tutorial.html">Treatment-based_study_tutorial</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -53,7 +54,8 @@
 <span>  filter_feature <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  feature_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  filter_group <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  group_list <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  group_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  save_output <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -96,20 +98,30 @@
 <dt id="arg-group-list">group_list<a class="anchor" aria-label="anchor" href="#arg-group-list"></a></dt>
 <dd><p>A vector of group names to filter (default: NULL)</p></dd>
 
+
+<dt id="arg-save-output">save_output<a class="anchor" aria-label="anchor" href="#arg-save-output"></a></dt>
+<dd><p>Boolean; if TRUE (default) write plot (.pdf) and loadings
+tables using <code>outdir</code> as prefix. If FALSE, nothing is written.</p></dd>
+
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>A list with elements <code>plot</code> (ggplot), <code>df</code> (raw data to generate plots),
+and <code>loadings</code> (loadings for PLSDA).</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="fu">PLSDAplot</span><span class="op">(</span></span></span>
-<span class="r-in"><span> <span class="va">mmo</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span> <span class="op">=</span> <span class="st">"blue"</span>, <span class="st">"Treatment1"</span> <span class="op">=</span> <span class="st">"red"</span>, <span class="st">"Treatment2"</span> <span class="op">=</span> <span class="st">"green"</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span> topk <span class="op">=</span> <span class="fl">10</span>, outdir <span class="op">=</span> <span class="st">'PLSDA_plot.pdf'</span>, normalization <span class="op">=</span> <span class="st">'Z'</span>, </span></span>
+<span class="r-in"><span> <span class="va">mmo</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span> <span class="op">=</span> <span class="st">"blue"</span>, <span class="st">"Treatment1"</span> <span class="op">=</span> <span class="st">"red"</span>, <span class="st">"Treatment2"</span> <span class="op">=</span> <span class="st">"green"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span> topk <span class="op">=</span> <span class="fl">10</span>, outdir <span class="op">=</span> <span class="st">'PLSDA_plot.pdf'</span>, normalization <span class="op">=</span> <span class="st">'Z'</span>,</span></span>
 <span class="r-in"><span> filter_feature <span class="op">=</span> <span class="cn">FALSE</span>, filter_group <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">PLSDAplot</span><span class="op">(</span></span></span>
-<span class="r-in"><span> <span class="va">mmo</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span> <span class="op">=</span> <span class="st">"blue"</span>, <span class="st">"Treatment1"</span> <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span> topk <span class="op">=</span> <span class="fl">5</span>, outdir <span class="op">=</span> <span class="st">'PLSDA_plot.pdf'</span>, normalization <span class="op">=</span> <span class="st">'Log'</span>, </span></span>
-<span class="r-in"><span> filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">Glucosinolates</span>, </span></span>
+<span class="r-in"><span> <span class="va">mmo</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span> <span class="op">=</span> <span class="st">"blue"</span>, <span class="st">"Treatment1"</span> <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span> topk <span class="op">=</span> <span class="fl">5</span>, outdir <span class="op">=</span> <span class="st">'PLSDA_plot.pdf'</span>, normalization <span class="op">=</span> <span class="st">'Log'</span>,</span></span>
+<span class="r-in"><span> filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">Glucosinolates</span>,</span></span>
 <span class="r-in"><span> filter_group <span class="op">=</span> <span class="cn">TRUE</span>, group_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"Treatment1"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>

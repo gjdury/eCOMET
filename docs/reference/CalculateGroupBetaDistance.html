@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9001</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.0.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,7 +18,8 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/Interspecific_study_tutorial.html">Interspecific Ecometabolomics Tutorial</a></li>
+    <li><a class="dropdown-item" href="../articles/Intro.html">Intro</a></li>
     <li><a class="dropdown-item" href="../articles/Treatment-based_study_tutorial.html">Treatment-based_study_tutorial</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -75,9 +76,9 @@
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">beta_diversity</span> <span class="op">&lt;-</span> <span class="fu"><a href="GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'Gen.Uni'</span>, </span></span>
+<span class="r-in"><span><span class="va">beta_diversity</span> <span class="op">&lt;-</span> <span class="fu"><a href="GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'Gen.Uni'</span>,</span></span>
 <span class="r-in"><span> normalization <span class="op">=</span> <span class="st">'None'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span>, filter_feature <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">group_distances</span> <span class="op">&lt;-</span> <span class="fu">CalculateGroupBetaDistance</span><span class="op">(</span><span class="va">mmo</span>, beta_div <span class="op">=</span> <span class="va">beta_diversity</span>, </span></span>
+<span class="r-in"><span><span class="va">group_distances</span> <span class="op">&lt;-</span> <span class="fu">CalculateGroupBetaDistance</span><span class="op">(</span><span class="va">mmo</span>, beta_div <span class="op">=</span> <span class="va">beta_diversity</span>,</span></span>
 <span class="r-in"><span> reference_group <span class="op">=</span> <span class="st">'Control'</span>, groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'Control'</span>, <span class="st">'Treatment1'</span>, <span class="st">'Treatment2'</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
