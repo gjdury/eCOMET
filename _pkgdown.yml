@@ -3,6 +3,7 @@ template:
   bootstrap: 5
   params:
     bootswatch: lumen
+    logo: ecomet_logo.png
 
 navbar:
   structure:
@@ -102,6 +103,12 @@ reference:
       - GetNormFeature
       - filter_mmo
       - print.mmo
+articles:
+  - title: "Tutorials"
+    contents:
+      - Intro
+      - Interspecific_study_tutorial
+      - Treatment-based_study_tutorial
 news:
   one_page: true
 
