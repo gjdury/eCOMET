@@ -99,7 +99,7 @@
 <p>Following steps are performed to create an <code>mmo</code> object and add various normalizations and annotations. Inspect the structure of the ‘mmo’ object using ‘summary(mmo)’’ after each step to see how the object is updated.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Initialize eCOMET object</span></span>
-<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMZmineFeature.html">GetMZmineFeature</a></span><span class="op">(</span>mzmine_dir<span class="op">=</span><span class="va">demo_feature</span>, metadata_dir <span class="op">=</span> <span class="va">demo_metadata</span>, group_col <span class="op">=</span> <span class="st">'group'</span><span class="op">)</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMZmineFeature.html">GetMZmineFeature</a></span><span class="op">(</span>mzmine_dir<span class="op">=</span><span class="va">demo_feature</span>, metadata_dir <span class="op">=</span> <span class="va">demo_metadata</span>, group_col <span class="op">=</span> <span class="st">'group'</span>, sample_col <span class="op">=</span> <span class="st">'sample'</span><span class="op">)</span></span>
 <span><span class="co"># Add normalizations</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ReplaceZero.html">ReplaceZero</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'one'</span><span class="op">)</span> <span class="co"># Replace 0 and NA values by 1</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MassNormalization.html">MassNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Normalize peak area by sample mass in metadata</span></span>
@@ -126,7 +126,7 @@
 <div class="section level3">
 <h3 id="pca-plot-and-permanova">PCA plot and PERMANOVA<a class="anchor" aria-label="anchor" href="#pca-plot-and-permanova"></a>
 </h3>
-<p>A PCA plot is commonly used to visualize the overall distribution of groups. Following PERMANOVA test can be performed to check if the groups are significantly different.</p>
+<p>A PCA plot is commonly used to visualize the overall distribution of groups. Following PERMANOVA test can be performed to check if the groups are significantly different. <code><a href="../reference/PCAplot.html">PCAplot()</a></code> function use mmo to perform PCA, plot them, and perform PERMANOVA test.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set colors for groups</span></span>
 <span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ctrl"</span> <span class="op">=</span> <span class="st">"grey"</span>, <span class="st">"sl1"</span> <span class="op">=</span> <span class="st">"#fdcdac"</span>, <span class="st">"le1"</span> <span class="op">=</span> <span class="st">"#b3e2cd"</span><span class="op">)</span></span>
@@ -135,11 +135,19 @@
 <span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA_log'</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, normalization <span class="op">=</span> <span class="st">'Log'</span><span class="op">)</span> <span class="co"># Data normalization option</span></span>
 <span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA_FLV'</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">FLVs</span><span class="op">)</span> <span class="co"># Feature filtering option</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="pls-da-plot">PLS-DA plot<a class="anchor" aria-label="anchor" href="#pls-da-plot"></a>
-</h3>
+<p>Alternatively, you can use the output of PCAplot to generate plot with your own aesthetics.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Get PCA plot inputs</span></span>
+<span><span class="va">pca_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA'</span><span class="op">)</span></span>
+<span><span class="co"># Generate plot with your own aesthetics</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/PCA.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
+<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">pca_res</span><span class="op">$</span><span class="va">df</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">PC1</span>, y <span class="op">=</span> <span class="va">PC2</span>, color <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">geom_point</span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">labs</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"PCA plot"</span>, x <span class="op">=</span> <span class="st">"PC1"</span>, y <span class="op">=</span> <span class="st">"PC2"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Likewise, all plot-generating functions in eCOMET return a list of dataframes and other objects that can be used to generate plots with your own aesthetics. Use <code>summary(pca_res)</code> to see the structure of the output and try this for other plot-generating functions. ### PLS-DA plot</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot PLS-DA</span></span>
 <span><span class="fu"><a href="../reference/PLSDAplot.html">PLSDAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PLSDA.pdf'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/PLSDAplot.html">PLSDAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PLSDA_meancentered.pdf'</span>, normalization <span class="op">=</span> <span class="st">'Meancentered'</span><span class="op">)</span> <span class="co"># Data normalization option</span></span></code></pre></div>
@@ -148,13 +156,8 @@
 <div class="section level2">
 <h2 id="identify-differentially-accumulated-metabolites-dams">3. Identify differentially accumulated metabolites (DAMs)<a class="anchor" aria-label="anchor" href="#identify-differentially-accumulated-metabolites-dams"></a>
 </h2>
-<ul>
-<li>‘PairwiseComp()’ function performs pairwise comparison between two groups using t-test and fold change. The results are stored in mmo$pairwise_comp.</li>
-<li>‘GetDAMs()’ function extracts DAMs based on user-defined cutoffs for p-value and fold change.</li>
-<li>Here, we compare each herbivore treatment group (sl1 and le1) to the control group (ctrl).</li>
-<li>Log2(1.5) = 0.5849625 is used as fold change cutoff and 0.1 as p-value cutoff to extract more DAMs</li>
-</ul>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p>Many analyses targets to find <strong>Differentially Accumulated Metabolites (DAMs)</strong>. DAMs can be defined by thresholds of log2-fold change and adjusted p-value. Those two metrics are calculated by following code. Note that the divisor group is at the left. - <code><a href="../reference/PairwiseComp.html">PairwiseComp()</a></code> function performs pairwise comparison between two groups using t-test and fold change. The results are stored in mmo$pairwise_comp. - <code><a href="../reference/GetDAMs.html">GetDAMs()</a></code> function extracts DAMs based on user-defined cutoffs for p-value and fold change. - Here, we compare each herbivore treatment group (sl1 and le1) to the control group (ctrl). - Log2(1.5) = 0.5849625 is used as fold change cutoff and 0.1 as p-value cutoff to extract more DAMs</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run pairwise comparison</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PairwiseComp.html">PairwiseComp</a></span><span class="op">(</span><span class="va">mmo</span>, group1 <span class="op">=</span> <span class="st">'ctrl'</span>, group2 <span class="op">=</span> <span class="st">'sl1'</span><span class="op">)</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PairwiseComp.html">PairwiseComp</a></span><span class="op">(</span><span class="va">mmo</span>, group1 <span class="op">=</span> <span class="st">'ctrl'</span>, group2 <span class="op">=</span> <span class="st">'le1'</span><span class="op">)</span></span>
@@ -167,7 +170,7 @@
 <h3 id="volcano-plot">3.1. Volcano plot<a class="anchor" aria-label="anchor" href="#volcano-plot"></a>
 </h3>
 <p>A volcano plot can be used to visualize the overall distribution of features based on fold change and p-value.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Volcano plot</span></span>
 <span><span class="fu"><a href="../reference/VolcanoPlot.html">VolcanoPlot</a></span><span class="op">(</span><span class="va">mmo</span>, comp <span class="op">=</span> <span class="st">'ctrl_vs_sl1'</span>, outdir <span class="op">=</span> <span class="st">'plot/Volcano_ctrl_vs_sl1.pdf'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/VolcanoPlot.html">VolcanoPlot</a></span><span class="op">(</span><span class="va">mmo</span>, comp <span class="op">=</span> <span class="st">'ctrl_vs_le1'</span>, outdir <span class="op">=</span> <span class="st">'plot/Volcano_ctrl_vs_le1.pdf'</span>, topk <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="co"># Remove label by setting topk = 0</span></span></code></pre></div>
@@ -176,7 +179,7 @@
 <h3 id="venn-diagram-and-upset-plot">3.2. Venn diagram and upset plot<a class="anchor" aria-label="anchor" href="#venn-diagram-and-upset-plot"></a>
 </h3>
 <p>A Venn diagram or upset plot can be used to visualize the overlap of DAMs between different comparisons.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define input list</span></span>
 <span><span class="va">VennInput</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  sl1.up <span class="op">=</span> <span class="va">DAMs_up</span><span class="op">$</span><span class="va">ctrl_vs_sl1.up</span>,</span>
@@ -206,7 +209,7 @@
 <li>Groups or features can be filtered by setting ‘filter_group’ or ‘filter_feature’ to TRUE and providing a list of groups or features.</li>
 <li>The input data for the heatmap is generated by ‘GenerateHeatmapInputs()’ function, then the heatmap is plotted using ‘pheatmap’ package.</li>
 </ul>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pheatmap</span><span class="op">)</span></span>
 <span><span class="co"># Generate input for heatmap</span></span>
 <span><span class="co"># distance is one of the chemical distance (cosine, m2ds, and dreams) for clustering rows</span></span>
@@ -276,8 +279,8 @@
 <div class="section level2">
 <h2 id="canopus-class-enrichment-analysis">5. CANOPUS class enrichment analysis<a class="anchor" aria-label="anchor" href="#canopus-class-enrichment-analysis"></a>
 </h2>
-<p>To identify overepresented chemical classes in a set of features of interest (e.g., DAMs), CANOPUS class enrichment analysis can be performed following idea of ORA.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<p>Biological questions ask which class of chemical compounds are enriched in a set of compounds of interest (e.g., DAMs from above). This is analogue to the Gene Ontology enrichment analysis performed in transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus of SIRIUS are used to perform chemical class enrichment analysis of given list of features. The enrichment score of each term is calculated to plot the number of each term and the significance.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># For a single set of features, a detailed enrichment plot can be generated</span></span>
 <span><span class="co"># There are two plotting styles available</span></span>
 <span><span class="fu"><a href="../reference/CanopusListEnrichmentPlot.html">CanopusListEnrichmentPlot</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span><span class="op">$</span><span class="va">ctrl_vs_sl1.up</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, outdir <span class="op">=</span> <span class="st">'plot/sl1_up_enrichment.pdf'</span>, height <span class="op">=</span> <span class="fl">6</span>, width <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
@@ -294,6 +297,15 @@
 <span><span class="co"># All levels, or only NPC or ClassyFire</span></span>
 <span><span class="fu"><a href="../reference/CanopusAllLevelEnrichmentPlot.html">CanopusAllLevelEnrichmentPlot</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span>, term_level <span class="op">=</span> <span class="st">'NPC'</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, prefix <span class="op">=</span> <span class="st">'plot/DAMs_up_all_terms'</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/CanopusAllLevelEnrichmentPlot.html">CanopusAllLevelEnrichmentPlot</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="va">DAMs_up</span>, term_level <span class="op">=</span> <span class="st">'ClassyFire'</span>, pthr <span class="op">=</span> <span class="fl">0.1</span>, prefix <span class="op">=</span> <span class="st">'plot/DAMs_up_all_terms'</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="correlation-analysis">6. Correlation analysis<a class="anchor" aria-label="anchor" href="#correlation-analysis"></a>
+</h2>
+<p>To find phenotype-linked metabolties, we can use correlation analysis. In this tutorial, we will use correlation between amount of each feature and herbivore performance in bioassay to find defense compounds.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># We will first screen for all features to find whether there is any correlation between amount of each feature and herbivore performance in bioassay</span></span>
+<span><span class="va">sl_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ScreenFeaturePhenotypeCorrelation.html">ScreenFeaturePhenotypeCorrelation</a></span><span class="op">(</span><span class="va">mmo</span>, phenotype <span class="op">=</span> <span class="st">'sl'</span>, groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'sl1'</span><span class="op">)</span>, model <span class="op">=</span> <span class="st">'spearman'</span>, normalization <span class="op">=</span> <span class="st">'Z'</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sl_cor</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

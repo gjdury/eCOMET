@@ -45,7 +45,7 @@ gls_db <- "raw_data/custom_DB_glucosinolates.csv"
 Following steps are performed to create an `mmo` object and add various normalizations and annotations. Inspect the structure of the 'mmo' object using 'summary(mmo)'' after each step to see how the object is updated.
 ```{r, eval = FALSE}
 # Initialize eCOMET object
-mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group')
+mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group', sample_col = 'sample')
 # Add normalizations
 mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
 mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
@@ -70,7 +70,7 @@ mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 ### PCA plot and PERMANOVA
 A PCA plot is commonly used to visualize the overall distribution of groups.
 Following PERMANOVA test can be performed to check if the groups are significantly different.
-
+`PCAplot()` function use mmo to perform PCA, plot them, and perform PERMANOVA test.
 ```{r, eval = FALSE}
 # Set colors for groups
 colors <- c("ctrl" = "grey", "sl1" = "#fdcdac", "le1" = "#b3e2cd")
@@ -80,6 +80,20 @@ PCAplot(mmo, color = colors, outdir = 'plot/PCA')
 PCAplot(mmo, color = colors, outdir = 'plot/PCA_log', label = FALSE, normalization = 'Log') # Data normalization option
 PCAplot(mmo, color = colors, outdir = 'plot/PCA_FLV', label = FALSE, filter_feature = TRUE, feature_list = FLVs) # Feature filtering option
 ```
+Alternatively, you can use the output of PCAplot to generate plot with your own aesthetics.
+```{r, eval = FALSE}
+# Get PCA plot inputs
+pca_res <- PCAplot(mmo, color = colors, outdir = 'plot/PCA')
+# Generate plot with your own aesthetics
+pdf("plot/PCA.pdf", width = 10, height = 10)
+ggplot(pca_res$df, aes(x = PC1, y = PC2, color = group)) +
+  geom_point(size = 2) +
+  theme_minimal() +
+  labs(title = "PCA plot", x = "PC1", y = "PC2")
+dev.off()
+```
+Likewise, all plot-generating functions in eCOMET return a list of dataframes and other objects that can be used to generate plots with your own aesthetics.
+Use `summary(pca_res)` to see the structure of the output and try this for other plot-generating functions.
 ### PLS-DA plot
 ```{r, eval = FALSE}
 # Plot PLS-DA
@@ -88,8 +102,12 @@ PLSDAplot(mmo, color = colors, outdir = 'plot/PLSDA_meancentered.pdf', normaliza
 ```
 
 ## 3. Identify differentially accumulated metabolites (DAMs)
-- 'PairwiseComp()' function performs pairwise comparison between two groups using t-test and fold change. The results are stored in mmo$pairwise_comp.
-- 'GetDAMs()' function extracts DAMs based on user-defined cutoffs for p-value and fold change.
+Many analyses targets to find **Differentially Accumulated Metabolites
+(DAMs)**. DAMs can be defined by thresholds of log2-fold change and
+adjusted p-value. Those two metrics are calculated by following code.
+Note that the divisor group is at the left.
+- `PairwiseComp()` function performs pairwise comparison between two groups using t-test and fold change. The results are stored in mmo$pairwise_comp.
+- `GetDAMs()` function extracts DAMs based on user-defined cutoffs for p-value and fold change.
 - Here, we compare each herbivore treatment group (sl1 and le1) to the control group (ctrl).
 - Log2(1.5) = 0.5849625 is used as fold change cutoff and 0.1 as p-value cutoff to extract more DAMs
 ```{r, eval = FALSE}
@@ -210,7 +228,13 @@ dev.off()
 ```
 
 ## 5. CANOPUS class enrichment analysis
-To identify overepresented chemical classes in a set of features of interest (e.g., DAMs), CANOPUS class enrichment analysis can be performed following idea of ORA.
+Biological questions ask which class of chemical compounds are enriched
+in a set of compounds of interest (e.g., DAMs from above). This is
+analogue to the Gene Ontology enrichment analysis performed in
+transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus
+of SIRIUS are used to perform chemical class enrichment analysis of
+given list of features. The enrichment score of each term is calculated
+to plot the number of each term and the significance.
 
 ```{r, eval = FALSE}
 # For a single set of features, a detailed enrichment plot can be generated
@@ -229,4 +253,14 @@ CanopusLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'NPC_class', pthr = 0.1, p
 # All levels, or only NPC or ClassyFire
 CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'NPC', pthr = 0.1, prefix = 'plot/DAMs_up_all_terms', width = 8, height = 12)
 CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'ClassyFire', pthr = 0.1, prefix = 'plot/DAMs_up_all_terms', width = 8, height = 12)
+```
+
+## 6. Correlation analysis
+To find phenotype-linked metabolties, we can use correlation analysis.
+In this tutorial, we will use correlation between amount of each feature and herbivore performance in bioassay to find defense compounds.
+
+```{r, eval = FALSE}
+# We will first screen for all features to find whether there is any correlation between amount of each feature and herbivore performance in bioassay
+sl_cor <- ScreenFeaturePhenotypeCorrelation(mmo, phenotype = 'sl', groups = c('sl1'), model = 'spearman', normalization = 'Z')
+head(sl_cor)
 ```

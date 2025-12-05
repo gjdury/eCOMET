@@ -2281,69 +2281,118 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
 }
 
 
-#' FeaturePerformanceRegression
+#' FeaturePhenotypeCorrelation
 #'
-#' This function performs regression analysis of a specific feature against a phenotype performance in the metadata.
+#' This function performs correlation analysis of a specific feature against a phenotype in the metadata.
 #' It can use linear mixed models (LMM), simple linear regression (LM), or Pearson correlation.
+#' The default regression line of the plot uses linear model
 #'
 #' @param mmo The mmo object with feature data and metadata
-#' @param target The name of the feature to analyze
-#' @param phenotype The name of the phenotype performance in the metadata
-#' @param groups A vector of group names from the metadata containing performance data
+#' @param feature The name of the feature to analyze
+#' @param phenotype The name of the phenotype  in the metadata
+#' @param groups A vector of group names from the metadata containing phenotype data
 #' @param model The type of regression model to use. Options are 'lmm' for linear mixed model, 'lm' for simple linear regression, or 'pearson' for Pearson correlation (default: 'lmm')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
 #' @param outdir The directory to save the output files 
-#' @param width The width of the output plot in inches (defa ult: 8)
-#' @param height The height of the output plot in inches (default: 12)
+#' @param width The width of the output plot in inches (default: 6)
+#' @param height The height of the output plot in inches (default: 6)
 #' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
 #' @return A list of the plot and the raw data
 #' @export
 
-FeaturePerformanceRegression <- function(mmo, target, phenotype, groups, model = 'lmm', normalization = 'Z', outdir = 'FeaturePerformanceRegression', width = 6, height = 6, save_output = TRUE){
+FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model = 'lm', normalization = 'Z', outdir = 'FeaturePhenotypeCorrelation', width = 6, height = 6, save_output = TRUE){
   .require_pkg("ggrepel")
   feature <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
 
-  # Get phenotype performance from the metadata, get the feature value from the feature matrix, then combine
-  phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, performance = metadata[,phenotype]) |> filter(.data$group %in% groups)
-  feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[feature$feature == target, -(1:2)]))
+  # Get phenotype phenotype from the metadata, get the feature value from the feature matrix, then combine
+  phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, phenotype = metadata[,phenotype]) |> filter(.data$group %in% groups)
+  feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[feature$feature == feature, -(1:2)]))
   combined_df <- merge(phenotype.df, feature_df, by='sample')
 
   # Perform linear mixed model or simple linear regression
   if (model == 'lmm'){
-    fit <- lme4::lmer(combined_df$performance ~ combined_df$feature_value + (1|combined_df$group))
+    fit <- lme4::lmer(combined_df$phenotype ~ combined_df$feature_value + (1|combined_df$group))
     p_value <- summary(fit)$coefficients[2, 5]
   } else if (model == 'lm'){
-    fit <- lm(combined_df$performance ~ combined_df$feature_value)
+    fit <- lm(combined_df$phenotype ~ combined_df$feature_value)
     p_value <- summary(fit)$coefficients[2, 4]
-  } else if (model == 'pearson'){
-    pearson <- cor.test(combined_df$performance, combined_df$feature_value)
-    p_value <- pearson[[3]]
+  } else if (model %in% c('pearson', 'spearman', 'kendall')){
+    correlation <- cor.test(combined_df$phenotype, combined_df$feature_value, method = model)
+    p_value <- correlation$p.value
   } else {
-    stop("Invalid model type. Please use 'lmm' or 'lm' or 'pearson")
+    stop("Invalid model type. Please use 'lmm', 'lm', 'pearson', 'spearman' or 'kendall'")
   }
 
   # Plot the fit using ggplot
-  plot <-ggplot(combined_df, aes(x = .data$feature_value, y = .data$performance, color = .data$group)) +
+  plot <-ggplot(combined_df, aes(x = .data$feature_value, y = .data$phenotype, color = .data$group)) +
     geom_point(size = 3) +
     geom_smooth(method = "lm", se = TRUE, color = "black") +
     ggrepel::geom_text_repel(aes(label = sample), size = 2.5, show.legend = FALSE) +
     theme_classic() +
-    labs(title = paste("Regression of", target, "against", phenotype, "performance"),
+    labs(title = paste("Regression of", feature, "against", phenotype, "phenotype"),
          x = "Feature Value",
-         y = "Performance") +
+         y = "phenotype") +
     theme(legend.position = "right") +
     annotate("text", x = Inf, y = Inf, label = paste("p-value:", signif(p_value, digits = 4)),
              hjust = 1.1, vjust = 1.1, size = 3, color = "black")
   plot
   if (save_output){ 
-    ggsave(paste0(outdir,'_', target,'_vs_', phenotype,'.pdf'), height = height, width = width)
-    # write_csv(combined_df, paste0(outdir,'_', target,'_vs_', phenotype,'_data.csv'))
+    ggsave(paste0(outdir,'_', feature,'_vs_', phenotype,'.pdf'), height = height, width = width)
+    write_csv(combined_df, paste0(outdir,'_', feature,'_vs_', phenotype,'_data.csv'))
   }
   return (list(plot = plot, df = combined_df))
 }
 
 
+#` Screen feature-phenotype correlation
+#'
+#' Use metadata-provided variables (any phenotypes or environmental variables) to screen feature-phenotype correlation
+#' linear model, linear mixed model (using groups as random effect), or correlation (Pearson, Spearman, Kendall) are supported
+#' 
+#' @param mmo The mmo object with feature data and metadata
+#' @param phenotype The name of the phenotype in the metadata
+#' @param groups A vector of group names from the metadata containing phenotype data
+#' @param model The type of regression model to use. Options are 'lmm' for linear mixed model, 'lm' for simple linear regression, or 'pearson', 'spearman', 'kendall' for correlation (default: 'lm')
+#' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
+#' @return A list of the plot and the raw data
+#' @export
+ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'lm', normalization = 'None'){
+  # Load feature and metadata
+  feature <- GetNormFeature(mmo, normalization)
+  metadata <- mmo$metadata
+  # Generate df for analysis
+  if (groups == NULL){
+    groups <- unique(metadata$group)
+    print("'groups' is not provided, using all groups")
+  }
+  phenotype_df <- data.frame(sample = metadata$sample, group = metadata$group, phenotype = metadata[,phenotype]) |> filter(.data$group %in% groups)
+  corr_res <- data.frame(feature = character(), coefficient = numeric(), p_value = numeric(), stringsAsFactors = FALSE)
+  for (i in 1:nrow(feature)){
+    feature_name <- feature$feature[i]
+    feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
+    combined_df <- merge(phenotype_df, feature_df, by='sample')
+    if (model == 'lmm'){
+      fit <- lme4::lmer(combined_df$phenotype ~ combined_df$feature_value + (1|combined_df$group))
+      p_value <- summary(fit)$coefficients[2, 5]
+      coefficient <- lme4::fixef(fit)[2]
+    } else if (model == 'lm'){
+      fit <- lm(combined_df$phenotype ~ combined_df$feature_value)
+      coefficient <- summary(fit)$coefficients[2]
+      p_value <- summary(fit)$coefficients[2, 4]
+    } else if (model %in% c('pearson', 'spearman', 'kendall')){
+      correlation <- cor.test(combined_df$phenotype, combined_df$feature_value, method = model)
+      p_value <- correlation[[3]]
+      coefficient <- correlation[[4]]
+    } else {
+      stop("Invalid model type. Please use 'lmm', 'lm', 'pearson', 'spearman' or 'kendall'")
+    }
+    corr_res <- rbind(corr_res, data.frame(
+      feature = feature_name, coefficient = coefficient, p_value = p_value))
+  }
+  return (corr_res)
+  print(paste0(normalization, '-normalized feature data screened using ', model))
+}
 
 
 #' GetPerformanceFeatureRegression

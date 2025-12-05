@@ -42,7 +42,7 @@ We currently support data processed by MZMine (version 4 or later).
 ## Tutorials
 eCOMET can be used for chemical ecological studies from diverse spectra of interests. We prepared two case studies:
 1. [Treatment-based_study](./articles/Treatment-based_study_tutorial.html)
-2. [Observational_field_study]()
+2. [Observational_field_study](./articles/Interspecific_study_tutorial.html)
 
 ---
 

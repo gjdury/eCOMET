@@ -3,7 +3,7 @@ template:
   bootstrap: 5
   params:
     bootswatch: lumen
-    logo: ecomet_logo.png
+    logo: man/figures/ecomet_logo.png
 
 navbar:
   structure:
@@ -78,7 +78,8 @@ reference:
 
   - title: Metadata regression analysis
     contents:
-      - FeaturePerformanceRegression
+      - FeaturePhenotypeCorrelation
+      - ScreenFeaturePhenotypeCorrelation
       - GetPerformanceFeatureCorrelation
       - GetPerformanceFeatureLMM
       - GetPerformanceFeatureRegression
@@ -107,8 +108,8 @@ articles:
   - title: "Tutorials"
     contents:
       - Intro
-      - Interspecific_study_tutorial
       - Treatment-based_study_tutorial
+      - Interspecific_study_tutorial      
 news:
   one_page: true
 

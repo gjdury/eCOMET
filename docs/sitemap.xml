@@ -27,6 +27,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ExportFeaturesToCSV.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/FeatureDendrogram.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/FeaturePerformanceRegression.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/FeaturePhenotypeCorrelation.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/FeatureToID.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GenerateHeatmapInputs.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.html</loc></url>
@@ -62,6 +63,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ReorderGroups.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ReplaceZero.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/SaveMMO.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/ScreenFeaturePhenotypeCorrelation.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/SwitchGroup.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/VolcanoPlot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ZNormalization.html</loc></url>
