@@ -2,8 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{ScreenFeaturePhenotypeCorrelation}
 \alias{ScreenFeaturePhenotypeCorrelation}
-\title{Use metadata-provided variables (any phenotypes or environmental variables) to screen feature-phenotype correlation
-linear model, linear mixed model (using groups as random effect), or correlation (Pearson, Spearman, Kendall) are supported}
+\title{Screen feature-phenotype correlation}
 \usage{
 ScreenFeaturePhenotypeCorrelation(
   mmo,
