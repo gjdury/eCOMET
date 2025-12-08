@@ -264,3 +264,13 @@ In this tutorial, we will use correlation between amount of each feature and her
 sl_cor <- ScreenFeaturePhenotypeCorrelation(mmo, phenotype = 'sl', groups = c('sl1'), model = 'spearman', normalization = 'Z')
 head(sl_cor)
 ```
+
+## 7. Sharing MMO object
+MMO object can be shared with other users by saving it to a file and loading it from a file. 
+```{r, eval = FALSE}
+# Save MMO object
+SaveMMO(mmo, 'mmo.RData')
+
+# Load MMO object
+mmo <- LoadMMO('mmo.RData')
+```

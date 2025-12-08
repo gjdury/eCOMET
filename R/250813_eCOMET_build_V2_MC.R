@@ -210,10 +210,11 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
   siriused_ids <- unique(union(structure_identifications$mappingFeatureId, canopus_formula_summary$mappingFeatureId))
   sirius_df <- mmo$feature_data |> dplyr::select(id, feature)
   sirius_df <- sirius_df |>
-  left_join(structure_identifications, by = c("id" = "mappingFeatureId")) |>
-  left_join(canopus_formula_summary, by = c("id" = "mappingFeatureId"))
+  left_join(structure_identifications, by = c("id" = "mappingFeatureId"), multiple = "last") |>
+  left_join(canopus_formula_summary, by = c("id" = "mappingFeatureId"), multiple = "last")
   mmo$sirius_annot <- sirius_df
   print('SIRIUS annotation added to mmo$sirius_annot')
+  print("Duplicated annotation might be occurred in SIRIUS. Inspect the raw data to check the annotation")
   return(mmo)
 }
 
@@ -2345,7 +2346,7 @@ FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model =
 }
 
 
-#` Screen feature-phenotype correlation
+#' Screen feature-phenotype correlation
 #'
 #' Use metadata-provided variables (any phenotypes or environmental variables) to screen feature-phenotype correlation
 #' linear model, linear mixed model (using groups as random effect), or correlation (Pearson, Spearman, Kendall) are supported
