@@ -1386,7 +1386,7 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
 #' @param outdir The output file path for the volcano plot (default: 'volcano.png')
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
-#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)  
+#' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
 #' @return A list containing the volcano plot and the data used to generate it
 #' @export
 #' @examplesIf FALSE
@@ -2108,7 +2108,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #' @param pval pvalue options-pval or fdr (default: 'pval')
 #' @param save_output boolean, whether to save the output plot (default: TRUE)
 #' @return A list of the plot and the enrichment results
-#' @export 
+#' @export
 #' @examplesIf FALSE
 #' comp.list <- list(
 #'   comparison1 = DAMs_up$control_vs_treatment1.up,
@@ -2294,7 +2294,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
 #' @param groups A vector of group names from the metadata containing phenotype data
 #' @param model The type of regression model to use. Options are 'lmm' for linear mixed model, 'lm' for simple linear regression, or 'pearson' for Pearson correlation (default: 'lmm')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
-#' @param outdir The directory to save the output files 
+#' @param outdir The directory to save the output files
 #' @param width The width of the output plot in inches (default: 6)
 #' @param height The height of the output plot in inches (default: 6)
 #' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
@@ -2338,7 +2338,7 @@ FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model =
     annotate("text", x = Inf, y = Inf, label = paste("p-value:", signif(p_value, digits = 4)),
              hjust = 1.1, vjust = 1.1, size = 3, color = "black")
   plot
-  if (save_output){ 
+  if (save_output){
     ggsave(paste0(outdir,'_', feature,'_vs_', phenotype,'.pdf'), height = height, width = width)
     readr::write_csv(combined_df, paste0(outdir,'_', feature,'_vs_', phenotype,'_data.csv'))
   }
@@ -2350,7 +2350,7 @@ FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model =
 #'
 #' Use metadata-provided variables (any phenotypes or environmental variables) to screen feature-phenotype correlation
 #' linear model, linear mixed model (using groups as random effect), or correlation (Pearson, Spearman, Kendall) are supported
-#' 
+#'
 #' @param mmo The mmo object with feature data and metadata
 #' @param phenotype The name of the phenotype in the metadata
 #' @param groups A vector of group names from the metadata containing phenotype data
@@ -2591,7 +2591,7 @@ PlotFoldchangeResistanceRegression <- function(performance_regression, fold_chan
     annotate("text", x = Inf, y = Inf, label = paste("p-value:", round(p_value, 500), "\nR-squared:", round(r_squared, 4)),
             hjust = 1.1, vjust = 1.1, size = 3, color = "black")+
     geom_hline(yintercept = 0, linetype = "dashed", color = "black")
-  plot  
+  plot
   if (save_output){
     ggsave(paste0(outdir, ".png"), plot, height = height, width = width)
     readr::write_csv(performance_regression, file = paste0(outdir, ".csv"))
@@ -2697,8 +2697,8 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #' @param group_list A list of groups to filter the feature values by, if filter_group is TRUE (default: NULL)
 #' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
 #' @param width The width of the output plot in inches (default: 6)
-#' @param height The height of the output plot in inches (default: 6) 
-#' @export 
+#' @param height The height of the output plot in inches (default: 6)
+#' @export
 #' @return A list containing the bar plot and the ANOVA results
 #' @examplesIf FALSE
 #' AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
@@ -2728,7 +2728,7 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
     }
     # Perform ANOVA
     anova <- anova_tukey_dunnett(feature_values, 'value ~ group')
-    
+
 
 
     # Generate bar plot
