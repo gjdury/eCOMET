@@ -2363,9 +2363,9 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
   feature <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
   # Generate df for analysis
-  if (groups == NULL){
-    groups <- unique(metadata$group)
-    print("'groups' is not provided, using all groups")
+  if (is.null(groups)) {
+      groups <- unique(metadata$group)
+      message("'groups' is not provided, using all groups")
   }
   phenotype_df <- data.frame(sample = metadata$sample, group = metadata$group, phenotype = metadata[,phenotype]) |> filter(.data$group %in% groups)
   corr_res <- data.frame(feature = character(), coefficient = numeric(), p_value = numeric(), stringsAsFactors = FALSE)
