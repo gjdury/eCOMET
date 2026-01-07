@@ -1431,7 +1431,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
   plot
   if (save_output){
     ggsave(outdir, height = height, width = width)
-    write_csv(VolData, paste0(outdir, '_volcano_data.csv'))
+    readr::write_csv(VolData, paste0(outdir, '_volcano_data.csv'))
   }
   return(list(plot = plot, df = VolData))
 }
@@ -1511,11 +1511,11 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
   plot
   if (isTRUE(save_output)) {
     ggsave(paste0(outdir, '.pdf'), width = 6, height = 6)
-    write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
-    write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
-    write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
-    write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
-    write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
+    readr::write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_Fvalue_matrix.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
   }
 
   return(invisible(list(plot = plot, df = pca_df, permanova = permanova)))
@@ -1623,7 +1623,7 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
   plot
   if (save_output) {
     ggsave(paste0(outdir, 'PLSDA_plot.pdf'), height = 6, width = 6)
-    write_csv(loadings_df, paste0(outdir, 'PLSDA_loadings.csv'))
+    readr::write_csv(loadings_df, paste0(outdir, 'PLSDA_loadings.csv'))
   }
   return(list(plot = plot, df = plsda_df, loadings = loadings_df))
 }
@@ -1803,7 +1803,7 @@ PlotNPCStackedBar <- function(mmo, group_col, outdir, width = 6, height = 3, sav
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
   if (save_output){
     ggsave(paste0(outdir, 'NPC_stacked_bar.pdf'), width = width, height = height)
-    write_csv(plot_df, paste0(outdir, 'NPC_stacked_bar.csv'))
+    readr::write_csv(plot_df, paste0(outdir, 'NPC_stacked_bar.csv'))
   }
   return(list(plot = plot, df = plot_df))
 }
@@ -1955,7 +1955,7 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 
   if (save_output){
     ggsave(paste0(outdir, 'enrichment.pdf'), height = height, width = width)
-    write_csv(sig.canopus, paste0(outdir, 'enrichment.csv'))
+    readr::write_csv(sig.canopus, paste0(outdir, 'enrichment.csv'))
   }
   return(list(plot = plot, df = sig.canopus))
 }
@@ -2000,7 +2000,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
   plot
   if (save_output){
     ggsave(outdir, height = height, width = width)
-    write_csv(sig.canopus, paste0(outdir, 'enrichment.csv'))
+    readr::write_csv(sig.canopus, paste0(outdir, 'enrichment.csv'))
   }
   return(list(plot = plot, df = sig.canopus))
 }
@@ -2086,8 +2086,8 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
   plot
   if (save_output){
     ggsave(paste0(outdir, '.pdf'), width = width, height = height)
-    write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
-    write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
+    readr::write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
+    readr::write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
   }
   return(list(plot = plot, df = df.EA))
 }
@@ -2192,8 +2192,8 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
   plot
   if (save_output){
     ggsave(paste0(outdir, '.pdf'), width = width, height = height)
-    write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
-    write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
+    readr::write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
+    readr::write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
   }
   return(list(plot = plot, df = df.EA))
 }
@@ -2276,7 +2276,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
   plot
   if (save_output){
     ggsave(paste0(outdir,'_', term_level,'.pdf'), width = width, height = height)
-    write_csv(msea_res, paste0(outdir,'_', term_level,'_results.csv'))
+    readr::write_csv(msea_res, paste0(outdir,'_', term_level,'_results.csv'))
   }
   return (list(plot = plot, df = msea_res))
 }
@@ -2340,7 +2340,7 @@ FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model =
   plot
   if (save_output){ 
     ggsave(paste0(outdir,'_', feature,'_vs_', phenotype,'.pdf'), height = height, width = width)
-    write_csv(combined_df, paste0(outdir,'_', feature,'_vs_', phenotype,'_data.csv'))
+    readr::write_csv(combined_df, paste0(outdir,'_', feature,'_vs_', phenotype,'_data.csv'))
   }
   return (list(plot = plot, df = combined_df))
 }
@@ -2594,7 +2594,7 @@ PlotFoldchangeResistanceRegression <- function(performance_regression, fold_chan
   plot  
   if (save_output){
     ggsave(paste0(outdir, ".png"), plot, height = height, width = width)
-    write_csv(performance_regression, file = paste0(outdir, ".csv"))
+    readr::write_csv(performance_regression, file = paste0(outdir, ".csv"))
   }
   return(list(plot = plot, df = performance_regression))
 }
@@ -2632,7 +2632,7 @@ PlotFoldchangeResistanceRegression_t <- function(performance_regression, fold_ch
     geom_vline(xintercept = 0, linetype = "dashed", color = "black")
   if (save_output){
     ggsave(paste0(output_dir, ".png"), plot, height = height, width = width)
-    write_csv(performance_regression, file = paste0(output_dir, ".csv"))
+    readr::write_csv(performance_regression, file = paste0(output_dir, ".csv"))
   }
   return(list(plot = plot, df = performance_regression))
 }
@@ -2679,7 +2679,7 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
   plot
   if (save_output){
     ggsave(paste0(output_dir, ".png"), plot, height = height, width = width)
-    write_csv(performance_regression, file = paste0(output_dir, ".csv"))
+    readr::write_csv(performance_regression, file = paste0(output_dir, ".csv"))
   }
   return(list(plot = plot, df = performance_regression))
 }
@@ -2770,7 +2770,7 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
   merged_df <- merge(mmo$sirius_annot, selected_feature, by = 'feature')
   merged_df <- merge(merged_df, selected_pairwise, by = 'feature')
 
-  write_csv(merged_df, output_dir)
+  readr::write_csv(merged_df, output_dir)
 }
 
 
@@ -3275,11 +3275,11 @@ NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_ou
   permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
   if (save_output){
     ggsave(paste0(outdir, '_NMDS.pdf'), height = height, width = width)
-    write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
-    write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
-    write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
-    write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_F_matrix.csv'))
-    write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
+    readr::write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_F_matrix.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
   }
   return(list(plot = plot, df = nmds_coords, permanova = permanova))
 }
@@ -3321,11 +3321,11 @@ PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_ou
   permanova <- permanova_stat(betadiv, mmo$metadata, mode = 'distance')
   if (save_output){
     ggsave(paste0(outdir, '_PCoA.pdf'), height = height, width = width)
-    write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
-    write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
-    write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
-    write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_F_matrix.csv'))
-    write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
+    readr::write_csv(permanova$permanova_res, paste0(outdir, '_permanova_results.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_raw), paste0(outdir, '_pairwise_permanova_results.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_p_matrix), paste0(outdir, '_pairwise_permanova_pvalue_matrix.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_F_matrix), paste0(outdir, '_pairwise_permanova_F_matrix.csv'))
+    readr::write_csv(as.data.frame(permanova$pairwise_R2_matrix), paste0(outdir, '_pairwise_permanova_R2_matrix.csv'))
   }
   return(list(plot = plot, df = pcoa_coords, permanova = permanova))
 }
