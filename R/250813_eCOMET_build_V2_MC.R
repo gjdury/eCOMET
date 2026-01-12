@@ -2033,7 +2033,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #' )
 #' CanopusLevelEnrichmentPlot(
 #'  mmo, comp.list = comp.list, term_level = 'NPC_pathway',
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot',
+#'  pthr = 0.1, representation = 'greater', outdir = 'enrichment_plot',
 #'  height = 5, width = 5
 #' )
 CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_pathway',pthr = 0.1, representation = 'greater', outdir = 'enrichment', height = 5, width = 5, pval = 'pval', save_output = TRUE){
@@ -2116,17 +2116,17 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #' )
 #' CanopusAllLevelEnrichmentPlot(
 #'  mmo, comp.list = comp.list, terms = 'all_terms',
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_all_levels',
+#'  pthr = 0.1, representation = 'greater', outdir = 'enrichment_all_levels',
 #'  height = 10, width = 8
 #' )
 #' CanopusAllLevelEnrichmentPlot(
 #'  mmo, comp.list = comp.list, terms = 'NPC',
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_NPC_levels',
+#'  pthr = 0.1, representation = 'greater', outdir = 'enrichment_NPC_levels',
 #'  height = 10, width = 8
 #' )
 #' CanopusAllLevelEnrichmentPlot(
 #'  mmo, comp.list = comp.list, terms = 'ClassyFire',
-#'  pthr = 0.1, representation = 'greater', prefix = 'enrichment_ClassyFire_levels',
+#'  pthr = 0.1, representation = 'greater', outdir = 'enrichment_ClassyFire_levels',
 #'  height = 10, width = 8
 #' )
 CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_terms', term_levels = NULL, pthr = 0.1, representation = 'greater', outdir = 'enrichment', height = 10, width = 8, pval = 'pval', save_output = TRUE){
@@ -2223,7 +2223,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' # Perform MSEA using NPC_class level
 #' MSEA(
 #'  mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange,
-#'  term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class',
+#'  term_level = 'NPC_class', pthr = 0.05, outdir = 'MSEA_NPC_class',
 #'  width = 8, height = 12, sig = FALSE
 #' )
 MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pthr = 0.05, outdir = 'MSEA', width = 8, height = 12, sig = FALSE, save_output = TRUE){
@@ -2259,7 +2259,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
                        maxSize  = 1500,
                        nPermSimple = 10000)
   msea_res <- msea_res |> arrange(.data$padj)
-  readr::write_csv(msea_res, paste0(prefix,'_', term_level,'_results.csv'))
+  # readr::write_csv(msea_res, paste0(outdir,'_', term_level,'_results.csv'))
   if (sig) {
     msea_res <- msea_res |> filter(.data$padj < pthr)
   }
@@ -2363,9 +2363,9 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
   feature <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
   # Generate df for analysis
-  if (is.null(groups)) {
-      groups <- unique(metadata$group)
-      message("'groups' is not provided, using all groups")
+  if (missing(groups)) {
+    groups <- unique(metadata$group)
+    message("'groups' is not provided, using all groups")
   }
   phenotype_df <- data.frame(sample = metadata$sample, group = metadata$group, phenotype = metadata[,phenotype]) |> filter(.data$group %in% groups)
   corr_res <- data.frame(feature = character(), coefficient = numeric(), p_value = numeric(), stringsAsFactors = FALSE)

@@ -54,7 +54,7 @@ The results are saved as a CSV file and a PDF plot.
 # Perform MSEA using NPC_class level
 MSEA(
  mmo, feature_name = rownames(DE_results), feature_score = DE_results$log2FoldChange,
- term_level = 'NPC_class', pthr = 0.05, prefix = 'MSEA_NPC_class',
+ term_level = 'NPC_class', pthr = 0.05, outdir = 'MSEA_NPC_class',
  width = 8, height = 12, sig = FALSE
 )
 \dontshow{\}) # examplesIf}
