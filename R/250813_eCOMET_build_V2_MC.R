@@ -2086,8 +2086,8 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
   plot
   if (save_output){
     ggsave(paste0(outdir, '.pdf'), width = width, height = height)
-    readr::write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
-    readr::write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
+    readr::write_csv(df.EA, paste0(outdir, '.csv'))
+    readr::write_csv(df.EA.sig, paste0(outdir, '_sig.csv'))
   }
   return(list(plot = plot, df = df.EA))
 }
@@ -2192,8 +2192,8 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
   plot
   if (save_output){
     ggsave(paste0(outdir, '.pdf'), width = width, height = height)
-    readr::write_csv(df.EA, paste0(outdir, '.csv'), row.names = FALSE)
-    readr::write_csv(df.EA.sig, paste0(outdir, '_sig.csv'), row.names = FALSE)
+    readr::write_csv(df.EA, paste0(outdir, '.csv'))
+    readr::write_csv(df.EA.sig, paste0(outdir, '_sig.csv'))
   }
   return(list(plot = plot, df = df.EA))
 }
