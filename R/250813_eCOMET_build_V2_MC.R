@@ -567,176 +567,176 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
   return(mmo)
 }
 
-#' Build a feature dendrogram from a dissimilarity matrix
+#' #' Build a feature dendrogram from a dissimilarity matrix
+#' #'
+#' #' Given a feature-to-feature dissimilarity matrix (e.g., DREAMS, cosine, MS2DeepScore),
+#' #' cluster the features and optionally write a Newick tree for visualization in tools like iTOL.
+#' #'
+#' #' @param mmo The mmo object containing one or more dissimilarity matrices (e.g., `dreams.dissim`)
+#' #' @param distance Which dissimilarity matrix to use; one of "dreams", "cos", or "m2ds" (default: "dreams")
+#' #' @param features Optional character vector of feature IDs to include; if NULL, all features in the matrix are used
+#' #' @param method Clustering linkage method passed to `stats::hclust` (default: "average")
+#' #' @param save_output Logical; if TRUE, write a Newick tree (`<outprefix>.nwk`) and a PDF dendrogram (`<outprefix>.pdf`)
+#' #' @param outprefix File prefix for outputs when `save_output` is TRUE (default: "feature_tree")
+#' #' @param layout Choose "base" (original rectangular tree) or "circular" (ggtree-based circular layout with annotation rings)
+#' #' @param npl_col Column in `mmo$sirius_annot` used to color tips (e.g., "NPC#class"); ignored if missing
+#' #' @param group_col Column in `mmo$metadata` that defines sample groups for tip bars
+#' #' @param add_group_bars Logical; when TRUE, draws stacked bars at the tips summarizing feature abundance by `group_col`
+#' #' @param abundance_fun Aggregation used for group bars: "mean" (default) or "sum" over samples within a group
+#' #' @return A list with `hclust` (the clustering), `dendrogram`, `phylo` (ape::phylo object), and when `layout = "circular"` a `ggplot` named `plot`
+#' #' @export
+#' #' @examplesIf FALSE
+#' #' tree <- FeatureDendrogram(mmo, distance = "dreams", features = NULL, method = "average",
+#' #'                           save_output = TRUE, outprefix = "dreams_tree")
+#' FeatureDendrogram <- function(mmo,
+#'                               distance = "dreams",
+#'                               features = NULL,
+#'                               method = "average",
+#'                               save_output = FALSE,
+#'                               outprefix = "feature_tree",
+#'                               layout = c("base", "circular"),
+#'                               npl_col = "NPC#class",
+#'                               group_col = "group",
+#'                               add_group_bars = TRUE,
+#'                               abundance_fun = c("mean", "sum")) {
+#'   .require_pkg("stats")
+#'   .require_pkg("ape")
 #'
-#' Given a feature-to-feature dissimilarity matrix (e.g., DREAMS, cosine, MS2DeepScore),
-#' cluster the features and optionally write a Newick tree for visualization in tools like iTOL.
+#'   layout <- match.arg(layout)
+#'   abundance_fun <- match.arg(abundance_fun)
 #'
-#' @param mmo The mmo object containing one or more dissimilarity matrices (e.g., `dreams.dissim`)
-#' @param distance Which dissimilarity matrix to use; one of "dreams", "cos", or "m2ds" (default: "dreams")
-#' @param features Optional character vector of feature IDs to include; if NULL, all features in the matrix are used
-#' @param method Clustering linkage method passed to `stats::hclust` (default: "average")
-#' @param save_output Logical; if TRUE, write a Newick tree (`<outprefix>.nwk`) and a PDF dendrogram (`<outprefix>.pdf`)
-#' @param outprefix File prefix for outputs when `save_output` is TRUE (default: "feature_tree")
-#' @param layout Choose "base" (original rectangular tree) or "circular" (ggtree-based circular layout with annotation rings)
-#' @param npl_col Column in `mmo$sirius_annot` used to color tips (e.g., "NPC#class"); ignored if missing
-#' @param group_col Column in `mmo$metadata` that defines sample groups for tip bars
-#' @param add_group_bars Logical; when TRUE, draws stacked bars at the tips summarizing feature abundance by `group_col`
-#' @param abundance_fun Aggregation used for group bars: "mean" (default) or "sum" over samples within a group
-#' @return A list with `hclust` (the clustering), `dendrogram`, `phylo` (ape::phylo object), and when `layout = "circular"` a `ggplot` named `plot`
-#' @export
-#' @examplesIf FALSE
-#' tree <- FeatureDendrogram(mmo, distance = "dreams", features = NULL, method = "average",
-#'                           save_output = TRUE, outprefix = "dreams_tree")
-FeatureDendrogram <- function(mmo,
-                              distance = "dreams",
-                              features = NULL,
-                              method = "average",
-                              save_output = FALSE,
-                              outprefix = "feature_tree",
-                              layout = c("base", "circular"),
-                              npl_col = "NPC#class",
-                              group_col = "group",
-                              add_group_bars = TRUE,
-                              abundance_fun = c("mean", "sum")) {
-  .require_pkg("stats")
-  .require_pkg("ape")
-
-  layout <- match.arg(layout)
-  abundance_fun <- match.arg(abundance_fun)
-
-  dist_name <- match.arg(distance, choices = c("dreams", "cos", "m2ds"))
-  slot_name <- paste0(dist_name, ".dissim")
-  if (!slot_name %in% names(mmo)) {
-    stop("Dissimilarity matrix '", slot_name, "' not found in mmo. Add it with AddChemDist().")
-  }
-
-  mat <- mmo[[slot_name]]
-  if (!is.matrix(mat)) stop("'", slot_name, "' must be a matrix.")
-
-  if (!is.null(features)) {
-    keep <- intersect(features, rownames(mat))
-    if (length(keep) < 2) stop("At least two features needed after filtering.")
-    mat <- mat[keep, keep, drop = FALSE]
-  }
-
-  # Ensure symmetrical with zeros on diagonal
-  diag(mat) <- 0
-  if (!all(rownames(mat) == colnames(mat))) {
-    stop("Row and column names of the dissimilarity matrix must match and be in the same order.")
-  }
-
-  hc <- stats::hclust(as.dist(mat), method = method)
-  dend <- as.dendrogram(hc)
-  phy <- ape::as.phylo(hc)
-
-  if (isTRUE(save_output)) {
-    ape::write.tree(phy, file = paste0(outprefix, ".nwk"))
-    pdf(paste0(outprefix, ".pdf"), width = 8, height = 6)
-    plot(dend, main = paste("Feature dendrogram (", dist_name, ")", sep = ""))
-    dev.off()
-  }
-
-  result <- list(hclust = hc, dendrogram = dend, phylo = phy)
-
-  if (layout == "base") {
-    return(invisible(result))
-  }
-
-  # --- circular layout with annotations ---
-  .require_pkg("ggtree")
-  .require_pkg("ggtreeExtra")
-  .require_pkg("ggplot2")
-  .require_pkg("dplyr")
-  .require_pkg("tidyr")
-  .require_pkg("tibble")
-  .require_pkg("scales")
-
-  tip_data <- tibble::tibble(label = phy$tip.label)
-
-  # Add NPL classifier labels from sirius annotations when available
-  if (!is.null(npl_col) && "sirius_annot" %in% names(mmo) && npl_col %in% names(mmo$sirius_annot)) {
-    annot_df <- mmo$sirius_annot |>
-      dplyr::transmute(
-        label = trimws(as.character(.data$id)),
-        npl = .data[[npl_col]]
-      )
-
-    tip_data <- tip_data |>
-      dplyr::left_join(annot_df, by = "label") |>
-      dplyr::mutate(npl = ifelse(is.na(.data$npl), "Unannotated", .data$npl))
-  }
-
-  # Summarize feature intensities by group for stacked bars
-  bar_data <- NULL
-  if (isTRUE(add_group_bars) &&
-      !is.null(mmo$feature_data) &&
-      !is.null(mmo$metadata) &&
-      group_col %in% names(mmo$metadata)) {
-    fd_long <- mmo$feature_data |>
-      tidyr::pivot_longer(
-        cols = -c("id", "feature"),
-        names_to = "sample",
-        values_to = "intensity"
-      )
-
-    bar_data <- fd_long |>
-      dplyr::left_join(
-        mmo$metadata |>
-          dplyr::select("sample", dplyr::all_of(group_col)),
-        by = "sample"
-      ) |>
-      dplyr::mutate(group = as.factor(.data[[group_col]])) |>
-      dplyr::group_by(.data$id, .data$group) |>
-      dplyr::summarise(
-        value = if (abundance_fun == "sum") {
-          sum(.data$intensity, na.rm = TRUE)
-        } else {
-          mean(.data$intensity, na.rm = TRUE)
-        },
-        .groups = "drop"
-      ) |>
-      dplyr::mutate(label = trimws(as.character(.data$id)))
-  }
-
-  p <- ggtree::ggtree(phy, layout = "circular", size = 0.15)
-  p <- p %<+% tip_data
-
-  if ("npl" %in% names(tip_data)) {
-    npl_n <- max(1, length(unique(tip_data$npl)))
-    p <- p +
-      ggtree::geom_tippoint(ggplot2::aes(color = .data$npl), size = 1.1, alpha = 0.9) +
-      ggplot2::scale_color_manual(values = scales::hue_pal()(npl_n)) +
-      ggplot2::labs(color = paste0("NPL (", npl_col, ")"))
-  }
-
-  if (!is.null(bar_data) && nrow(bar_data) > 0) {
-    group_n <- max(1, length(levels(bar_data$group)))
-    p <- p +
-      ggtreeExtra::geom_fruit(
-        data = bar_data,
-        geom = ggplot2::geom_bar,
-        mapping = ggplot2::aes(y = .data$label, x = .data$value, fill = .data$group),
-        stat = "identity",
-        orientation = "y",
-        position = "stack",
-        offset = 0.01,
-        width = 0.6
-      ) +
-      ggplot2::scale_fill_manual(values = scales::hue_pal()(group_n)) +
-      ggplot2::labs(fill = paste0("Group (", group_col, ")"))
-  }
-
-  p <- p +
-    ggplot2::theme_void() +
-    ggplot2::theme(
-      legend.position = "right",
-      plot.margin = ggplot2::margin(5, 5, 5, 5)
-    )
-
-  result$plot <- p
-  invisible(result)
-}
+#'   dist_name <- match.arg(distance, choices = c("dreams", "cos", "m2ds"))
+#'   slot_name <- paste0(dist_name, ".dissim")
+#'   if (!slot_name %in% names(mmo)) {
+#'     stop("Dissimilarity matrix '", slot_name, "' not found in mmo. Add it with AddChemDist().")
+#'   }
+#'
+#'   mat <- mmo[[slot_name]]
+#'   if (!is.matrix(mat)) stop("'", slot_name, "' must be a matrix.")
+#'
+#'   if (!is.null(features)) {
+#'     keep <- intersect(features, rownames(mat))
+#'     if (length(keep) < 2) stop("At least two features needed after filtering.")
+#'     mat <- mat[keep, keep, drop = FALSE]
+#'   }
+#'
+#'   # Ensure symmetrical with zeros on diagonal
+#'   diag(mat) <- 0
+#'   if (!all(rownames(mat) == colnames(mat))) {
+#'     stop("Row and column names of the dissimilarity matrix must match and be in the same order.")
+#'   }
+#'
+#'   hc <- stats::hclust(as.dist(mat), method = method)
+#'   dend <- as.dendrogram(hc)
+#'   phy <- ape::as.phylo(hc)
+#'
+#'   if (isTRUE(save_output)) {
+#'     ape::write.tree(phy, file = paste0(outprefix, ".nwk"))
+#'     pdf(paste0(outprefix, ".pdf"), width = 8, height = 6)
+#'     plot(dend, main = paste("Feature dendrogram (", dist_name, ")", sep = ""))
+#'     dev.off()
+#'   }
+#'
+#'   result <- list(hclust = hc, dendrogram = dend, phylo = phy)
+#'
+#'   if (layout == "base") {
+#'     return(invisible(result))
+#'   }
+#'
+#'   # --- circular layout with annotations ---
+#'   .require_pkg("ggtree")
+#'   .require_pkg("ggtreeExtra")
+#'   .require_pkg("ggplot2")
+#'   .require_pkg("dplyr")
+#'   .require_pkg("tidyr")
+#'   .require_pkg("tibble")
+#'   .require_pkg("scales")
+#'
+#'   tip_data <- tibble::tibble(label = phy$tip.label)
+#'
+#'   # Add NPL classifier labels from sirius annotations when available
+#'   if (!is.null(npl_col) && "sirius_annot" %in% names(mmo) && npl_col %in% names(mmo$sirius_annot)) {
+#'     annot_df <- mmo$sirius_annot |>
+#'       dplyr::transmute(
+#'         label = trimws(as.character(.data$id)),
+#'         npl = .data[[npl_col]]
+#'       )
+#'
+#'     tip_data <- tip_data |>
+#'       dplyr::left_join(annot_df, by = "label") |>
+#'       dplyr::mutate(npl = ifelse(is.na(.data$npl), "Unannotated", .data$npl))
+#'   }
+#'
+#'   # Summarize feature intensities by group for stacked bars
+#'   bar_data <- NULL
+#'   if (isTRUE(add_group_bars) &&
+#'       !is.null(mmo$feature_data) &&
+#'       !is.null(mmo$metadata) &&
+#'       group_col %in% names(mmo$metadata)) {
+#'     fd_long <- mmo$feature_data |>
+#'       tidyr::pivot_longer(
+#'         cols = -c("id", "feature"),
+#'         names_to = "sample",
+#'         values_to = "intensity"
+#'       )
+#'
+#'     bar_data <- fd_long |>
+#'       dplyr::left_join(
+#'         mmo$metadata |>
+#'           dplyr::select("sample", dplyr::all_of(group_col)),
+#'         by = "sample"
+#'       ) |>
+#'       dplyr::mutate(group = as.factor(.data[[group_col]])) |>
+#'       dplyr::group_by(.data$id, .data$group) |>
+#'       dplyr::summarise(
+#'         value = if (abundance_fun == "sum") {
+#'           sum(.data$intensity, na.rm = TRUE)
+#'         } else {
+#'           mean(.data$intensity, na.rm = TRUE)
+#'         },
+#'         .groups = "drop"
+#'       ) |>
+#'       dplyr::mutate(label = trimws(as.character(.data$id)))
+#'   }
+#'
+#'   p <- ggtree::ggtree(phy, layout = "circular", size = 0.15)
+#'   p <- p %<+% tip_data
+#'
+#'   if ("npl" %in% names(tip_data)) {
+#'     npl_n <- max(1, length(unique(tip_data$npl)))
+#'     p <- p +
+#'       ggtree::geom_tippoint(ggplot2::aes(color = .data$npl), size = 1.1, alpha = 0.9) +
+#'       ggplot2::scale_color_manual(values = scales::hue_pal()(npl_n)) +
+#'       ggplot2::labs(color = paste0("NPL (", npl_col, ")"))
+#'   }
+#'
+#'   if (!is.null(bar_data) && nrow(bar_data) > 0) {
+#'     group_n <- max(1, length(levels(bar_data$group)))
+#'     p <- p +
+#'       ggtreeExtra::geom_fruit(
+#'         data = bar_data,
+#'         geom = ggplot2::geom_bar,
+#'         mapping = ggplot2::aes(y = .data$label, x = .data$value, fill = .data$group),
+#'         stat = "identity",
+#'         orientation = "y",
+#'         position = "stack",
+#'         offset = 0.01,
+#'         width = 0.6
+#'       ) +
+#'       ggplot2::scale_fill_manual(values = scales::hue_pal()(group_n)) +
+#'       ggplot2::labs(fill = paste0("Group (", group_col, ")"))
+#'   }
+#'
+#'   p <- p +
+#'     ggplot2::theme_void() +
+#'     ggplot2::theme(
+#'       legend.position = "right",
+#'       plot.margin = ggplot2::margin(5, 5, 5, 5)
+#'     )
+#'
+#'   result$plot <- p
+#'   invisible(result)
+#' }
 
 
 
