@@ -2,7 +2,40 @@
 % Please edit documentation in R/250813_eCOMET_build_V2_MC.R
 \name{ReorderGroups}
 \alias{ReorderGroups}
-\title{Reorder samples in the mmo object based on group order}
+\title{#' Build a feature dendrogram from a dissimilarity matrix
+#'
+#' Given a feature-to-feature dissimilarity matrix (e.g., DREAMS, cosine, MS2DeepScore),
+#' cluster the features and optionally write a Newick tree for visualization in tools like iTOL.
+#'
+#' @param mmo The mmo object containing one or more dissimilarity matrices (e.g., \code{dreams.dissim})
+#' @param distance Which dissimilarity matrix to use; one of "dreams", "cos", or "m2ds" (default: "dreams")
+#' @param features Optional character vector of feature IDs to include; if NULL, all features in the matrix are used
+#' @param method Clustering linkage method passed to \code{stats::hclust} (default: "average")
+#' @param save_output Logical; if TRUE, write a Newick tree (\verb{<outprefix>.nwk}) and a PDF dendrogram (\verb{<outprefix>.pdf})
+#' @param outprefix File prefix for outputs when \code{save_output} is TRUE (default: "feature_tree")
+#' @param layout Choose "base" (original rectangular tree) or "circular" (ggtree-based circular layout with annotation rings)
+#' @param npl_col Column in \code{mmo$sirius_annot} used to color tips (e.g., "NPC#class"); ignored if missing
+#' @param group_col Column in \code{mmo$metadata} that defines sample groups for tip bars
+#' @param add_group_bars Logical; when TRUE, draws stacked bars at the tips summarizing feature abundance by \code{group_col}
+#' @param abundance_fun Aggregation used for group bars: "mean" (default) or "sum" over samples within a group
+#' @return A list with \code{hclust} (the clustering), \code{dendrogram}, \code{phylo} (ape::phylo object), and when \code{layout = "circular"} a \code{ggplot} named \code{plot}
+#' @export
+#' @examplesIf FALSE
+#' tree <- FeatureDendrogram(mmo, distance = "dreams", features = NULL, method = "average",
+#'                           save_output = TRUE, outprefix = "dreams_tree")
+FeatureDendrogram <- function(mmo,
+distance = "dreams",
+features = NULL,
+method = "average",
+save_output = FALSE,
+outprefix = "feature_tree",
+layout = c("base", "circular"),
+npl_col = "NPC#class",
+group_col = "group",
+add_group_bars = TRUE,
+abundance_fun = c("mean", "sum")) {
+.require_pkg("stats")
+.require_pkg("ape")}
 \usage{
 ReorderGroups(mmo, group_order)
 }
@@ -15,10 +48,81 @@ ReorderGroups(mmo, group_order)
 The mmo object with reordered samples
 }
 \description{
-This function reorders the samples in the mmo object based on a specified group order.
-The function updates the order of samples in the feature data, log-normalized data, z-score data, and mean-centered data.
-Use this function before plotting heatmaps or other visualizations to ensure consistent group ordering.
+layout <- match.arg(layout)
+abundance_fun <- match.arg(abundance_fun)
 }
+\details{
+dist_name <- match.arg(distance, choices = c("dreams", "cos", "m2ds"))
+slot_name <- paste0(dist_name, ".dissim")
+if (!slot_name \%in\% names(mmo)) {
+stop("Dissimilarity matrix '", slot_name, "' not found in mmo. Add it with AddChemDist().")
+}
+
+mat <- mmo[\link{slot_name}]
+if (!is.matrix(mat)) stop("'", slot_name, "' must be a matrix.")
+
+if (!is.null(features)) {
+keep <- intersect(features, rownames(mat))
+if (length(keep) < 2) stop("At least two features needed after filtering.")
+mat <- mat\link{keep, keep, drop = FALSE}
+}
+}
+\section{Ensure symmetrical with zeros on diagonal}{
+diag(mat) <- 0
+if (!all(rownames(mat) == colnames(mat))) {
+stop("Row and column names of the dissimilarity matrix must match and be in the same order.")
+}
+
+hc <- stats::hclust(as.dist(mat), method = method)
+dend <- as.dendrogram(hc)
+phy <- ape::as.phylo(hc)
+
+if (isTRUE(save_output)) {
+ape::write.tree(phy, file = paste0(outprefix, ".nwk"))
+pdf(paste0(outprefix, ".pdf"), width = 8, height = 6)
+plot(dend, main = paste("Feature dendrogram (", dist_name, ")", sep = ""))
+dev.off()
+}
+
+result <- list(hclust = hc, dendrogram = dend, phylo = phy)
+
+if (layout == "base") {
+return(invisible(result))
+}
+}
+
+\section{--- circular layout with annotations ---}{
+.require_pkg("ggtree")
+.require_pkg("ggtreeExtra")
+.require_pkg("ggplot2")
+.require_pkg("dplyr")
+.require_pkg("tidyr")
+.require_pkg("tibble")
+.require_pkg("scales")
+
+tip_data <- tibble::tibble(label = phy$tip.label)
+}
+
+\section{Add NPL classifier labels from sirius annotations when available}{
+if (!is.null(npl_col) && "sirius_annot" \%in\% names(mmo) && npl_col \%in\% names(mmo$sirius_annot)) {
+annot_df <- mmo$sirius_annot |>
+dplyr::transmute(
+label = trimws(as.character(.data$id)),
+npl = .data[\link{npl_col}]
+)
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{tip_data <- tip_data |>
+  dplyr::left_join(annot_df, by = "label") |>
+  dplyr::mutate(npl = ifelse(is.na(.data$npl), "Unannotated", .data$npl))
+}\if{html}{\out{</div>}}
+
+}
+}
+
+\section{Summarize feature intensities by group for stacked bars}{
+
+}
+
 \examples{
 \dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 mmo <- ReorderGroups(mmo, group_order = c("Control", "Treatment1", "Treatment2"))
