@@ -19,7 +19,7 @@ ExportFeaturesToCSV(mmo, feature_list, normalization = "None", output_dir)
 This function exports selected features, their annotations, and pairwise comparisons to a CSV file.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 ExportFeaturesToCSV(mmo, feature_list = Glucosinolates, normalization = 'Z', output_dir = 'output.csv')
 ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up, normalization = 'None', output_dir = 'output.csv')
 \dontshow{\}) # examplesIf}

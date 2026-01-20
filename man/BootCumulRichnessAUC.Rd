@@ -21,7 +21,7 @@ This function bootstraps the normalized area under the curve (AUC) for cumulativ
 It performs multiple bootstrap iterations to estimate the distribution of normalized AUC values.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 groups <- c("Control", "Treatment1", "Treatment2")
 bootstrapped_aucs <- BootCumulRichnessAUC(mmo, groups, n_boot = 500)
 \dontshow{\}) # examplesIf}

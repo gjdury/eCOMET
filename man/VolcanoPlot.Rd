@@ -40,7 +40,7 @@ This function generates a volcano plot using data from mmo$pairwise (PairwiseCom
 highlighting upregulated and downregulated features based on log2 fold change and adjusted p-value
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 VolcanoPlot(
  mmo, comp = 'Control_vs_Treatment1',
  topk = 10, pthr = 0.05,

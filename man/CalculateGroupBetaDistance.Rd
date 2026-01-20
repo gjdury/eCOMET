@@ -22,7 +22,7 @@ A data frame containing the group names, sample names, and their corresponding b
 This function calculates the beta diversity distance between a reference group and other groups in the metadata.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity,

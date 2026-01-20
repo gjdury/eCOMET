@@ -22,7 +22,7 @@ It uses log2 fold change and adjusted p-value thresholds to determine significan
 Make sure to run PairwiseComp() for all desired comparisons before using this function.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 dams <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
 dams_up <- dams$DAMs_up
 dams_down <- dams$DAMs_down

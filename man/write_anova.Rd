@@ -17,7 +17,7 @@ write_anova(anova_data, outdir, way = "oneway")
 This function writes the results of ANOVA and Tukey's HSD test to a CSV file.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 write_anova(anova_data = anova_results, outdir = "anova_tukey_results.csv", way = 'oneway')
 \dontshow{\}) # examplesIf}
 }

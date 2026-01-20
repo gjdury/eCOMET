@@ -19,7 +19,7 @@ This function calculates the cumulative richness of features across groups in th
 Cumulative richness is defined as the total number of unique features observed as groups are added sequentially.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 groups <- c("Control", "Treatment1", "Treatment2")
 cumulative_richness <- CalculateCumulativeRichness(mmo, groups)
 \dontshow{\}) # examplesIf}

@@ -33,7 +33,7 @@ A data frame containing the specialization index for each group in the metadata,
 This function calculates the specialization index for a given mmo object, normalization method, and optional filtering by groups and features.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 specialization_index <- GetSpecializationIndex(mmo, normalization = 'None', filter_group = FALSE)
 specialization_index <- GetSpecializationIndex(mmo, normalization = 'Z', filter_group = TRUE, group_list = c('Control', 'Treatment1'), filter_feature = TRUE)
 \dontshow{\}) # examplesIf}

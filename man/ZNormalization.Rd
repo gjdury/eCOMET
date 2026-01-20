@@ -16,7 +16,7 @@ The mmo object with Z-normalized feature data (mmo$zscore)
 This function applies Z-score normalization to the peak area in the feature data of the mmo object.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 mmo <- ZNormalization(mmo)
 \dontshow{\}) # examplesIf}
 }

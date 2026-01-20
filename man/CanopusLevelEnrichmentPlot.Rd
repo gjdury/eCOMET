@@ -49,7 +49,7 @@ This function generates a plot for enrichment analysis of Canopus-predicted term
 showing fold enrichment, p-value, and subset count for each term.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 # Perform enrichment analysis for multiple comparisons using NPC_pathway level
 comp.list <- list(
   comparison1 = DAMs_up$control_vs_treatment1.up,

@@ -24,7 +24,7 @@ calculating log2 fold change and adjusted p-values for given comparison of two g
 The function adds the results to the mmo$pairwise data frame.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 mmo <- PairwiseComp(mmo, group1 = 'Control', group2 = 'Treatment1')
 \dontshow{\}) # examplesIf}
 }

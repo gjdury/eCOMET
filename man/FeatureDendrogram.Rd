@@ -49,7 +49,7 @@ Given a feature-to-feature dissimilarity matrix (e.g., DREAMS, cosine, MS2DeepSc
 cluster the features and optionally write a Newick tree for visualization in tools like iTOL.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 tree <- FeatureDendrogram(mmo, distance = "dreams", features = NULL, method = "average",
                           save_output = TRUE, outprefix = "dreams_tree")
 \dontshow{\}) # examplesIf}

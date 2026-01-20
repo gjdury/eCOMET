@@ -23,7 +23,7 @@ This function calculates the null model of cumulative richness by randomizing sa
 It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 null_richness <- CalculateNullCumulativeRichness(mmo, n_boot = 1000, n_groups = 5, ci = 0.95)
 \dontshow{\}) # examplesIf}
 }

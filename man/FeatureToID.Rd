@@ -18,7 +18,7 @@ A vector of feature IDs corresponding to the input feature names
 This function converts feature names to their corresponding IDs in the mmo object.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 feature_ids <- FeatureToID(mmo, feature_names = c("100.0_5.0", "150.0_10.0"))
 feature_ids <- FeatureToID(mmo, feature_names = mmo$feature_data$feature[1:10])
 feature_ids <- FeatureToID(mmo,

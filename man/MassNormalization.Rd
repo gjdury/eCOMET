@@ -17,7 +17,7 @@ This function normalizes the peak area in the feature data of the mmo object by 
 The feature data is replaced by (original value * mean mass) / sample mass.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 mmo <- MassNormalization(mmo)
 \dontshow{\}) # examplesIf}
 }

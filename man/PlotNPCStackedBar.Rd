@@ -35,7 +35,7 @@ It uses the mmo object with sirius annotation and normalized data.
 Make sure you don't run ReplaceZero() before using this function, as it may remove presence/absence information.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 PlotNPCStackedBar(
  mmo, group_col = 'treatment',
  outdir = 'NPC_stacked_bar.png', width = 6, height = 3

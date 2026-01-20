@@ -23,7 +23,7 @@ This function reads cosine, DREAMS, and MS2DeepScore molecular networking output
 then transform the similarity to distance and adds the dissimilarity matrices to the mmo object.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 mmo <- AddChemDist(mmo,
  cos_dir = "path/to/cosine_similarity.csv",
  dreams_dir = "path/to/dreams_similarity.csv",

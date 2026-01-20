@@ -37,7 +37,7 @@ This function generates a Non-metric Multidimensional Scaling (NMDS) plot based 
 It also performs PERMANOVA analysis to assess the significance of group differences and saves the results to CSV files.
 }
 \examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
+\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
 # Use method = 'bray' or 'jaccard' if you want to use just feature abundance
