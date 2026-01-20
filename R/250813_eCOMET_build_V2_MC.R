@@ -355,6 +355,63 @@ ReplaceZero <- function(mmo, method = "one") {
   message(sprintf("Missing values were filled with %s", method))
   mmo
 }
+#' Convert feature abundances to presence / absence
+#'
+#' This function converts the feature abundance matrix in an mmo object
+#' into a binary presence/absence matrix and stores it as a new component
+#' of the mmo object (mmo$feature_presence).
+#'
+#' A feature is considered present (1) if its abundance is greater than
+#' a specified threshold, and absent (0) otherwise.
+#'
+#' This function does NOT overwrite mmo$feature_data.
+#'
+#' @param mmo The mmo object
+#' @param threshold Numeric threshold for presence (default = 1).
+#'   Values > threshold are set to 1, values <= threshold or NA are set to 0.
+#'
+#' @return The mmo object with a new presence/absence table
+#'   stored in mmo$feature_presence
+#'
+#' @export
+#'
+#' @examplesIf FALSE
+#' mmo <- FeaturePresence(mmo, threshold = 1)
+FeaturePresence <- function(mmo, threshold = 1) {
+
+  df <- mmo$feature_data
+
+  # assume first two columns are id and feature
+  id_feat <- df[, 1:2]
+  num_df  <- df[, -(1:2), drop = FALSE]
+
+  # force numeric matrix
+  num_mat <- as.matrix(sapply(num_df, as.numeric))
+
+  # convert to presence / absence
+  pa_mat <- ifelse(num_mat > threshold, 1, 0)
+
+  # rebuild data.frame
+  pa_df <- as.data.frame(pa_mat, stringsAsFactors = FALSE)
+  names(pa_df) <- names(num_df)
+
+  df_out <- cbind(id_feat, pa_df)
+
+  # store as new slot
+  mmo$feature_presence <- df_out
+
+  message(
+    sprintf(
+      "Feature presence/absence matrix created using threshold > %s",
+      threshold
+    )
+  )
+
+  return(mmo)
+}
+
+
+
 #' Use sample mass in the metadata file to normalize the peak area
 #'
 #' This function normalizes the peak area in the feature data of the mmo object by the mass of each sample, provided in the metadata.
@@ -3440,3 +3497,115 @@ print.mmo <- function(x, ...) {
 
   invisible(x)
 }
+
+#' HCplot
+#'
+#' Hierarchical clustering of samples from a precomputed beta-diversity matrix
+#' and plotting as a phylogram with tip labels colored by species (or any grouping column).
+#'
+#' This function is intended for visualization (no cluster significance is implied).
+#'
+#' @param mmo The mmo object containing metadata in mmo$metadata
+#' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity()
+#' @param outdir Output prefix for files (e.g., "output/HC"). If save_output=TRUE a PDF is saved.
+#' @param group_col Metadata column name used to color tips (default: "Species_binomial")
+#' @param sample_col Metadata column name containing sample IDs (default: "sample")
+#' @param hclust_method hclust linkage method (default: "average"; alternatives: "complete","ward.D2")
+#' @param palette Qualitative palette name for colorspace::qualitative_hcl (default: "Dark 3")
+#' @param cex Tip label size (default: 0.6)
+#' @param width PDF width (default: 10)
+#' @param height PDF height (default: 7)
+#' @param save_output Whether to save the plot to PDF (default: TRUE)
+#' @return A list containing: hc (hclust), phy (phylo), tip_df (mapping), colors (named palette)
+#' @export
+#' @examplesIf FALSE
+#' bet <- GetBetaDiversity(mmo, method='bray', normalization='Log', distance='dreams', filter_feature=FALSE)
+#' HCplot(mmo, betadiv = bet, outdir = "output/HC_dreams_bray")
+HCplot <- function(
+    mmo,
+    betadiv,
+    outdir,
+    group_col = "Species_binomial",
+    sample_col = "sample",
+    hclust_method = "average",
+    palette = "Dark 3",
+    cex = 0.6,
+    width = 10,
+    height = 7,
+    save_output = TRUE
+){
+  .require_pkg("ape")
+  .require_pkg("colorspace")
+
+  metadata <- mmo$metadata
+  if (is.null(metadata) || !is.data.frame(metadata))
+    stop("mmo$metadata must be a data.frame.")
+
+  if (!sample_col %in% names(metadata))
+    stop("metadata is missing sample_col = '", sample_col, "'")
+  if (!group_col %in% names(metadata))
+    stop("metadata is missing group_col = '", group_col, "'")
+
+  # Ensure betadiv has labels
+  if (is.null(rownames(betadiv)) || is.null(colnames(betadiv)))
+    stop("betadiv must have rownames and colnames equal to sample IDs.")
+
+  # Convert to dist and hclust
+  d <- as.dist(betadiv)
+  hc <- stats::hclust(d, method = hclust_method)
+
+  # Convert to phylo
+  tr <- ape::as.phylo(hc)
+
+  tip_ids <- tr$tip.label
+  md_ids  <- as.character(metadata[[sample_col]])
+  grp_map <- metadata[[group_col]]
+  grp_vec <- grp_map[match(tip_ids, md_ids)]
+
+  if (anyNA(grp_vec)) {
+    bad <- tip_ids[is.na(grp_vec)]
+    stop(
+      "Group labels missing for some tree tips (ID mismatch between betadiv labels and metadata$",
+      sample_col, "). Example missing IDs:\n",
+      paste(head(bad, 25), collapse = "\n")
+    )
+  }
+  grp_vec <- as.character(grp_vec)
+
+  # Build palette
+  grp_levels <- sort(unique(grp_vec))
+  grp_cols <- setNames(colorspace::qualitative_hcl(length(grp_levels), palette = palette), grp_levels)
+  tip_cols <- unname(grp_cols[grp_vec])
+
+  tip_df <- data.frame(
+    tip = tip_ids,
+    group = grp_vec,
+    color = tip_cols,
+    stringsAsFactors = FALSE
+  )
+
+  # Plot
+  main_title <- paste0("Hierarchical clustering (", hclust_method, ")")
+
+  if (save_output) grDevices::pdf(paste0(outdir, "_HC.pdf"), width = width, height = height)
+  op <- par(no.readonly = TRUE)
+  on.exit({
+    par(op)
+    if (save_output) grDevices::dev.off()
+  }, add = TRUE)
+
+  par(mar = c(2, 2, 2, 12))  # wide right margin for labels
+  plot(tr, type = "phylogram", cex = cex, tip.color = tip_cols, main = main_title)
+
+  legend(
+    "topleft",
+    legend = grp_levels,
+    col = unname(grp_cols[grp_levels]),
+    pch = 15,
+    cex = 0.6,
+    bty = "n"
+  )
+
+  return(list(hc = hc, phy = tr, tip_df = tip_df, colors = grp_cols))
+}
+
