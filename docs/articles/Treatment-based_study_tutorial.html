@@ -84,30 +84,46 @@
 <strong>eCOMET</strong> package for analyzing metabolomics data from a
 treatment-based study.</p>
 <ul>
-<li>Treatment-based studies involve comparing metabolite profiles
-between different treatment groups (e.g., control vs treated).</li>
-<li>The tutorial covers data preprocessing, normalization, statistical
-analysis, and visualization techniques commonly used in treatment-based
-metabolomics studies.</li>
-<li>The tutorial files are metabolomics analysis files of
+<li><p>Treatment-based studies involve comparing metabolite profiles
+between different treatment groups (e.g., control vs treated).</p></li>
+<li><p>The tutorial covers data preprocessing, normalization,
+statistical analysis, and visualization techniques commonly used in
+treatment-based metabolomics studies.</p></li>
+<li><p>The tutorial files are metabolomics analysis files of
 <em>Arabidopsis thaliana</em> (Col-0) attacked by two different
 herbivores (<em>Spodoptera litura</em>; sl, and <em>Lipaphis
-erysimi</em>; le).</li>
-<li>Eight replicates were sampled and analyzed for each group. See
-metadata.csv for more details.</li>
-<li>Make sure you downloaded the tutorial files from <a href="">here</a>
-and set the working directory to the downloaded folder.</li>
+erysimi</em>; le).</p></li>
+<li><p>Eight replicates were sampled and analyzed for each group. See
+metadata.csv for more details.</p></li>
+<li>
+<p><strong>Tutorial data</strong></p>
+<p>eCOMET is distributed with a small set of example data files that are
+installed automatically with the package. These files are included
+specifically so that the tutorials can be run immediately, without
+downloading additional data or setting file paths by hand.</p>
+<p>The example datasets represent simplified versions of the feature
+tables, metadata, and annotation outputs used in a typical eCOMET
+analysis workflow. They are meant for demonstration and testing, not as
+complete research datasets.</p>
+</li>
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
+<span><span class="co"># Locate tutorial data shipped with the eCOMET package</span></span>
+<span><span class="va">data_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span></span>
+<span>  <span class="st">"extdata/tutorials/treatment_based"</span>,</span>
+<span>  package <span class="op">=</span> <span class="st">"ecomet"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="va">data_dir</span><span class="op">)</span><span class="op">)</span>  <span class="co"># fail loudly if package/data not installed</span></span>
 <span></span>
-<span><span class="va">demo_feature</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_1_treatment_based/raw_data/feature_table_demo.csv"</span><span class="op">)</span></span>
-<span><span class="va">demo_metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_1_treatment_based/raw_data/metadata_demo.csv"</span><span class="op">)</span></span>
-<span><span class="va">demo_sirius_formula</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_1_treatment_based/raw_data/canopus_formula_summary.tsv"</span><span class="op">)</span></span>
-<span><span class="va">demo_sirius_structure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_1_treatment_based/raw_data/structure_identifications.tsv"</span><span class="op">)</span></span>
-<span><span class="va">demo_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_1_treatment_based/raw_data/dreams_sim_demo.csv"</span><span class="op">)</span></span>
-<span><span class="va">gls_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_1_treatment_based/raw_data/custom_DB_glucosinolates.csv"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># Define file paths</span></span>
+<span><span class="va">demo_feature</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"feature_table_demo.csv"</span><span class="op">)</span></span>
+<span><span class="va">demo_metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"metadata_demo.csv"</span><span class="op">)</span></span>
+<span><span class="va">demo_sirius_formula</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"canopus_formula_summary.tsv"</span><span class="op">)</span></span>
+<span><span class="va">demo_sirius_structure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"structure_identifications.tsv"</span><span class="op">)</span></span>
+<span><span class="va">demo_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"dreams_sim_demo.csv"</span><span class="op">)</span></span>
+<span><span class="va">gls_db</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"custom_DB_glucosinolates.csv"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="create-an-mmo-object">1. Create an <code>mmo</code> object<a class="anchor" aria-label="anchor" href="#create-an-mmo-object"></a>

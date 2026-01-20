@@ -26,28 +26,47 @@ for analyzing metabolomics data from a treatment-based study.
 
 - Treatment-based studies involve comparing metabolite profiles between
   different treatment groups (e.g., control vs treated).
+
 - The tutorial covers data preprocessing, normalization, statistical
   analysis, and visualization techniques commonly used in
   treatment-based metabolomics studies.
+
 - The tutorial files are metabolomics analysis files of *Arabidopsis
   thaliana* (Col-0) attacked by two different herbivores (*Spodoptera
   litura*; sl, and *Lipaphis erysimi*; le).
+
 - Eight replicates were sampled and analyzed for each group. See
   metadata.csv for more details.
-- Make sure you downloaded the tutorial files from
-  [here](https://phytoecia.github.io/eCOMET/articles/) and set the
-  working directory to the downloaded folder.
+
+- **Tutorial data**
+
+  eCOMET is distributed with a small set of example data files that are
+  installed automatically with the package. These files are included
+  specifically so that the tutorials can be run immediately, without
+  downloading additional data or setting file paths by hand.
+
+  The example datasets represent simplified versions of the feature
+  tables, metadata, and annotation outputs used in a typical eCOMET
+  analysis workflow. They are meant for demonstration and testing, not
+  as complete research datasets.
 
 ``` r
 
+# Locate tutorial data shipped with the eCOMET package
+data_dir <- system.file(
+  "extdata/tutorials/treatment_based",
+  package = "ecomet"
+)
 
+stopifnot(nzchar(data_dir))  # fail loudly if package/data not installed
 
-demo_feature <- here("tutorial/tutorial_1_treatment_based/raw_data/feature_table_demo.csv")
-demo_metadata <- here("tutorial/tutorial_1_treatment_based/raw_data/metadata_demo.csv")
-demo_sirius_formula <- here("tutorial/tutorial_1_treatment_based/raw_data/canopus_formula_summary.tsv")
-demo_sirius_structure <- here("tutorial/tutorial_1_treatment_based/raw_data/structure_identifications.tsv")
-demo_dreams <- here("tutorial/tutorial_1_treatment_based/raw_data/dreams_sim_demo.csv")
-gls_db <- here("tutorial/tutorial_1_treatment_based/raw_data/custom_DB_glucosinolates.csv")
+# Define file paths
+demo_feature <- file.path(data_dir, "feature_table_demo.csv")
+demo_metadata <- file.path(data_dir, "metadata_demo.csv")
+demo_sirius_formula <- file.path(data_dir, "canopus_formula_summary.tsv")
+demo_sirius_structure <- file.path(data_dir, "structure_identifications.tsv")
+demo_dreams <- file.path(data_dir, "dreams_sim_demo.csv")
+gls_db <- file.path(data_dir, "custom_DB_glucosinolates.csv")
 ```
 
 ## 1. Create an `mmo` object
