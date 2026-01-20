@@ -15,7 +15,9 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-# pak::pak("phytoecia/eCOMET")
+#install.packages("pak")
+pak::pkg_install("Phytoecia/eCOMET", dependencies = TRUE)
+#pak::pkg_install("Phytoecia/eCOMET", dependencies = TRUE, upgrade = TRUE)
 library(ecomet)
 library(dplyr)
 library(stringr)
