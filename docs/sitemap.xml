@@ -28,6 +28,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/FeatureDendrogram.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/FeaturePerformanceRegression.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/FeaturePhenotypeCorrelation.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/FeaturePresence.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/FeatureToID.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GenerateHeatmapInputs.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.html</loc></url>
@@ -45,6 +46,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetPerformanceFeatureRegression.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetRichness.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetSpecializationIndex.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/HCplot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/IDToFeature.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/LoadMMO.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/LogNormalization.html</loc></url>

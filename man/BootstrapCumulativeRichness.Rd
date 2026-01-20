@@ -23,7 +23,7 @@ This function bootstraps the cumulative richness of features across groups in th
 It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 groups <- c("Control", "Treatment1", "Treatment2")
 bootstrapped_richness <- BootstrapCumulativeRichness(mmo, groups, n_boot = 1000, ci = 0.95)
 \dontshow{\}) # examplesIf}

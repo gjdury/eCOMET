@@ -18,7 +18,7 @@ The distance matrix corresponding to the specified distance metric
 This function retrieves the distance matrix from the mmo object based on the specified distance metric.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 distance_matrix <- GetDistanceMat(mmo, distance = 'dreams')
 \dontshow{\}) # examplesIf}
 }

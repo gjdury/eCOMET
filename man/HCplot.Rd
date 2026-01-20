@@ -52,7 +52,7 @@ and plotting as a phylogram with tip labels colored by species (or any grouping 
 This function is intended for visualization (no cluster significance is implied).
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 bet <- GetBetaDiversity(mmo, method='bray', normalization='Log', distance='dreams', filter_feature=FALSE)
 HCplot(mmo, betadiv = bet, outdir = "output/HC_dreams_bray")
 \dontshow{\}) # examplesIf}

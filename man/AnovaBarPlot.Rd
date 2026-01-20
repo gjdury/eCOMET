@@ -42,7 +42,7 @@ A list containing the bar plot and the ANOVA results
 This function generates bar plots for a specified feature across different groups in the metadata, performing ANOVA and Tukey's HSD test for post-hoc analysis.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 AnovaBarPlot(mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z')
 AnovaBarPlot(
  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z',

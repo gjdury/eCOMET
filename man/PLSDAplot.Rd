@@ -47,7 +47,7 @@ and \code{loadings} (loadings for PLSDA).
 PLS-DA plot with feature loadings
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 PLSDAplot(
  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z',

@@ -35,6 +35,7 @@ reference:
       - ReplaceZero
       - ReorderGroups
       - SwitchGroup
+      - FeaturePresence
 
   - title: "Basic statistics and visualization"
     contents:
@@ -47,6 +48,7 @@ reference:
       - GetDAMs
       - GetGroupMeans
       - GetLog2FoldChange
+      - HCplot
 
   - title: "Chemical class analysis"
     contents:
@@ -74,7 +76,6 @@ reference:
       - CalcNormalizedAUC
       - CalculateCumulativeRichness
       - CalculateNullCumulativeRichness
-      - FeatureDendrogram
 
   - title: Metadata regression analysis
     contents:
@@ -109,7 +110,7 @@ articles:
     contents:
       - Intro
       - Treatment-based_study_tutorial
-      - Interspecific_study_tutorial      
+
 news:
   one_page: true
 

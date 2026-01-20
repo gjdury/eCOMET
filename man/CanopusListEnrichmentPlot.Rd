@@ -40,7 +40,7 @@ This function generates a plot for enrichment analysis of Canopus-predicted term
 showing fold enrichment, p-value, and subset count for each term level.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 CanopusListEnrichmentPlot(
  mmo, feature_list = DAMs_up$control_vs_treatment1.up,
  pthr = 0.05, outdir = 'canopus_enrichment_plot.pdf',

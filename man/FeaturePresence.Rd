@@ -28,7 +28,7 @@ a specified threshold, and absent (0) otherwise.
 This function does NOT overwrite mmo$feature_data.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- FeaturePresence(mmo, threshold = 1)
 \dontshow{\}) # examplesIf}
 }

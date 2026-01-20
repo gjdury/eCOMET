@@ -21,7 +21,7 @@ This function reads SIRIUS structure identification and formula summary files,
 and adds the annotations to the mmo object.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- AddSiriusAnnot(mmo,
  canopus_structuredir = "path/to/structure_identification.tsv",
  canopus_formuladir = "path/to/canopus_formula_summary.tsv"

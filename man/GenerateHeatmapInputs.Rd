@@ -49,7 +49,7 @@ This function generates heatmap inputs from the mmo object, including fold chang
 distance matrix, and row labels for custom-annotated features.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 # Generate heatmap inputs to visualize fold change values with log normalization and dreams distance
 heatmap_inputs <- GenerateHeatmapInputs(
  mmo, summarize = 'fold_change', control_group = 'Control',

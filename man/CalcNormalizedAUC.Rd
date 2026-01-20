@@ -17,7 +17,7 @@ This function calculates the normalized area under the curve (AUC) for a cumulat
 The normalized AUC is computed by dividing the AUC by the maximum possible area, which is the product of the maximum group index and maximum cumulative richness.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 curve <- CalculateCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
 norm_auc <- CalcNormalizedAUC(curve)
 \dontshow{\}) # examplesIf}

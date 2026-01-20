@@ -23,7 +23,7 @@ Match features to a custom DB by m/z (ppm) and RT (minutes) tolerances and
 attach a list-column of candidate compound IDs per feature.
 }
 \examples{
-\dontshow{if (FALSE) (if (getRversion() >= "3.4") withAutoprint else force)(\{ # examplesIf}
+\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 mmo <- AddCustomAnnot(mmo, DB_file = "path/to/custom_db.csv", mztol = 5, rttol = 0.5)
 \dontshow{\}) # examplesIf}
 }
