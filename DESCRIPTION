@@ -48,7 +48,12 @@ Imports:
 Suggests:
     testthat (>= 3.0.0),
     knitr,
-    rmarkdown
+    rmarkdown,
+    here,
+    ggvenn,
+    pls,
+    pheatmap,
+    stringr
 Remotes:
     pmartinezarbizu/pairwiseAdonis/pairwiseAdonis
 URL: https://phytoecia.github.io/eCOMET/

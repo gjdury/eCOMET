@@ -30,7 +30,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Tutorials</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -227,14 +227,14 @@ DAMs between different comparisons.</p>
 <span><span class="co"># Venn diagram</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://yanlinlin82.github.io/ggvenn/" class="external-link">ggvenn</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://yanlinlin82.github.io/ggvenn/" class="external-link">ggvenn</a></span><span class="op">)</span></span>
-<span><span class="fu">ggvenn</span><span class="op">(</span><span class="va">VennInput</span>, stroke_size <span class="op">=</span> <span class="fl">0.5</span>, set_name_size <span class="op">=</span> <span class="fl">4</span>, show_percentage <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">theme</span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> </span>
-<span><span class="fu">ggsave</span><span class="op">(</span><span class="st">"plot/Venn_Upreg.pdf"</span>, height <span class="op">=</span> <span class="fl">5</span>, width <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://yanlinlin82.github.io/ggvenn/reference/ggvenn.html" class="external-link">ggvenn</a></span><span class="op">(</span><span class="va">VennInput</span>, stroke_size <span class="op">=</span> <span class="fl">0.5</span>, set_name_size <span class="op">=</span> <span class="fl">4</span>, show_percentage <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> </span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"plot/Venn_Upreg.pdf"</span>, height <span class="op">=</span> <span class="fl">5</span>, width <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co"># UpSet plot</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="http://github.com/hms-dbmi/UpSetR" class="external-link">UpSetR</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/hms-dbmi/UpSetR" class="external-link">UpSetR</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Upset_Upreg.pdf"</span>, <span class="fl">7</span>, <span class="fl">5</span><span class="op">)</span></span>
-<span><span class="fu">upset</span><span class="op">(</span><span class="fu">fromList</span><span class="op">(</span><span class="va">VennInput</span><span class="op">)</span>, nsets<span class="op">=</span><span class="fl">10</span>, nintersects<span class="op">=</span><span class="fl">20</span>,order.by<span class="op">=</span><span class="st">'freq'</span>, mainbar.y.label<span class="op">=</span><span class="st">'Features in Set'</span>, line.size<span class="op">=</span><span class="fl">1</span>, point.size<span class="op">=</span><span class="fl">4</span>, shade.color<span class="op">=</span><span class="st">'white'</span>, text.scale<span class="op">=</span><span class="fl">1</span>, show.numbers<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/UpSetR/man/upset.html" class="external-link">upset</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/UpSetR/man/fromList.html" class="external-link">fromList</a></span><span class="op">(</span><span class="va">VennInput</span><span class="op">)</span>, nsets<span class="op">=</span><span class="fl">10</span>, nintersects<span class="op">=</span><span class="fl">20</span>,order.by<span class="op">=</span><span class="st">'freq'</span>, mainbar.y.label<span class="op">=</span><span class="st">'Features in Set'</span>, line.size<span class="op">=</span><span class="fl">1</span>, point.size<span class="op">=</span><span class="fl">4</span>, shade.color<span class="op">=</span><span class="st">'white'</span>, text.scale<span class="op">=</span><span class="fl">1</span>, show.numbers<span class="op">=</span><span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -271,7 +271,7 @@ features.</li>
 <span><span class="co"># The resulting list contains FC_matrix, dist_matrix, row_label, and heatmap_data</span></span>
 <span><span class="co"># A heatmap can be generated using pheatmap</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Heatmap_FC_dreams.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu">pheatmap</span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
 <span>     clustering_distance_rows <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">dist_matrix</span>,  </span>
 <span>     clustering_method <span class="op">=</span> <span class="st">"average"</span>, </span>
 <span>     cellwidth <span class="op">=</span> <span class="fl">100</span>,</span>
@@ -290,7 +290,7 @@ features.</li>
 <span><span class="co"># 'clustering_distance_rows' option make the dendrogram follows chemical distances of features. </span></span>
 <span><span class="co">#  -Delete this option to visualize the heatmap following cannonical clustering</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Heatmap_Mean_Z_clustering.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu">pheatmap</span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
 <span>     <span class="co">#clustering_distance_rows = heatmap_inputs$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering </span></span>
 <span>     clustering_method <span class="op">=</span> <span class="st">"average"</span>, <span class="co">#UPGMA</span></span>
 <span>     cellwidth <span class="op">=</span> <span class="fl">100</span>,</span>
@@ -311,7 +311,7 @@ features.</li>
 <span>  filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">GLSs</span></span>
 <span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/Heatmap_Mean_Z_GLS.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu">pheatmap</span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs_GLS</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/pheatmap/man/pheatmap.html" class="external-link">pheatmap</a></span><span class="op">(</span>mat <span class="op">=</span> <span class="va">heatmap_inputs_GLS</span><span class="op">$</span><span class="va">FC_matrix</span>, </span>
 <span>     <span class="co">#clustering_distance_rows = heatmap_inputs_GLS$dist_matrix,  # Delete this option to visualize the heatmap following cannonical clustering </span></span>
 <span>     clustering_method <span class="op">=</span> <span class="st">"average"</span>, <span class="co">#UPGMA</span></span>
 <span>     cellwidth <span class="op">=</span> <span class="fl">100</span>,</span>

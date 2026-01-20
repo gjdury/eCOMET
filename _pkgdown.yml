@@ -10,7 +10,7 @@ navbar:
     left:
       - home
       - reference
-      - articles
+      - tutorials
       - news
     right:
       - github
@@ -19,6 +19,10 @@ navbar:
     github:
       icon: fab fa-github
       href: https://github.com/Phytoecia/eCOMET
+    tutorials:
+      text: Tutorials
+      href: articles/index.html
+
 
 reference:
   - title: "Core dataset processing"
