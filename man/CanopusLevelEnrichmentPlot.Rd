@@ -57,7 +57,7 @@ comp.list <- list(
 )
 CanopusLevelEnrichmentPlot(
  mmo, comp.list = comp.list, term_level = 'NPC_pathway',
- pthr = 0.1, representation = 'greater', prefix = 'enrichment_plot',
+ pthr = 0.1, representation = 'greater', outdir = 'enrichment_plot',
  height = 5, width = 5
 )
 \dontshow{\}) # examplesIf}
