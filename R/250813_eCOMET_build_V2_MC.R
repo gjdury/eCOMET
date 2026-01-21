@@ -218,6 +218,237 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
   return(mmo)
 }
 
+#' Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold
+#'
+#' Applies a minimum-probability cutoff to selected CANOPUS (NPClassifier / ClassyFire)
+#' annotation levels inside an ecomet \code{mmo} object. The function reads
+#' \code{mmo$sirius_annot}, flags annotations below \code{threshold} by setting them to \code{NA},
+#' and stores the result as a new element on \code{mmo} named
+#' \code{"sirius_annot_filtered_<suffix>"} (e.g., \code{mmo$sirius_annot_filtered_NPC_pathway_0.9}).
+#'
+#' Rows are never dropped. "Removing" an annotation means setting the annotation value (and optionally
+#' its probability column) to \code{NA}.
+#'
+#' For each annotation column (e.g., \code{"NPC#pathway"}), the function looks for an
+#' associated probability column using common SIRIUS export naming:
+#' \itemize{
+#'   \item \code{"<header> Probability"}
+#'   \item \code{"<header> probability"}
+#'   \item \code{"<header>Probability"}
+#' }
+#'
+#' @param mmo An ecomet mmo object containing \code{mmo$sirius_annot} (a data.frame).
+#'
+#' @param pathway_level Character vector of one or more annotation header(s) to filter.
+#'   Valid options include:
+#'   \itemize{
+#'     \item \code{"All"}
+#'     \item \code{"All_NPC"}
+#'     \item \code{"All_ClassyFire"}
+#'     \item \code{"NPC#pathway"}
+#'     \item \code{"NPC#superclass"}
+#'     \item \code{"NPC#class"}
+#'     \item \code{"ClassyFire#superclass"}
+#'     \item \code{"ClassyFire#class"}
+#'     \item \code{"ClassyFire#subclass"}
+#'     \item \code{"ClassyFire#level 5"}
+#'     \item \code{"ClassyFire#most specific class"}
+#'   }
+#'   Special values:
+#'   \itemize{
+#'     \item \code{"All"} expands to all NPC + ClassyFire levels listed above.
+#'     \item \code{"All_NPC"} expands to NPC levels only.
+#'     \item \code{"All_ClassyFire"} expands to ClassyFire levels only.
+#'   }
+#'
+#' @param threshold Numeric in [0, 1]. Annotations with probability < threshold are flagged to \code{NA}.
+#'
+#' @param na_prob Logical. If \code{TRUE} (default), also set the corresponding probability
+#'   value to \code{NA} when an annotation is flagged to \code{NA}.
+#'
+#' @param suffix Optional character string appended to the created element name:
+#'   \code{"sirius_annot_filtered_<suffix>"}. If \code{NULL} (default), a suffix is auto-generated
+#'   like \code{"NPC_pathway_0.90"}.
+#'
+#' @param overwrite Logical. If \code{FALSE} (default) and the target element already exists on \code{mmo},
+#'   the function errors to avoid accidental overwrites.
+#'
+#' @param verbose Logical. If \code{TRUE}, prints a concise summary including counts of
+#'   non-missing annotations before and after filtering.
+#'
+#' @return The updated \code{mmo} object, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
+#'
+#' @examples
+#' \dontrun{
+#' mmo <- filter_canopus_annotations(mmo, "NPC#pathway", threshold = 0.9,
+#'                                  suffix = "NPC_pathway_0.9", verbose = TRUE)
+#' # result stored at:
+#' # mmo$sirius_annot_filtered_NPC_pathway_0.9
+#' }
+#'
+#' @export
+filter_canopus_annotations <- function(
+    mmo,
+    pathway_level = "NPC#pathway",
+    threshold = 0.9,
+    na_prob = TRUE,
+    suffix = NULL,
+    overwrite = FALSE,
+    verbose = TRUE
+) {
+  # Basic checks
+  if (is.null(mmo) || !is.list(mmo)) {
+    stop("`mmo` must be a list-like ecomet object.", call. = FALSE)
+  }
+  if (!("sirius_annot" %in% names(mmo)) || !is.data.frame(mmo$sirius_annot)) {
+    stop("`mmo$sirius_annot` must exist and be a data.frame.", call. = FALSE)
+  }
+  if (!is.numeric(threshold) || length(threshold) != 1L || is.na(threshold) ||
+      threshold < 0 || threshold > 1) {
+    stop("`threshold` must be a single numeric value in [0, 1].", call. = FALSE)
+  }
+
+  df <- mmo$sirius_annot
+
+  # Allowed levels and expansions
+  npc_levels <- c("NPC#pathway", "NPC#superclass", "NPC#class")
+  cf_levels  <- c("ClassyFire#superclass", "ClassyFire#class", "ClassyFire#subclass",
+                  "ClassyFire#level 5", "ClassyFire#most specific class")
+  all_levels <- c(npc_levels, cf_levels)
+  allowed <- c("All", "All_NPC", "All_ClassyFire", all_levels)
+
+  if (is.list(pathway_level)) pathway_level <- unlist(pathway_level, use.names = FALSE)
+  pathway_level <- as.character(pathway_level)
+
+  # Expand selectors
+  if (any(pathway_level %in% "All")) {
+    pathway_level <- unique(c(setdiff(pathway_level, "All"), all_levels))
+  }
+  if (any(pathway_level %in% "All_NPC")) {
+    pathway_level <- unique(c(setdiff(pathway_level, "All_NPC"), npc_levels))
+  }
+  if (any(pathway_level %in% "All_ClassyFire")) {
+    pathway_level <- unique(c(setdiff(pathway_level, "All_ClassyFire"), cf_levels))
+  }
+
+  bad <- setdiff(pathway_level, allowed)
+  if (length(bad) > 0) {
+    stop("Unknown `pathway_level` value(s): ", paste0(bad, collapse = ", "), call. = FALSE)
+  }
+
+  # Helper: find probability column variants for a given header
+  find_prob_col <- function(df, header) {
+    candidates <- c(
+      paste0(header, " Probability"),
+      paste0(header, " probability"),
+      paste0(header, "Probability")
+    )
+    hit <- candidates[candidates %in% names(df)]
+    if (length(hit) == 0) return(NA_character_)
+    hit[[1]]
+  }
+
+  # Only operate on headers that exist as annotation columns
+  present_headers <- pathway_level[pathway_level %in% names(df)]
+  if (length(present_headers) == 0) {
+    stop(
+      "None of the requested `pathway_level` columns were found in `mmo$sirius_annot`.\n",
+      "Requested: ", paste(pathway_level, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  # Pair each header with a probability column; skip levels without prob col
+  prob_cols <- vapply(present_headers, function(h) find_prob_col(df, h), character(1))
+  no_prob <- present_headers[is.na(prob_cols)]
+  if (length(no_prob) > 0) {
+    warning(
+      "Probability column not found for: ",
+      paste0(no_prob, collapse = ", "),
+      "\nExpected e.g. '<header> Probability'. These levels will be skipped.",
+      call. = FALSE
+    )
+    keep_idx <- !is.na(prob_cols)
+    present_headers <- present_headers[keep_idx]
+    prob_cols <- prob_cols[keep_idx]
+  }
+  if (length(present_headers) == 0) {
+    stop("No usable (header + probability) pairs were found for filtering.", call. = FALSE)
+  }
+
+  # Auto suffix if not provided (sanitize for safe-ish $ access)
+  if (is.null(suffix) || is.na(suffix) || !nzchar(suffix)) {
+    base <- pathway_level[[1]]
+    base <- gsub("#", "_", base, fixed = TRUE)
+    base <- gsub("[^A-Za-z0-9_\\.]+", "_", base)
+    thr  <- formatC(threshold, format = "f", digits = 2)
+    suffix <- paste0(base, "_", thr)
+  }
+
+  target_name <- paste0("sirius_annot_filtered_", suffix)
+  if (!overwrite && (target_name %in% names(mmo))) {
+    stop(
+      "An element named '", target_name, "' already exists on `mmo`.\n",
+      "Set `overwrite = TRUE` or choose a different `suffix`.",
+      call. = FALSE
+    )
+  }
+
+  # Count non-missing annotations BEFORE (across all selected levels)
+  # "non-missing" = not NA and not empty string
+  count_nonmissing <- function(vec) {
+    v <- vec
+    if (!is.character(v)) v <- as.character(v)
+    sum(!is.na(v) & nzchar(v))
+  }
+  before_count <- sum(vapply(present_headers, function(h) count_nonmissing(df[[h]]), integer(1)))
+
+  # Filter: set annotations (and optionally probs) to NA where prob < threshold OR missing prob
+  out <- df
+
+  removed_total <- 0L
+  for (j in seq_along(present_headers)) {
+    h <- present_headers[[j]]
+    pcol <- prob_cols[[j]]
+
+    p <- suppressWarnings(as.numeric(out[[pcol]]))
+    ann <- out[[h]]
+    ann_chr <- if (is.character(ann)) ann else as.character(ann)
+
+    # failing if:
+    # - annotation is missing/blank OR
+    # - probability is missing OR
+    # - probability < threshold
+    failing <- is.na(ann_chr) | !nzchar(ann_chr) | is.na(p) | (p < threshold)
+
+    # Count how many *existing* annotations we are removing at this level
+    was_present <- !is.na(ann_chr) & nzchar(ann_chr)
+    removed_here <- sum(was_present & failing)
+    removed_total <- removed_total + removed_here
+
+    out[[h]][failing] <- NA
+    if (isTRUE(na_prob)) out[[pcol]][failing] <- NA
+  }
+
+  # Count non-missing annotations AFTER (across all selected levels)
+  after_count <- sum(vapply(present_headers, function(h) count_nonmissing(out[[h]]), integer(1)))
+
+  mmo[[target_name]] <- out
+
+  if (verbose) {
+    message(
+      "filter_canopus_annotations(): stored as mmo[['", target_name, "']]\n",
+      "Levels filtered: ", paste(present_headers, collapse = ", "), "\n",
+      "Threshold (kept >=): ", threshold, "\n",
+      "Non-missing annotations (before -> after): ", before_count, " -> ", after_count, "\n",
+      "Removed annotations below threshold: ", removed_total
+    )
+  }
+
+  mmo
+}
+
+
 #' Add custom annotations to an mmo object
 #'
 #' @description
