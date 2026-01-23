@@ -10,161 +10,397 @@ if (!exists(".require_pkg", mode = "function")) {
     }
   }
 }
-#' Import mzmine feature data and metadata to create a mmo object
+#' #' Import mzmine feature data and metadata to create a mmo object
+#' #' @description
+#' #' This function reads mzmine feature data and metadata from specified directories,
+#' #' to initiate a mmo object containing feature data and metadata
+#' #'
+#' #' Import mzmine feature data and metadata to create a mmo object
+#' #'
+#' #' @param mzmine_dir Path to the mzmine feature data CSV file
+#' #' @param metadata_dir Path to the metadata CSV file (must include sample_col and group_col)
+#' #' @param group_col Column name in the metadata file used for grouping samples together i.e into treatments or species.
+#' #' @param sample_col Column in metadata file used to identify and match individual samples
+#' #' @param mz_col Optional m/z column name (defaults to "mz" or "row m/z")
+#' #' @param rt_col Optional RT column name (defaults to "rt" or "row retention time")
+#' #' @return A mmo object containing the feature data and metadata
+#' #' @export
+#' GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
+#'                              mz_col = NULL, rt_col = NULL) {
+#'   mmo <- list()
+#'   data <- read.csv(mzmine_dir, check.names = F,stringsAsFactors = FALSE, na.strings = c("", "NA"))
+#'
+#'   metadata <- read.csv(metadata_dir, check.names = F)
+#'
+#'   if (missing(group_col) || !(group_col %in% names(metadata)))
+#'     stop("group_col must be provided and exist in the metadata file.")
+#'   if (missing(sample_col) || !(sample_col %in% names(metadata)))
+#'     stop("sample_col must be provided and exist in the metadata file.")
+#'
+#'   # --- detect mz / rt (or use overrides) ---
+#'   if (is.null(mz_col))
+#'     mz_col <- if ("mz" %in% names(data)) "mz" else if ("row m/z" %in% names(data)) "row m/z" else stop("No m/z column found.")
+#'   if (is.null(rt_col))
+#'     rt_col <- if ("rt" %in% names(data)) "rt" else if ("row retention time" %in% names(data)) "row retention time" else stop("No RT column found.")
+#'
+#'   # --- feature column ---
+#'   data <- data |> dplyr::mutate(feature = paste(.data[[mz_col]], .data[[rt_col]], sep = "_"))
+#'
+#'   # --- area columns from EXACT metadata filenames ---
+#'   samples <- trimws(metadata[[sample_col]])                     # e.g., "I1_C1_1.mzML"
+#'   samples_core <- sub("\\.(mzML|mzXML|raw)$", "", samples, ignore.case = TRUE)
+#'
+#'   #might need to move this outside the function...
+#'   find_area_columns <- function(data, samples_core, max_distance = 5) {
+#'     colnames_all <- names(data)
+#'     # 1) Core sample names: drop .mzML / .mzXML (case-insensitive)
+#'
+#'     # 2) Restrict candidate columns to those that contain "area" (if requested)
+#'     area_idx <- grepl("area", colnames_all, ignore.case = TRUE)
+#'     if (!any(area_idx)) {
+#'       stop("No columns in `data` contain the word 'area' (case-insensitive).")
+#'       }
+#'       candidates <- colnames_all[area_idx]
+#'
+#'     # 3) For each sample_core, pick the best fuzzy match among candidates
+#'       strip_wrappers <- function(x) {
+#'         x <- sub("^datafile[:.]", "", x)                               # datafile: or datafile.
+#'         x <- sub("(?i)( Peak area|:area|\\.area)$", "", x, perl = TRUE) # ' Peak area', ':area', '.area'
+#'         x <- sub("(?i)\\.(mzml|mzxml|raw)$", "", x, perl = TRUE)           # trailing .mzML/.mzXML if present
+#'         x
+#'       }
+#'       cand_core <- strip_wrappers(candidates)
+#'
+#'       # 4) Fuzzy distances: one big matrix, not a for-loop
+#'       #    rows = samples_core, cols = cand_core
+#'       D <- adist(samples_core, cand_core, ignore.case = TRUE)
+#'
+#'       best_idx <- apply(D, 1L, which.min)
+#'       best_d   <- D[cbind(seq_along(samples_core), best_idx)]
+#'
+#'       # 5) Enforce a max edit distance to avoid insane matches
+#'       if (any(!is.finite(best_d) | best_d > max_distance)) {
+#'         bad <- samples[!is.finite(best_d) | best_d > max_distance]
+#'         stop(
+#'           "No suitable fuzzy match (within max_distance = ", max_distance,
+#'           ") for these samples: ", paste(bad, collapse = ", ")
+#'         )
+#'       }
+#'
+#'       #remove blank samples from metadata columns
+#'       #provide either a list of sample names or a suffix to remove them....
+#'
+#'       area_cols <- candidates[best_idx]
+#'
+#'       # 6) Sanity checks: 1–1 mapping and length match
+#'       if (any(duplicated(area_cols))) {
+#'         dup <- unique(area_cols[duplicated(area_cols)])
+#'         stop(
+#'           "Multiple samples matched the same area column(s): ",
+#'           paste(dup, collapse = ", ")
+#'         )
+#'       }
+#'
+#'       if (length(area_cols) != length(samples_core)) {
+#'         stop(
+#'           "Length mismatch: length(samples) = ", length(samples_core),
+#'           " but matched ", length(area_cols), " area columns."
+#'         )
+#'       }
+#'       return(area_cols)
+#'       }
+#'
+#'   area_columns <- find_area_columns(data, samples_core, max_distance = 5)
+#'   if (length(area_columns) == 0)
+#'       stop("No area columns matched the EXACT names from metadata[[sample_col]].")
+#'
+#'   #make sure areas are treated numerically
+#'   data[area_columns] <- lapply(data[area_columns], function(x) as.numeric(gsub(",", "", x)))
+#'
+#'   # --- build feature_df (keep your original layout) ---
+#'   if (!("id" %in% names(data))) {"Stop no feature id column iddentified in the mzmine output"}
+#'   #if (!("id" %in% names(data))) data$id <- seq_len(nrow(data))  # minimal safety
+#'   feature_df <- data |>
+#'     dplyr::select(id, feature, all_of(area_columns)) |>
+#'     dplyr::rename_with(~ samples_core, .cols = all_of(area_columns))
+#'   feature_df$id <- gsub(" ", "", feature_df$id)
+#'
+#'   # --- finalize metadata and output ---
+#'   metadata$sample <- samples_core
+#'   metadata$sample_full_exact <- samples
+#'   mmo$feature_data <- feature_df
+#'   mmo$metadata <- metadata
+#'   mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id)
+#'   mmo$metadata$group <- as.factor(mmo$metadata[[group_col]])
+#'
+#'   class(mmo) <- "mmo"
+#'   print("MMO object created.")
+#'   print(paste0("Feature number: ", nrow(mmo$feature_data)))
+#'   print(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
+#'   return(mmo)
+#' }
+#'
+#' #' Add feature_info to an existing mmo from a full_feature CSV
+#' #'
+#' #' @param mmo An existing mmo list (will be returned with $feature_info added)
+#' #' @param full_feature_csv Path to the MZmine full feature table (CSV)
+#' #' @return The same mmo with mmo$feature_info set
+#' #' @export
+#' AddFeatureInfo <- function(mmo, full_feature_csv) {
+#'   required <- c(
+#'     "id","rt","rt_range:min","rt_range:max","mz","mz_range:min","mz_range:max",
+#'     "feature_group","ion_identities:iin_id","ion_identities:ion_identities"
+#'   )
+#'
+#'   ff <- read.csv(full_feature_csv, check.names = FALSE, stringsAsFactors = FALSE)
+#'
+#'   missing <- setdiff(required, names(ff))
+#'   if (length(missing)) {
+#'     stop("Missing required columns in full_feature_csv: ",
+#'          paste(missing, collapse = ", "))
+#'   }
+#'
+#'   # Keep only the required columns, in order
+#'   mmo$feature_info <- ff[required]
+#'   rownames(mmo$feature_info) <- NULL
+#'   return(mmo)
+#' }
+#'
+
+
+#' Import MZmine feature table and metadata to create a mmo object
 #' @description
-#' This function reads mzmine feature data and metadata from specified directories,
-#' to initiate a mmo object containing feature data and metadata
+#' Reads an MZmine exported feature table (typically the full feature table) and a sample metadata table
+#' to initialize an mmo object containing:
+#' \itemize{
+#'   \item \code{mmo$feature_data}: feature-by-sample abundance matrix (peak areas)
+#'   \item \code{mmo$feature_info}: feature-level annotations (e.g., mz, rt, ranges, IDs)
+#'   \item \code{mmo$metadata}: sample metadata with standardized \code{sample} and \code{group} columns
+#' }
+#' Sample columns in the MZmine table are matched to metadata using fuzzy string matching on area column names.
 #'
-#' Import mzmine feature data and metadata to create a mmo object
-#'
-#' @param mzmine_dir Path to the mzmine feature data CSV file
+#' @param mzmine_dir Path to the MZmine feature table CSV (should include feature-level columns and per-sample area columns)
 #' @param metadata_dir Path to the metadata CSV file (must include sample_col and group_col)
-#' @param group_col Column name in the metadata file used for grouping samples together i.e into treatments or species.
-#' @param sample_col Column in metadata file used to identify and match individual samples
-#' @param mz_col Optional m/z column name (defaults to "mz" or "row m/z")
-#' @param rt_col Optional RT column name (defaults to "rt" or "row retention time")
-#' @return A mmo object containing the feature data and metadata
+#' @param group_col Column name in metadata used for grouping samples (e.g., treatment/species)
+#' @param sample_col Column name in metadata used to identify and match samples to MZmine area columns
+#' @param drop_missing_samples Logical. If FALSE (default), error when metadata samples are missing from
+#' the MZmine table area columns. If TRUE, drop those samples from metadata (with a warning) and continue.
+#' @param mz_col Optional m/z column name in the MZmine table (defaults to "mz" or "row m/z")
+#' @param rt_col Optional RT column name in the MZmine table (defaults to "rt" or "row retention time")
+#' @param max_distance Maximum edit distance used when fuzzy-matching metadata sample names to MZmine
+#' area column names (default 5). Lower this for stricter matching.
+#' @param feature_info_cols Character vector of feature-level columns to retain in \code{mmo$feature_info}.
+#' Columns not present in the MZmine table are skipped with a warning.
+#' @return A mmo object
 #' @export
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
-                             mz_col = NULL, rt_col = NULL) {
+                             drop_missing_samples = FALSE,
+                             mz_col = NULL, rt_col = NULL,
+                             max_distance = 5,
+                             feature_info_cols = c(
+                               "id",
+                               "rt", "rt_range:min", "rt_range:max",
+                               "mz", "mz_range:min", "mz_range:max",
+                               "feature_group",
+                               "ion_identities:iin_id",
+                               "ion_identities:ion_identities"
+                             )) {
+
   mmo <- list()
-  data <- read.csv(mzmine_dir, check.names = F,stringsAsFactors = FALSE, na.strings = c("", "NA"))
 
-  metadata <- read.csv(metadata_dir, check.names = F)
+  # MZmine table (feature-level columns + per-sample area columns)
+  data <- read.csv(
+    mzmine_dir,
+    check.names = FALSE,
+    stringsAsFactors = FALSE,
+    na.strings = c("", "NA")
+  )
 
-  if (missing(group_col) || !(group_col %in% names(metadata)))
-    stop("group_col must be provided and exist in the metadata file.")
-  if (missing(sample_col) || !(sample_col %in% names(metadata)))
-    stop("sample_col must be provided and exist in the metadata file.")
+  metadata <- read.csv(
+    metadata_dir,
+    check.names = FALSE,
+    stringsAsFactors = FALSE,
+    na.strings = c("", "NA")
+  )
+
+  if (missing(group_col) || !(group_col %in% names(metadata))) {
+    stop("group_col must be provided and exist in the metadata file.", call. = FALSE)
+  }
+  if (missing(sample_col) || !(sample_col %in% names(metadata))) {
+    stop("sample_col must be provided and exist in the metadata file.", call. = FALSE)
+  }
 
   # --- detect mz / rt (or use overrides) ---
-  if (is.null(mz_col))
-    mz_col <- if ("mz" %in% names(data)) "mz" else if ("row m/z" %in% names(data)) "row m/z" else stop("No m/z column found.")
-  if (is.null(rt_col))
-    rt_col <- if ("rt" %in% names(data)) "rt" else if ("row retention time" %in% names(data)) "row retention time" else stop("No RT column found.")
+  if (is.null(mz_col)) {
+    mz_col <- if ("mz" %in% names(data)) "mz"
+    else if ("row m/z" %in% names(data)) "row m/z"
+    else stop("No m/z column found (expected 'mz' or 'row m/z', or provide mz_col).", call. = FALSE)
+  }
+  if (is.null(rt_col)) {
+    rt_col <- if ("rt" %in% names(data)) "rt"
+    else if ("row retention time" %in% names(data)) "row retention time"
+    else stop("No RT column found (expected 'rt' or 'row retention time', or provide rt_col).", call. = FALSE)
+  }
 
-  # --- feature column ---
-  data <- data |> dplyr::mutate(feature = paste(.data[[mz_col]], .data[[rt_col]], sep = "_"))
+  # --- stable feature key ---
+  data <- data |>
+    dplyr::mutate(feature = paste(.data[[mz_col]], .data[[rt_col]], sep = "_"))
 
-  # --- area columns from EXACT metadata filenames ---
-  samples <- trimws(metadata[[sample_col]])                     # e.g., "I1_C1_1.mzML"
+  # --- sample names from metadata ---
+  samples <- trimws(as.character(metadata[[sample_col]]))
   samples_core <- sub("\\.(mzML|mzXML|raw)$", "", samples, ignore.case = TRUE)
 
-  #might need to move this outside the function...
-  find_area_columns <- function(data, samples_core, max_distance = 5) {
+  # Helper: fuzzy-match MZmine "area" columns to metadata sample names
+  find_area_columns <- function(data, samples_core, samples_full, max_distance = 5) {
     colnames_all <- names(data)
-    # 1) Core sample names: drop .mzML / .mzXML (case-insensitive)
 
-    # 2) Restrict candidate columns to those that contain "area" (if requested)
     area_idx <- grepl("area", colnames_all, ignore.case = TRUE)
     if (!any(area_idx)) {
-      stop("No columns in `data` contain the word 'area' (case-insensitive).")
-      }
-      candidates <- colnames_all[area_idx]
+      stop("No columns in the MZmine table contain the word 'area' (case-insensitive).", call. = FALSE)
+    }
+    candidates <- colnames_all[area_idx]
 
-    # 3) For each sample_core, pick the best fuzzy match among candidates
-      strip_wrappers <- function(x) {
-        x <- sub("^datafile[:.]", "", x)                               # datafile: or datafile.
-        x <- sub("(?i)( Peak area|:area|\\.area)$", "", x, perl = TRUE) # ' Peak area', ':area', '.area'
-        x <- sub("(?i)\\.(mzml|mzxml|raw)$", "", x, perl = TRUE)           # trailing .mzML/.mzXML if present
-        x
-      }
-      cand_core <- strip_wrappers(candidates)
+    strip_wrappers <- function(x) {
+      x <- sub("^datafile[:.]", "", x)                                        # datafile: or datafile.
+      x <- sub("(?i)( Peak area|:area|\\.area)$", "", x, perl = TRUE)         # suffix variants
+      x <- sub("(?i)\\.(mzml|mzxml|raw)$", "", x, perl = TRUE)                # trailing extensions
+      x
+    }
+    cand_core <- strip_wrappers(candidates)
 
-      # 4) Fuzzy distances: one big matrix, not a for-loop
-      #    rows = samples_core, cols = cand_core
-      D <- adist(samples_core, cand_core, ignore.case = TRUE)
+    D <- adist(samples_core, cand_core, ignore.case = TRUE)
+    best_idx <- apply(D, 1L, which.min)
+    best_d   <- D[cbind(seq_along(samples_core), best_idx)]
+    keep <- is.finite(best_d) & best_d <= max_distance
 
-      best_idx <- apply(D, 1L, which.min)
-      best_d   <- D[cbind(seq_along(samples_core), best_idx)]
+    list(
+      area_cols = candidates[best_idx[keep]],
+      keep_idx = keep,
+      missing_full = samples_full[!keep]
+    )
+  }
 
-      # 5) Enforce a max edit distance to avoid insane matches
-      if (any(!is.finite(best_d) | best_d > max_distance)) {
-        bad <- samples[!is.finite(best_d) | best_d > max_distance]
-        stop(
-          "No suitable fuzzy match (within max_distance = ", max_distance,
-          ") for these samples: ", paste(bad, collapse = ", ")
-        )
-      }
+  match_res <- find_area_columns(
+    data = data,
+    samples_core = samples_core,
+    samples_full = samples,
+    max_distance = max_distance
+  )
 
-      #remove blank samples from metadata columns
-      #provide either a list of sample names or a suffix to remove them....
+  missing_samples_full <- match_res$missing_full
+  keep_idx <- match_res$keep_idx
+  area_columns <- match_res$area_cols
 
-      area_cols <- candidates[best_idx]
+  if (length(area_columns) == 0) {
+    stop(
+      "No area columns matched any samples from metadata within max_distance.\n",
+      "Check that you supplied an MZmine feature table containing per-sample area columns and that sample names correspond to metadata.",
+      call. = FALSE
+    )
+  }
 
-      # 6) Sanity checks: 1–1 mapping and length match
-      if (any(duplicated(area_cols))) {
-        dup <- unique(area_cols[duplicated(area_cols)])
-        stop(
-          "Multiple samples matched the same area column(s): ",
-          paste(dup, collapse = ", ")
-        )
-      }
+  if (any(duplicated(area_columns))) {
+    dup <- unique(area_columns[duplicated(area_columns)])
+    stop(
+      "Multiple samples matched the same area column(s): ",
+      paste(dup, collapse = ", "),
+      ". Consider renaming columns or lowering max_distance.",
+      call. = FALSE
+    )
+  }
 
-      if (length(area_cols) != length(samples_core)) {
-        stop(
-          "Length mismatch: length(samples) = ", length(samples_core),
-          " but matched ", length(area_cols), " area columns."
-        )
-      }
-      return(area_cols)
-      }
+  # --- handle missing samples (default ERROR with guidance; optional drop) ---
+  if (length(missing_samples_full) > 0) {
 
-  area_columns <- find_area_columns(data, samples_core, max_distance = 5)
-  if (length(area_columns) == 0)
-      stop("No area columns matched the EXACT names from metadata[[sample_col]].")
+    msg <- paste0(
+      "Metadata contains ", length(missing_samples_full),
+      " sample(s) that do not have matching 'area' columns in the MZmine table:\n",
+      paste(missing_samples_full, collapse = ", "),
+      "\n\nThis can occur if MZmine removed columns during processing (e.g., blank subtraction removing all features).\n\n",
+      "To proceed anyway and drop these samples from metadata, re-run with `drop_missing_samples = TRUE`."
+    )
 
-  #make sure areas are treated numerically
-  data[area_columns] <- lapply(data[area_columns], function(x) as.numeric(gsub(",", "", x)))
+    if (!isTRUE(drop_missing_samples)) {
+      stop(msg, call. = FALSE)
+    } else {
+      warning(paste0(msg, "\n\nProceeding because `drop_missing_samples = TRUE`."), call. = FALSE)
+    }
+  }
 
-  # --- build feature_df (keep your original layout) ---
-  if (!("id" %in% names(data))) {"Stop no feature id column iddentified in the mzmine output"}
-  #if (!("id" %in% names(data))) data$id <- seq_len(nrow(data))  # minimal safety
+  # Enforce alignment (either no missing, or user allowed dropping)
+  metadata <- metadata[keep_idx, , drop = FALSE]
+  samples <- samples[keep_idx]
+  samples_core <- samples_core[keep_idx]
+
+  # --- coerce area columns to numeric (remove commas) ---
+  data[area_columns] <- lapply(
+    data[area_columns],
+    function(x) as.numeric(gsub(",", "", x))
+  )
+
+  # --- build feature abundance table (mmo$feature_data) ---
+  if (!("id" %in% names(data))) {
+    stop("No feature id column identified in the MZmine table (expected column 'id').", call. = FALSE)
+  }
+
   feature_df <- data |>
-    dplyr::select(id, feature, all_of(area_columns)) |>
-    dplyr::rename_with(~ samples_core, .cols = all_of(area_columns))
-  feature_df$id <- gsub(" ", "", feature_df$id)
+    dplyr::select(id, feature, dplyr::all_of(area_columns)) |>
+    dplyr::rename_with(~ samples_core, .cols = dplyr::all_of(area_columns))
+
+  feature_df$id <- gsub(" ", "", as.character(feature_df$id))
+
+  # --- build feature info table (mmo$feature_info) ---
+  # minimum required to be a useful feature_info
+  required_min <- c("id", mz_col, rt_col)
+  missing_min <- setdiff(required_min, names(data))
+  if (length(missing_min) > 0) {
+    stop(
+      "The MZmine table is missing required feature-level columns: ",
+      paste(missing_min, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  # user-requested columns, but allow them to be absent (warn + skip)
+  present_info <- intersect(feature_info_cols, names(data))
+  absent_info  <- setdiff(feature_info_cols, names(data))
+  if (length(absent_info) > 0) {
+    warning(
+      "Some requested feature_info columns were not present in the MZmine table and were skipped: ",
+      paste(absent_info, collapse = ", "),
+      call. = FALSE
+    )
+  }
+
+  # Ensure key columns exist and are included
+  present_info <- unique(c(present_info, "id", "feature"))
+
+  feature_info <- data[, present_info, drop = FALSE]
+  feature_info$id <- gsub(" ", "", as.character(feature_info$id))
+
+  # Enforce column order: id, feature, then the rest
+  col_order <- c("id", "feature", setdiff(names(feature_info), c("id", "feature")))
+  feature_info <- feature_info[, col_order, drop = FALSE]
+  rownames(feature_info) <- NULL
 
   # --- finalize metadata and output ---
   metadata$sample <- samples_core
   metadata$sample_full_exact <- samples
+  metadata$group <- as.factor(metadata[[group_col]])
+
   mmo$feature_data <- feature_df
+  mmo$feature_info <- feature_info
   mmo$metadata <- metadata
-  mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id)
-  mmo$metadata$group <- as.factor(mmo$metadata[[group_col]])
 
   class(mmo) <- "mmo"
-  print("MMO object created.")
-  print(paste0("Feature number: ", nrow(mmo$feature_data)))
-  print(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
+
+  message("MMO object created.")
+  message(paste0("Feature number: ", nrow(mmo$feature_data)))
+  message(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
+
   return(mmo)
 }
 
-#' Add feature_info to an existing mmo from a full_feature CSV
-#'
-#' @param mmo An existing mmo list (will be returned with $feature_info added)
-#' @param full_feature_csv Path to the MZmine full feature table (CSV)
-#' @return The same mmo with mmo$feature_info set
-#' @export
-AddFeatureInfo <- function(mmo, full_feature_csv) {
-  required <- c(
-    "id","rt","rt_range:min","rt_range:max","mz","mz_range:min","mz_range:max",
-    "feature_group","ion_identities:iin_id","ion_identities:ion_identities"
-  )
-
-  ff <- read.csv(full_feature_csv, check.names = FALSE, stringsAsFactors = FALSE)
-
-  missing <- setdiff(required, names(ff))
-  if (length(missing)) {
-    stop("Missing required columns in full_feature_csv: ",
-         paste(missing, collapse = ", "))
-  }
-
-  # Keep only the required columns, in order
-  mmo$feature_info <- ff[required]
-  rownames(mmo$feature_info) <- NULL
-  return(mmo)
-}
 
 
 
