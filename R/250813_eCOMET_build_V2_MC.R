@@ -430,7 +430,7 @@ filter_canopus_annotations <- function(
     removed_total <- removed_total + removed_here
 
     out[[h]][failing] <- NA
-    if (isTRUE(na_prob)) out[[pcol]][failing] <- NA
+    if (isTRUE(na_prob)) out[[pcol]][failing] <- NA_real_
   }
 
   # Count non-missing annotations AFTER (across all selected levels)
@@ -487,7 +487,7 @@ filter_canopus_annotations <- function(
 #' @examples
 #' \dontrun{
 #' mmo <- filter_cosmic_structure(mmo, input = "sirius_annot",
-#'                               cosmic_mode = "exact", threshold = 0.5,
+#'                               cosmic_mode = "approx", threshold = 0.5,
 #'                               suffix = "COSMIC_exact_0.5", verbose = TRUE)
 #' }
 #'
@@ -596,7 +596,7 @@ filter_cosmic_structure <- function(
       out[[col]][failing] <- NA
     }
     if (isTRUE(na_cosmic)) {
-      out[[cosmic_col]][failing] <- NA
+      out[[cosmic_col]][failing] <- NA_real_
     }
   }
 
