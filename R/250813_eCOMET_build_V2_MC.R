@@ -87,6 +87,9 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
         )
       }
 
+      #remove blank samples from metadata columns
+      #provide either a list of sample names or a suffix to remove them....
+
       area_cols <- candidates[best_idx]
 
       # 6) Sanity checks: 1–1 mapping and length match
@@ -202,6 +205,7 @@ SwitchGroup <- function(mmo, new_group_col) {
 #'  canopus_structuredir = "path/to/structure_identification.tsv",
 #'  canopus_formuladir = "path/to/canopus_formula_summary.tsv"
 #' )
+#'
 AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
   structure_identifications <- readr::read_tsv(canopus_structuredir, show_col_types = FALSE)
   structure_identifications$mappingFeatureId <- gsub(" ", "", structure_identifications$mappingFeatureId)
@@ -221,13 +225,13 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
 #' Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold
 #'
 #' Applies a minimum-probability cutoff to selected CANOPUS (NPClassifier / ClassyFire)
-#' annotation levels inside an ecomet \code{mmo} object. The function reads
-#' \code{mmo$sirius_annot}, flags annotations below \code{threshold} by setting them to \code{NA},
-#' and stores the result as a new element on \code{mmo} named
-#' \code{"sirius_annot_filtered_<suffix>"} (e.g., \code{mmo$sirius_annot_filtered_NPC_pathway_0.9}).
+#' annotation levels inside an ecomet \code{mmo} object. The function reads a chosen
+#' annotation table from \code{mmo[[input]]} (default \code{"sirius_annot"}), flags
+#' annotations below \code{threshold} by setting them to \code{NA}, and stores the result
+#' as a new element on \code{mmo} named \code{"sirius_annot_filtered_<suffix>"}.
 #'
-#' Rows are never dropped. "Removing" an annotation means setting the annotation value (and optionally
-#' its probability column) to \code{NA}.
+#' Rows are never dropped. "Removing" an annotation means setting the annotation value
+#' (and optionally its probability column) to \code{NA}.
 #'
 #' For each annotation column (e.g., \code{"NPC#pathway"}), the function looks for an
 #' associated probability column using common SIRIUS export naming:
@@ -237,7 +241,8 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
 #'   \item \code{"<header>Probability"}
 #' }
 #'
-#' @param mmo An ecomet mmo object containing \code{mmo$sirius_annot} (a data.frame).
+#' @param mmo An ecomet mmo object containing \code{mmo[[input]]} (a data.frame).
+#' @param input Character. Name of the element on \code{mmo} to filter. Defaults to \code{"sirius_annot"}.
 #'
 #' @param pathway_level Character vector of one or more annotation header(s) to filter.
 #'   Valid options include:
@@ -262,13 +267,10 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
 #'   }
 #'
 #' @param threshold Numeric in [0, 1]. Annotations with probability < threshold are flagged to \code{NA}.
-#'
-#' @param na_prob Logical. If \code{TRUE} (default), also set the corresponding probability
-#'   value to \code{NA} when an annotation is flagged to \code{NA}.
+#' @param na_prob Logical. If \code{TRUE} (default), also set the corresponding probability value to \code{NA}.
 #'
 #' @param suffix Optional character string appended to the created element name:
-#'   \code{"sirius_annot_filtered_<suffix>"}. If \code{NULL} (default), a suffix is auto-generated
-#'   like \code{"NPC_pathway_0.90"}.
+#'   \code{"sirius_annot_filtered_<suffix>"}. If \code{NULL} (default), a suffix is auto-generated.
 #'
 #' @param overwrite Logical. If \code{FALSE} (default) and the target element already exists on \code{mmo},
 #'   the function errors to avoid accidental overwrites.
@@ -280,15 +282,19 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
 #'
 #' @examples
 #' \dontrun{
-#' mmo <- filter_canopus_annotations(mmo, "NPC#pathway", threshold = 0.9,
+#' mmo <- filter_canopus_annotations(mmo, input = "sirius_annot",
+#'                                  pathway_level = "NPC#pathway", threshold = 0.9,
 #'                                  suffix = "NPC_pathway_0.9", verbose = TRUE)
-#' # result stored at:
-#' # mmo$sirius_annot_filtered_NPC_pathway_0.9
+#'
+#' mmo <- filter_canopus_annotations(mmo, input = "sirius_annot_filtered_NPC_pathway_0.9",
+#'                                  pathway_level = "All_NPC", threshold = 0.95,
+#'                                  suffix = "All_NPC_0.95", verbose = TRUE)
 #' }
 #'
 #' @export
 filter_canopus_annotations <- function(
     mmo,
+    input = "sirius_annot",
     pathway_level = "NPC#pathway",
     threshold = 0.9,
     na_prob = TRUE,
@@ -300,15 +306,18 @@ filter_canopus_annotations <- function(
   if (is.null(mmo) || !is.list(mmo)) {
     stop("`mmo` must be a list-like ecomet object.", call. = FALSE)
   }
-  if (!("sirius_annot" %in% names(mmo)) || !is.data.frame(mmo$sirius_annot)) {
-    stop("`mmo$sirius_annot` must exist and be a data.frame.", call. = FALSE)
+  if (!is.character(input) || length(input) != 1L || is.na(input) || !nzchar(input)) {
+    stop("`input` must be a single, non-empty character string.", call. = FALSE)
+  }
+  if (!(input %in% names(mmo)) || !is.data.frame(mmo[[input]])) {
+    stop("`mmo[['", input, "']]` must exist and be a data.frame.", call. = FALSE)
   }
   if (!is.numeric(threshold) || length(threshold) != 1L || is.na(threshold) ||
       threshold < 0 || threshold > 1) {
     stop("`threshold` must be a single numeric value in [0, 1].", call. = FALSE)
   }
 
-  df <- mmo$sirius_annot
+  df <- mmo[[input]]
 
   # Allowed levels and expansions
   npc_levels <- c("NPC#pathway", "NPC#superclass", "NPC#class")
@@ -352,7 +361,7 @@ filter_canopus_annotations <- function(
   present_headers <- pathway_level[pathway_level %in% names(df)]
   if (length(present_headers) == 0) {
     stop(
-      "None of the requested `pathway_level` columns were found in `mmo$sirius_annot`.\n",
+      "None of the requested `pathway_level` columns were found in `mmo[['", input, "']]`.\n",
       "Requested: ", paste(pathway_level, collapse = ", "),
       call. = FALSE
     )
@@ -395,7 +404,6 @@ filter_canopus_annotations <- function(
   }
 
   # Count non-missing annotations BEFORE (across all selected levels)
-  # "non-missing" = not NA and not empty string
   count_nonmissing <- function(vec) {
     v <- vec
     if (!is.character(v)) v <- as.character(v)
@@ -415,13 +423,8 @@ filter_canopus_annotations <- function(
     ann <- out[[h]]
     ann_chr <- if (is.character(ann)) ann else as.character(ann)
 
-    # failing if:
-    # - annotation is missing/blank OR
-    # - probability is missing OR
-    # - probability < threshold
     failing <- is.na(ann_chr) | !nzchar(ann_chr) | is.na(p) | (p < threshold)
 
-    # Count how many *existing* annotations we are removing at this level
     was_present <- !is.na(ann_chr) & nzchar(ann_chr)
     removed_here <- sum(was_present & failing)
     removed_total <- removed_total + removed_here
@@ -438,6 +441,7 @@ filter_canopus_annotations <- function(
   if (verbose) {
     message(
       "filter_canopus_annotations(): stored as mmo[['", target_name, "']]\n",
+      "Input: mmo[['", input, "']]\n",
       "Levels filtered: ", paste(present_headers, collapse = ", "), "\n",
       "Threshold (kept >=): ", threshold, "\n",
       "Non-missing annotations (before -> after): ", before_count, " -> ", after_count, "\n",
@@ -447,6 +451,191 @@ filter_canopus_annotations <- function(
 
   mmo
 }
+
+
+
+#' Filter SIRIUS structure (CSI:FingerID) annotations by COSMIC confidence score
+#'
+#' Applies a minimum COSMIC confidence cutoff to SIRIUS structure predictions inside an
+#' ecomet \code{mmo} object. The function reads a chosen annotation table from
+#' \code{mmo[[input]]} (default \code{"sirius_annot"}), flags structure annotations below
+#' \code{threshold} by setting selected structure-identification fields to \code{NA},
+#' and stores the result as a new element on \code{mmo} named
+#' \code{"sirius_annot_filtered_<suffix>"}.
+#'
+#' Rows are never dropped. "Removing" a structure means setting selected fields
+#' (e.g., SMILES/InChI/name/InChIkey2D) to \code{NA}.
+#'
+#' @param mmo An ecomet mmo object containing \code{mmo[[input]]} (a data.frame).
+#' @param input Character. Name of the element on \code{mmo} to filter. Defaults to \code{"sirius_annot"}.
+#'
+#' @param cosmic_mode Which COSMIC column to use. One of \code{"exact"} or \code{"approx"}.
+#' @param threshold Numeric. Keep structures with COSMIC >= threshold.
+#'
+#' @param fields Character vector of columns to NA-out when COSMIC < threshold.
+#'   If \code{"auto"} (default), uses a reasonable default set if present in the table.
+#'
+#' @param na_cosmic Logical. If \code{TRUE} (default), also set the COSMIC value to \code{NA}
+#'   when the structure is filtered out.
+#'
+#' @param suffix Optional character string appended to the created element name.
+#' @param overwrite Logical. If \code{FALSE} (default) and the target element already exists, error.
+#' @param verbose Logical. If \code{TRUE}, prints a concise summary.
+#'
+#' @return The updated \code{mmo} object, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
+#'
+#' @examples
+#' \dontrun{
+#' mmo <- filter_cosmic_structure(mmo, input = "sirius_annot",
+#'                               cosmic_mode = "exact", threshold = 0.5,
+#'                               suffix = "COSMIC_exact_0.5", verbose = TRUE)
+#' }
+#'
+#' @export
+filter_cosmic_structure <- function(
+    mmo,
+    input = "sirius_annot",
+    cosmic_mode = c("exact", "approx"),
+    threshold = 0.5,
+    fields = "auto",
+    na_cosmic = TRUE,
+    suffix = NULL,
+    overwrite = FALSE,
+    verbose = TRUE
+) {
+  # Basic checks
+  if (is.null(mmo) || !is.list(mmo)) {
+    stop("`mmo` must be a list-like ecomet object.", call. = FALSE)
+  }
+  if (!is.character(input) || length(input) != 1L || is.na(input) || !nzchar(input)) {
+    stop("`input` must be a single, non-empty character string.", call. = FALSE)
+  }
+  if (!(input %in% names(mmo)) || !is.data.frame(mmo[[input]])) {
+    stop("`mmo[['", input, "']]` must exist and be a data.frame.", call. = FALSE)
+  }
+  cosmic_mode <- match.arg(cosmic_mode)
+
+  if (!is.numeric(threshold) || length(threshold) != 1L || is.na(threshold)) {
+    stop("`threshold` must be a single non-missing numeric value.", call. = FALSE)
+  }
+
+  df <- mmo[[input]]
+
+  cosmic_col <- switch(
+    cosmic_mode,
+    exact  = "ConfidenceScoreExact",
+    approx = "ConfidenceScoreApproximate"
+  )
+
+  if (!(cosmic_col %in% names(df))) {
+    stop(
+      "COSMIC column '", cosmic_col, "' not found in `mmo[['", input, "']]`.",
+      call. = FALSE
+    )
+  }
+
+  # Determine fields to blank when failing
+  if (length(fields) == 1L && identical(fields, "auto")) {
+    candidate_fields <- c(
+      # core structure / identifiers often present in SIRIUS exports
+      "smiles", "InChI", "InChIkey2D", "name",
+      # database linkage / provenance
+      "links", "pubchemids", "dbflags",
+      # ranking/scoring columns (structure side)
+      "structurePerIdRank", "CSI:FingerIDScore",
+      # optional: formula/overall scores that are often carried along
+      "SiriusScore", "SiriusScoreNormalized",
+      # COSMIC columns (optionally NA'd below)
+      "ConfidenceScoreExact", "ConfidenceScoreApproximate"
+    )
+    fields_to_na <- intersect(candidate_fields, names(df))
+  } else {
+    fields <- as.character(fields)
+    fields_to_na <- intersect(fields, names(df))
+    if (length(fields_to_na) == 0) {
+      stop("None of the requested `fields` were found in `mmo[['", input, "']]`.", call. = FALSE)
+    }
+  }
+
+  # Helper: count "non-missing structure annotation" for reporting
+  count_nonmissing <- function(vec) {
+    v <- vec
+    if (!is.character(v)) v <- as.character(v)
+    sum(!is.na(v) & nzchar(v))
+  }
+
+  # Choose an indicator column for "structure exists" (best-effort)
+  indicator_col <- if ("smiles" %in% names(df)) {
+    "smiles"
+  } else if ("InChI" %in% names(df)) {
+    "InChI"
+  } else if ("name" %in% names(df)) {
+    "name"
+  } else {
+    cosmic_col
+  }
+
+  before_count <- count_nonmissing(df[[indicator_col]])
+
+  out <- df
+
+  # Parse COSMIC, handling character, NA, and +/-Inf
+  cosmic <- suppressWarnings(as.numeric(out[[cosmic_col]]))
+
+  ind <- out[[indicator_col]]
+  ind_chr <- if (is.character(ind)) ind else as.character(ind)
+  has_struct <- !is.na(ind_chr) & nzchar(ind_chr)
+
+  # Fail if structure present but COSMIC missing/non-finite/below threshold
+  failing <- has_struct & (is.na(cosmic) | !is.finite(cosmic) | (cosmic < threshold))
+
+  removed_total <- sum(failing, na.rm = TRUE)
+
+  if (removed_total > 0) {
+    for (col in fields_to_na) {
+      out[[col]][failing] <- NA
+    }
+    if (isTRUE(na_cosmic)) {
+      out[[cosmic_col]][failing] <- NA
+    }
+  }
+
+  after_count <- count_nonmissing(out[[indicator_col]])
+
+  # Auto suffix if not provided
+  if (is.null(suffix) || is.na(suffix) || !nzchar(suffix)) {
+    thr <- formatC(threshold, format = "f", digits = 2)
+    suffix <- paste0("COSMIC_", cosmic_mode, "_", thr)
+  }
+  suffix <- gsub("[^A-Za-z0-9_\\.]+", "_", suffix)
+
+  target_name <- paste0("sirius_annot_filtered_", suffix)
+  if (!overwrite && (target_name %in% names(mmo))) {
+    stop(
+      "An element named '", target_name, "' already exists on `mmo`.\n",
+      "Set `overwrite = TRUE` or choose a different `suffix`.",
+      call. = FALSE
+    )
+  }
+
+  mmo[[target_name]] <- out
+
+  if (verbose) {
+    message(
+      "filter_cosmic_structure(): stored as mmo[['", target_name, "']]\n",
+      "Input: mmo[['", input, "']]\n",
+      "COSMIC mode: ", cosmic_mode, " (column: ", cosmic_col, ")\n",
+      "Threshold (kept >=): ", threshold, "\n",
+      "Structure indicator column: ", indicator_col, "\n",
+      "Non-missing structures (before -> after): ", before_count, " -> ", after_count, "\n",
+      "Removed structures below threshold: ", removed_total, "\n",
+      "Fields NA'd: ", paste(fields_to_na, collapse = ", ")
+    )
+  }
+
+  mmo
+}
+
 
 
 #' Add custom annotations to an mmo object
