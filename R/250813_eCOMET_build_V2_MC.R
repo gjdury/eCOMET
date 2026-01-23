@@ -1252,6 +1252,417 @@ ReorderGroups <- function(mmo, group_order) {
   return(mmo)
 }
 
+#' Filter an MGF file to keep only spectra for features present in mmo$feature_data$id
+#'
+#' Create a new \code{.mgf} file that contains only spectra (ION blocks) whose
+#' \code{FEATURE_ID} occurs in \code{mmo$feature_data$id}. This is useful for keeping
+#' your spectral library in sync with the features currently stored in an \code{mmo}
+#' object (e.g., after subsetting, filtering, or rebuilding an \code{mmo}).
+#'
+#' Each spectrum in an MGF is represented by a \code{BEGIN IONS ... END IONS} block.
+#' This function keeps or discards entire blocks based on the integer value in the
+#' \code{FEATURE_ID=} header line. All blocks (MS1 and MS2) are kept for a retained
+#' feature, including multiple MS2 blocks if present.
+#'
+#' @param mmo An ecomet \code{mmo} object containing a required \code{feature_data}
+#'   table with an \code{id} column (\code{mmo$feature_data$id}).
+#'
+#' @param mgf_path Character. Path to the input \code{.mgf} file.
+#'
+#' @param output_path Character or NULL. Path to write the filtered \code{.mgf}.
+#'   If \code{NULL} (default), the output name is derived from \code{mgf_path} by
+#'   appending \code{_filtered} before the \code{.mgf} extension (or adding
+#'   \code{_filtered.mgf} if no extension is present).
+#'
+#' @param chunk_lines Integer. Number of lines read per iteration. Larger values are
+#'   typically faster but use more memory. Default is \code{100000L}.
+#'
+#' @param verbose Logical. If \code{TRUE} (default), prints a short progress summary
+#'   and final counts.
+#'
+#' @return Invisibly returns a list with:
+#' \itemize{
+#'   \item \code{output_path}: path to the filtered MGF
+#'   \item \code{blocks_total}: total \code{BEGIN IONS} blocks encountered
+#'   \item \code{blocks_kept}: number of blocks written to \code{output_path}
+#'   \item \code{lines_read}: total lines read from \code{mgf_path}
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' # Write "<input>_filtered.mgf" containing only FEATURE_IDs present in mmo$feature_data$id
+#' filter_mgf_to_mmo(mmo, "spectra.mgf")
+#'
+#' # Write to a custom file name
+#' filter_mgf_to_mmo(mmo, "spectra.mgf", output_path = "spectra_mmo_only.mgf")
+#' }
+#'
+#' @export
+filter_mgf_to_mmo <- function(
+    mmo,
+    mgf_path,
+    output_path = NULL,
+    chunk_lines = 100000L,
+    verbose = TRUE
+) {
+  # --- checks ---
+  if (is.null(mmo) || !is.list(mmo)) {
+    stop("`mmo` must be a list-like ecomet object.", call. = FALSE)
+  }
+  if (!("feature_data" %in% names(mmo)) || !is.data.frame(mmo$feature_data)) {
+    stop("`mmo$feature_data` must exist and be a data.frame.", call. = FALSE)
+  }
+  if (!("id" %in% names(mmo$feature_data))) {
+    stop("`mmo$feature_data$id` must exist.", call. = FALSE)
+  }
+  if (!is.character(mgf_path) || length(mgf_path) != 1L || !nzchar(mgf_path) || !file.exists(mgf_path)) {
+    stop("`mgf_path` must be an existing file path.", call. = FALSE)
+  }
+  if (!is.null(output_path)) {
+    if (!is.character(output_path) || length(output_path) != 1L || !nzchar(output_path)) {
+      stop("`output_path` must be NULL or a non-empty character string.", call. = FALSE)
+    }
+  } else {
+    if (grepl("\\.mgf$", mgf_path, ignore.case = TRUE)) {
+      output_path <- sub("\\.mgf$", "_filtered.mgf", mgf_path, ignore.case = TRUE)
+    } else {
+      output_path <- paste0(mgf_path, "_filtered.mgf")
+    }
+  }
+
+  # --- build ID lookup (fast membership checks) ---
+  ids <- mmo$feature_data$id
+  ids_num <- suppressWarnings(as.integer(as.character(ids)))
+  ids_num <- ids_num[!is.na(ids_num)]
+  if (length(ids_num) == 0) {
+    stop(
+      "No usable (integer) IDs found in `mmo$feature_data$id`.\n",
+      "MGF filtering expects FEATURE_ID-like integers.",
+      call. = FALSE
+    )
+  }
+  keep_ids <- unique(ids_num)
+
+  # Environment hash set for O(1) membership
+  keep_env <- new.env(parent = emptyenv(), hash = TRUE)
+  for (k in keep_ids) keep_env[[as.character(k)]] <- TRUE
+
+  # --- streaming filter ---
+  in_con  <- file(mgf_path, open = "r", encoding = "UTF-8")
+  on.exit(try(close(in_con), silent = TRUE), add = TRUE)
+  out_con <- file(output_path, open = "w", encoding = "UTF-8")
+  on.exit(try(close(out_con), silent = TRUE), add = TRUE)
+
+  begin_line <- "BEGIN IONS"
+  end_line   <- "END IONS"
+  key_prefix <- "FEATURE_ID="
+
+  inside_block <- FALSE
+  block_lines <- character(0)
+  decided_keep <- NA  # logical once FEATURE_ID parsed
+  blocks_total <- 0L
+  blocks_kept  <- 0L
+  lines_read_total <- 0L
+
+  parse_feature_id <- function(line) {
+    if (!startsWith(line, key_prefix)) return(NA_integer_)
+    val <- substr(line, nchar(key_prefix) + 1L, nchar(line))
+    suppressWarnings(as.integer(val))
+  }
+
+  if (verbose) {
+    message(
+      "filter_mgf_to_mmo():\n",
+      "- Input MGF:  ", mgf_path, "\n",
+      "- Output MGF: ", output_path, "\n",
+      "- Using IDs:  mmo$feature_data$id (n unique = ", length(keep_ids), ")\n",
+      "- Chunk lines: ", chunk_lines
+    )
+  }
+
+  repeat {
+    chunk <- readLines(in_con, n = chunk_lines, warn = FALSE)
+    if (length(chunk) == 0) break
+    lines_read_total <- lines_read_total + length(chunk)
+
+    for (line in chunk) {
+      if (!inside_block) {
+        if (identical(line, begin_line)) {
+          inside_block <- TRUE
+          block_lines <- line
+          decided_keep <- NA
+        }
+        next
+      }
+
+      block_lines <- c(block_lines, line)
+
+      if (is.na(decided_keep)) {
+        fid <- parse_feature_id(line)
+        if (!is.na(fid)) {
+          decided_keep <- isTRUE(keep_env[[as.character(fid)]])
+        }
+      }
+
+      if (identical(line, end_line)) {
+        blocks_total <- blocks_total + 1L
+
+        if (isTRUE(decided_keep)) {
+          writeLines(block_lines, out_con, sep = "\n")
+          blocks_kept <- blocks_kept + 1L
+        }
+
+        inside_block <- FALSE
+        block_lines <- character(0)
+        decided_keep <- NA
+      }
+    }
+
+    if (verbose && blocks_total > 0L && (blocks_total %% 5000L == 0L)) {
+      message("... processed blocks: ", blocks_total, " | kept: ", blocks_kept)
+    }
+  }
+
+  if (verbose) {
+    message(
+      "Done.\n",
+      "- Lines read:   ", format(lines_read_total, big.mark = ","), "\n",
+      "- Blocks total: ", format(blocks_total, big.mark = ","), "\n",
+      "- Blocks kept:  ", format(blocks_kept, big.mark = ","), "\n",
+      "- Kept fraction: ", if (blocks_total > 0) sprintf("%.3f", blocks_kept / blocks_total) else "NA"
+    )
+  }
+
+  invisible(list(
+    output_path = output_path,
+    blocks_total = blocks_total,
+    blocks_kept = blocks_kept,
+    lines_read = lines_read_total
+  ))
+}
+
+
+
+#' Annotate mmo$feature_info with MS2 presence and MS2 block counts from an MGF
+#'
+#' Scan an \code{.mgf} file and summarize MS/MS availability for each feature in
+#' \code{mmo$feature_info}. The function adds two columns:
+#' \itemize{
+#'   \item \code{ms2}: \code{TRUE} if the MGF contains at least one \code{MSLEVEL=2}
+#'         block for that \code{id}; otherwise \code{FALSE}.
+#'   \item \code{count_ms2}: number of \code{MSLEVEL=2} blocks for that \code{id}.
+#' }
+#'
+#' This is useful for quickly identifying which features have MS/MS spectra available
+#' (and how many replicate MS2 spectra exist) before downstream annotation, networking,
+#' or library-building steps.
+#'
+#' @param mmo An ecomet \code{mmo} object containing a required \code{feature_info}
+#'   table with an \code{id} column (\code{mmo$feature_info$id}).
+#'
+#' @param mgf_path Character. Path to the input \code{.mgf} file.
+#'
+#' @param chunk_lines Integer. Number of lines read per iteration. Larger values are
+#'   typically faster but use more memory. Default is \code{100000L}.
+#'
+#' @param overwrite Logical. If \code{FALSE} (default) and \code{ms2} and/or \code{count_ms2}
+#'   already exist in \code{mmo$feature_info}, the function errors. Set \code{overwrite = TRUE}
+#'   to replace existing columns.
+#'
+#' @param verbose Logical. If \code{TRUE} (default), prints a brief summary of how many
+#'   MS2 blocks were found and how many features have MS2.
+#'
+#' @return The updated \code{mmo} object with \code{mmo$feature_info$ms2} and
+#'   \code{mmo$feature_info$count_ms2} added (or overwritten if \code{overwrite = TRUE}).
+#'
+#' @examples
+#' \dontrun{
+#' # Add ms2 + count_ms2 columns to mmo$feature_info
+#' mmo <- annotate_feature_info_ms2_from_mgf(mmo, "spectra.mgf")
+#'
+#' # Overwrite existing columns if you re-run on a different MGF
+#' mmo <- annotate_feature_info_ms2_from_mgf(mmo, "spectra_new.mgf", overwrite = TRUE)
+#' }
+#'
+#' @export
+annotate_feature_info_ms2_from_mgf <- function(
+    mmo,
+    mgf_path,
+    chunk_lines = 100000L,
+    overwrite = FALSE,
+    verbose = TRUE
+) {
+  # --- checks ---
+  if (is.null(mmo) || !is.list(mmo)) {
+    stop("`mmo` must be a list-like ecomet object.", call. = FALSE)
+  }
+  if (!("feature_info" %in% names(mmo)) || !is.data.frame(mmo$feature_info)) {
+    stop("`mmo$feature_info` must exist and be a data.frame.", call. = FALSE)
+  }
+  if (!("id" %in% names(mmo$feature_info))) {
+    stop("`mmo$feature_info$id` must exist.", call. = FALSE)
+  }
+  if (!is.character(mgf_path) || length(mgf_path) != 1L || !nzchar(mgf_path) || !file.exists(mgf_path)) {
+    stop("`mgf_path` must be an existing file path.", call. = FALSE)
+  }
+  if (!is.logical(overwrite) || length(overwrite) != 1L || is.na(overwrite)) {
+    stop("`overwrite` must be TRUE or FALSE.", call. = FALSE)
+  }
+
+  if (!overwrite) {
+    if ("ms2" %in% names(mmo$feature_info) || "count_ms2" %in% names(mmo$feature_info)) {
+      stop(
+        "Columns already exist in mmo$feature_info: ",
+        paste(intersect(c("ms2", "count_ms2"), names(mmo$feature_info)), collapse = ", "),
+        "\nSet overwrite = TRUE to overwrite them.",
+        call. = FALSE
+      )
+    }
+  }
+
+  # IDs we care about
+  ids <- mmo$feature_info$id
+  ids_num <- suppressWarnings(as.integer(as.character(ids)))
+  ok <- !is.na(ids_num)
+  if (!any(ok)) {
+    stop("No usable (integer) IDs found in `mmo$feature_info$id`.", call. = FALSE)
+  }
+  ids_num <- ids_num[ok]
+  keep_ids <- unique(ids_num)
+
+  # Environment for fast membership: only count IDs present in feature_info
+  id_env <- new.env(parent = emptyenv(), hash = TRUE)
+  for (k in keep_ids) id_env[[as.character(k)]] <- TRUE
+
+  # Counts stored in an environment too (sparse)
+  count_env <- new.env(parent = emptyenv(), hash = TRUE)
+
+  # --- streaming parse ---
+  in_con <- file(mgf_path, open = "r", encoding = "UTF-8")
+  on.exit(try(close(in_con), silent = TRUE), add = TRUE)
+
+  begin_line <- "BEGIN IONS"
+  end_line   <- "END IONS"
+  fid_prefix <- "FEATURE_ID="
+  ms_prefix  <- "MSLEVEL="
+
+  inside_block <- FALSE
+  block_fid <- NA_integer_
+  block_is_ms2 <- FALSE
+  saw_fid <- FALSE
+  saw_ms <- FALSE
+
+  blocks_total <- 0L
+  blocks_ms2_total <- 0L
+  lines_read_total <- 0L
+
+  parse_int_after_prefix <- function(line, prefix) {
+    if (!startsWith(line, prefix)) return(NA_integer_)
+    val <- substr(line, nchar(prefix) + 1L, nchar(line))
+    suppressWarnings(as.integer(val))
+  }
+
+  if (verbose) {
+    message(
+      "annotate_feature_info_ms2_from_mgf():\n",
+      "- MGF: ", mgf_path, "\n",
+      "- Feature IDs: mmo$feature_info$id (n unique = ", length(keep_ids), ")\n",
+      "- Chunk lines: ", chunk_lines
+    )
+  }
+
+  repeat {
+    chunk <- readLines(in_con, n = chunk_lines, warn = FALSE)
+    if (length(chunk) == 0) break
+    lines_read_total <- lines_read_total + length(chunk)
+
+    for (line in chunk) {
+      if (!inside_block) {
+        if (identical(line, begin_line)) {
+          inside_block <- TRUE
+          block_fid <- NA_integer_
+          block_is_ms2 <- FALSE
+          saw_fid <- FALSE
+          saw_ms <- FALSE
+        }
+        next
+      }
+
+      # Inside a block: look only for FEATURE_ID and MSLEVEL
+      if (!saw_fid && startsWith(line, fid_prefix)) {
+        fid <- parse_int_after_prefix(line, fid_prefix)
+        if (!is.na(fid)) {
+          block_fid <- fid
+          saw_fid <- TRUE
+        }
+        next
+      }
+
+      if (!saw_ms && startsWith(line, ms_prefix)) {
+        ms <- parse_int_after_prefix(line, ms_prefix)
+        if (!is.na(ms) && ms == 2L) {
+          block_is_ms2 <- TRUE
+        }
+        saw_ms <- TRUE
+        next
+      }
+
+      if (identical(line, end_line)) {
+        blocks_total <- blocks_total + 1L
+
+        # Count only if:
+        # - it's MS2
+        # - FEATURE_ID parsed
+        # - FEATURE_ID is in our feature_info set
+        if (block_is_ms2 && !is.na(block_fid) && isTRUE(id_env[[as.character(block_fid)]])) {
+          blocks_ms2_total <- blocks_ms2_total + 1L
+          key <- as.character(block_fid)
+          cur <- count_env[[key]]
+          if (is.null(cur)) cur <- 0L
+          count_env[[key]] <- cur + 1L
+        }
+
+        inside_block <- FALSE
+      }
+    }
+  }
+
+  # Build count vector aligned to feature_info rows
+  fi <- mmo$feature_info
+  fi_ids_num <- suppressWarnings(as.integer(as.character(fi$id)))
+
+  count_ms2 <- integer(nrow(fi))
+  for (i in seq_len(nrow(fi))) {
+    fid <- fi_ids_num[[i]]
+    if (!is.na(fid)) {
+      v <- count_env[[as.character(fid)]]
+      if (!is.null(v)) count_ms2[[i]] <- as.integer(v)
+    }
+  }
+  ms2 <- count_ms2 > 0L
+
+  fi$ms2 <- ms2
+  fi$count_ms2 <- count_ms2
+  mmo$feature_info <- fi
+
+  if (verbose) {
+    message(
+      "Done.\n",
+      "- Lines read: ", format(lines_read_total, big.mark = ","), "\n",
+      "- Blocks total: ", format(blocks_total, big.mark = ","), "\n",
+      "- MS2 blocks counted (in feature_info): ", format(blocks_ms2_total, big.mark = ","), "\n",
+      "- Features with MS2: ", sum(ms2, na.rm = TRUE), " / ", nrow(fi)
+    )
+  }
+
+  mmo
+}
+
+
+
+
+
+
 #' Filter an mmo object by samples, groups, and/or features
 #'
 #' @description
