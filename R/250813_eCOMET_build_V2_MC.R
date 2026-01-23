@@ -1669,34 +1669,48 @@ annotate_feature_info_ms2_from_mgf <- function(
 #' Subset all components of an mmo object (feature tables, metadata, distance
 #' matrices, and annotations) to a given set of samples, groups, and/or
 #' feature IDs. Filtering is applied consistently across all slots present
-#' in `mmo`.
+#' in \code{mmo}.
 #'
-#' @param mmo A list-like mmo object as returned by `GetMZmineFeature()`.
+#' Optionally, if an \code{mgf_path} is provided, a filtered MGF is written
+#' containing only spectra for the retained features (using \code{filter_mgf_to_mmo()}).
+#'
+#' @param mmo A list-like mmo object as returned by \code{GetMZmineFeature()}.
 #' @param sample_list Optional character vector of sample IDs (matching
-#'   `sample_col` in `mmo$metadata`) to retain.
+#'   \code{sample_col} in \code{mmo$metadata}) to retain.
 #' @param group_list Optional character vector of group labels (matching
-#'   `group_col` in `mmo$metadata`) to retain. Mutually exclusive with
-#'   `sample_list`.
+#'   \code{group_col} in \code{mmo$metadata}) to retain. Mutually exclusive with
+#'   \code{sample_list}.
 #' @param feature_list Optional character vector of feature IDs to retain.
-#'   If `NULL`, features are determined from `feature_data` and optionally
-#'   filtered by `drop_empty_feat`.
-#' @param sample_col Column name in `mmo$metadata` containing sample IDs.
-#'   Default is `"sample"`.
-#' @param group_col Column name in `mmo$metadata` containing group labels.
-#'   Default is `"group"`.
-#' @param drop_empty_feat Logical; if `TRUE` (default) drop features with no
+#'   If \code{NULL}, features are determined from \code{feature_data} and optionally
+#'   filtered by \code{drop_empty_feat}.
+#' @param sample_col Column name in \code{mmo$metadata} containing sample IDs.
+#'   Default is \code{"sample"}.
+#' @param group_col Column name in \code{mmo$metadata} containing group labels.
+#'   Default is \code{"group"}.
+#' @param drop_empty_feat Logical; if \code{TRUE} (default) drop features with no
 #'   non-zero values in the retained samples.
 #' @param empty_threshold Optional numeric threshold used to define “empty”
-#'   features. If `NULL` (default), the smallest positive, non-NA intensity
-#'   in the retained samples (`min_val`) is used. Features are kept if they
-#'   have at least one value > threshold across retained samples.
-#' @return A filtered mmo object with the same structure as `mmo`, but
-#'   restricted to the requested samples / groups / features.
+#'   features. If \code{NULL} (default), the smallest positive, non-NA intensity
+#'   in the retained samples is used. Features are kept if they have at least
+#'   one value > threshold across retained samples.
+#'
+#' @param mgf_path Optional character. If provided, an MGF file will be filtered
+#'   to retained features using \code{filter_mgf_to_mmo()}.
+#' @param output_path Character or NULL. Passed to \code{filter_mgf_to_mmo()}.
+#'   If \code{NULL} (default), output is \code{"<input>_filtered.mgf"}.
+#'
+#' @return A filtered mmo object with the same structure as \code{mmo}, but
+#'   restricted to the requested samples / groups / features. If \code{mgf_path}
+#'   is provided, the returned object also includes \code{mmo_filtered$mgf_filtered_path}.
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' mmo_sub <- filter_mmo(mmo, group_list = c("Species1", "Species2"))
+#'
+#' # Also write a filtered mgf:
+#' mmo_sub <- filter_mmo(mmo, group_list = c("Species1", "Species2"),
+#'                       mgf_path = "spectra.mgf")
 #' }
 filter_mmo <- function(mmo,
                        sample_list  = NULL,
@@ -1704,193 +1718,211 @@ filter_mmo <- function(mmo,
                        feature_list = NULL,
                        sample_col   = "sample",
                        group_col    = "group",
-                       drop_empty_feat = TRUE,
-                       empty_threshold   = NULL) {
+                       drop_empty_feat   = TRUE,
+                       empty_threshold   = NULL,
+                       mgf_path          = NULL,
+                       output_path       = NULL) {
+
   # ------------------------------------------------------------------
   # 0. Basic checks on arguments
   # ------------------------------------------------------------------
   if (is.null(sample_list) && is.null(group_list) && is.null(feature_list)) {
-    stop("Must provide at least one of 'sample_list', 'group_list', or 'feature_list'.")
+    stop("Must provide at least one of 'sample_list', 'group_list', or 'feature_list'.", call. = FALSE)
   }
   if (!is.null(sample_list) && !is.null(group_list)) {
-    stop("Provide exactly one of 'sample_list' or 'group_list', not both.")
+    stop("Provide exactly one of 'sample_list' or 'group_list', not both.", call. = FALSE)
   }
-  if (!"metadata" %in% names(mmo)) {
-    stop("mmo$metadata must be present.")
-  }
-  if (!"feature_data" %in% names(mmo)) {
-    stop("mmo$feature_data must be present.")
-  }
+  if (!"metadata" %in% names(mmo)) stop("mmo$metadata must be present.", call. = FALSE)
+  if (!"feature_data" %in% names(mmo)) stop("mmo$feature_data must be present.", call. = FALSE)
+
   meta <- mmo$metadata
-  if (!is.data.frame(meta)) {
-    stop("mmo$metadata must be a data.frame.")
-  }
-  if (!sample_col %in% names(meta)) {
-    stop(sprintf("sample_col '%s' not present in metadata.", sample_col))
-  }
+  if (!is.data.frame(meta)) stop("mmo$metadata must be a data.frame.", call. = FALSE)
+  if (!sample_col %in% names(meta)) stop(sprintf("sample_col '%s' not present in metadata.", sample_col), call. = FALSE)
   if (!is.null(group_list) && !group_col %in% names(meta)) {
-    stop(sprintf("group_col '%s' not present in metadata.", group_col))
+    stop(sprintf("group_col '%s' not present in metadata.", group_col), call. = FALSE)
   }
+
   # ------------------------------------------------------------------
   # 1. Determine which samples to keep
   # ------------------------------------------------------------------
   all_samples <- as.character(meta[[sample_col]])
+
   if (!is.null(sample_list)) {
     keep_samples <- intersect(all_samples, as.character(sample_list))
     if (length(keep_samples) == 0L) {
-      stop("None of the supplied sample IDs in 'sample_list' are present in the mmo object.")
+      stop("None of the supplied sample IDs in 'sample_list' are present in the mmo object.", call. = FALSE)
     }
   } else if (!is.null(group_list)) {
     idx <- meta[[group_col]] %in% group_list
     keep_samples <- as.character(meta[[sample_col]][idx])
     if (length(keep_samples) == 0L) {
-      stop("No samples found for the requested 'group_list'.")
+      stop("No samples found for the requested 'group_list'.", call. = FALSE)
     }
   } else {
-    # no sample_list or group_list -> keep all samples, only restrict by feature_list
     keep_samples <- all_samples
   }
+
   # ------------------------------------------------------------------
   # 2. Filter feature_data and decide which features to keep
   # ------------------------------------------------------------------
   feat_abund <- mmo[["feature_data"]]
-  if (!all(c("id", "feature") %in% names(feat_abund))) {
-    stop("mmo$feature_data must contain columns 'id' and 'feature'.")
+  if (!is.data.frame(feat_abund) || !all(c("id", "feature") %in% names(feat_abund))) {
+    stop("mmo$feature_data must be a data.frame with columns 'id' and 'feature'.", call. = FALSE)
   }
-  # keep id, feature, and any sample columns that match keep_samples
+
   sample_cols_present <- intersect(keep_samples, names(feat_abund))
   col_keep <- c("id", "feature", sample_cols_present)
   feat_abund_filtered <- feat_abund[, col_keep, drop = FALSE]
-  # automatic feature set from feature_data
+
   auto_features <- as.character(feat_abund_filtered$id)
-  # Optionally drop features that are completely empty across retained samples
+
   if (drop_empty_feat && length(sample_cols_present) > 0L) {
     num_mat <- as.matrix(
       suppressWarnings(
-        sapply(
-          feat_abund_filtered[, sample_cols_present, drop = FALSE],
-          as.numeric
-        )
+        sapply(feat_abund_filtered[, sample_cols_present, drop = FALSE], as.numeric)
       )
     )
-    if (!is.matrix(num_mat)) {
-      num_mat <- matrix(num_mat, nrow = nrow(feat_abund_filtered))
-    }
+    if (!is.matrix(num_mat)) num_mat <- matrix(num_mat, nrow = nrow(feat_abund_filtered))
 
-    # all positive, non-NA intensities across retained samples
     positive_vals <- num_mat[num_mat > 0 & !is.na(num_mat)]
 
     if (is.null(empty_threshold)) {
-      # default: use min_val if there is at least one positive value
       if (length(positive_vals) == 0L) {
-        # everything is 0/NA → all features considered empty
         threshold <- Inf
-        message("drop_empty_feat = TRUE, but no positive intensities found; ",
-                "all features are treated as empty.")
         nonempty_idx <- rep(FALSE, nrow(num_mat))
+        message("drop_empty_feat = TRUE, but no positive intensities found; all features are treated as empty.")
       } else {
-        min_val   <- min(positive_vals)
+        min_val <- min(positive_vals)
         threshold <- min_val
         message(sprintf("Removing empty features based on min_val = %g", min_val))
         nonempty_idx <- apply(num_mat, 1, function(x) any(x > threshold, na.rm = TRUE))
       }
     } else {
-      # user-specified threshold wins
       threshold <- empty_threshold
       message(sprintf("Removing empty features using user threshold = %g", threshold))
       nonempty_idx <- apply(num_mat, 1, function(x) any(x > threshold, na.rm = TRUE))
     }
 
-    auto_features       <- auto_features[nonempty_idx]
+    auto_features <- auto_features[nonempty_idx]
     feat_abund_filtered <- feat_abund_filtered[nonempty_idx, , drop = FALSE]
   }
-  # If user supplies a feature_list, intersect with auto_features
+
   if (!is.null(feature_list)) {
     feature_list <- as.character(feature_list)
     features_keep <- intersect(auto_features, feature_list)
     if (length(features_keep) == 0L) {
-      stop("No overlap between 'feature_list' and features present in mmo$feature_data.")
+      stop("No overlap between 'feature_list' and features present in mmo$feature_data.", call. = FALSE)
     }
     feat_abund_filtered <- feat_abund_filtered[feat_abund_filtered$id %in% features_keep, , drop = FALSE]
   } else {
     features_keep <- auto_features
   }
+
   # ------------------------------------------------------------------
-  # 3. Build filtered mmo
+  # 3. Helpers to filter common slot types
   # ------------------------------------------------------------------
-  mmo_filtered <- list()
-  # feature_data
+  filter_feature_sample_table <- function(df, keep_ids, keep_samples) {
+    if (!is.data.frame(df)) return(df)
+    if (!all(c("id", "feature") %in% names(df))) return(df)
+    samp <- intersect(keep_samples, names(df))
+    cols <- c("id", "feature", samp)
+    out <- df[, cols, drop = FALSE]
+    out[out$id %in% keep_ids, , drop = FALSE]
+  }
+
+  filter_feature_df_by_id <- function(df, keep_ids) {
+    if (!is.data.frame(df)) return(df)
+    if (!("id" %in% names(df))) return(df)
+    df[df$id %in% keep_ids, , drop = FALSE]
+  }
+
+  filter_square_feature_matrix <- function(mat, keep_ids) {
+    if (!is.matrix(mat) && !inherits(mat, "Matrix")) return(mat)
+    rn <- rownames(mat); cn <- colnames(mat)
+    if (is.null(rn) || is.null(cn)) return(mat)
+    # only treat as square feature-feature matrix if row/col names overlap a lot with keep_ids
+    if (nrow(mat) != ncol(mat)) return(mat)
+    keep_r <- rn %in% keep_ids
+    keep_c <- cn %in% keep_ids
+    if (!any(keep_r) || !any(keep_c)) return(mat)
+    mat[keep_r, keep_c, drop = FALSE]
+  }
+
+  # ------------------------------------------------------------------
+  # 4. Build filtered mmo (preserve *all* slots, filtered where appropriate)
+  # ------------------------------------------------------------------
+  mmo_filtered <- mmo
+
+  # Required slots
   mmo_filtered$feature_data <- feat_abund_filtered
-  # metadata
   mmo_filtered$metadata <- meta[meta[[sample_col]] %in% keep_samples, , drop = FALSE]
-  # feature_info
-  if ("feature_info" %in% names(mmo)) {
-    fi <- mmo[["feature_info"]]
-    if ("id" %in% names(fi)) {
-      mmo_filtered$feature_info <- fi[fi$id %in% features_keep, , drop = FALSE]
+
+  # Standard feature×sample tables if present
+  for (nm in c("log", "zscore", "meancentered")) {
+    if (nm %in% names(mmo_filtered)) {
+      mmo_filtered[[nm]] <- filter_feature_sample_table(mmo_filtered[[nm]], features_keep, keep_samples)
     }
   }
-  # log
-  if ("log" %in% names(mmo)) {
-    log_mat <- mmo[["log"]]
-    sample_cols_present <- intersect(keep_samples, names(log_mat))
-    col_keep <- c("id", "feature", sample_cols_present)
-    log_filt <- log_mat[, col_keep, drop = FALSE]
-    mmo_filtered$log <- log_filt[log_filt$id %in% features_keep, , drop = FALSE]
+
+  # Filter feature_info if present
+  if ("feature_info" %in% names(mmo_filtered)) {
+    mmo_filtered$feature_info <- filter_feature_df_by_id(mmo_filtered$feature_info, features_keep)
   }
-  # zscore
-  if ("zscore" %in% names(mmo)) {
-    z_mat <- mmo[["zscore"]]
-    sample_cols_present <- intersect(keep_samples, names(z_mat))
-    col_keep <- c("id", "feature", sample_cols_present)
-    z_filt <- z_mat[, col_keep, drop = FALSE]
-    mmo_filtered$zscore <- z_filt[z_filt$id %in% features_keep, , drop = FALSE]
+
+  # Pairwise tables (feature-level data.frames with id)
+  if ("pairwise" %in% names(mmo_filtered)) {
+    mmo_filtered$pairwise <- filter_feature_df_by_id(mmo_filtered$pairwise, features_keep)
   }
-  # meancentered
-  if ("meancentered" %in% names(mmo)) {
-    mc_mat <- mmo[["meancentered"]]
-    sample_cols_present <- intersect(keep_samples, names(mc_mat))
-    col_keep <- c("id", "feature", sample_cols_present)
-    mc_filt <- mc_mat[, col_keep, drop = FALSE]
-    mmo_filtered$meancentered <- mc_filt[mc_filt$id %in% features_keep, , drop = FALSE]
-  }
-  # pairwise (assumed feature-level, with 'id' column)
-  if ("pairwise" %in% names(mmo)) {
-    pw <- mmo[["pairwise"]]
-    if ("id" %in% names(pw)) {
-      mmo_filtered$pairwise <- pw[pw$id %in% features_keep, , drop = FALSE]
+
+  # Any “annotation-like” feature-level data.frame with an id column:
+  # - this catches sirius_annot AND any sirius_annot_filtered_* you’ve created,
+  #   plus other feature-level tables you add in the future.
+  for (nm in names(mmo_filtered)) {
+    obj <- mmo_filtered[[nm]]
+
+    # Skip those we handled explicitly above
+    if (nm %in% c("feature_data", "metadata", "log", "zscore", "meancentered", "feature_info", "pairwise")) next
+
+    # Feature-level data.frames: subset rows by id
+    if (is.data.frame(obj) && "id" %in% names(obj)) {
+      mmo_filtered[[nm]] <- obj[obj$id %in% features_keep, , drop = FALSE]
+      next
+    }
+
+    # Square feature-feature matrices: subset by row/col names
+    if (is.matrix(obj) || inherits(obj, "Matrix")) {
+      mmo_filtered[[nm]] <- filter_square_feature_matrix(obj, features_keep)
+      next
     }
   }
-  # dissimilarity matrices (features x features, row/col names = feature IDs)
-  for (mat_name in c("cos.dissim", "dreams.dissim", "m2ds.dissim")) {
-    if (mat_name %in% names(mmo)) {
-      d <- mmo[[mat_name]]
-      if (!is.null(rownames(d))) {
-        keep_idx <- rownames(d) %in% features_keep
-        mmo_filtered[[mat_name]] <- d[keep_idx, keep_idx, drop = FALSE]
-      }
-    }
-  }
-  # annotations
-  if ("sirius_annot" %in% names(mmo)) {
-    sa <- mmo[["sirius_annot"]]
-    if ("id" %in% names(sa)) {
-      mmo_filtered$sirius_annot <- sa[sa$id %in% features_keep, , drop = FALSE]
-    }
-  }
-  if ("custom_annot" %in% names(mmo)) {
-    ca <- mmo[["custom_annot"]]
-    if ("id" %in% names(ca)) {
-      mmo_filtered$custom_annot <- ca[ca$id %in% features_keep, , drop = FALSE]
-    }
-  }
-  # Preserve class if mmo had one
+
+  # Preserve class
   class(mmo_filtered) <- class(mmo)
-  print("MMO object was subset")
-  print(paste0("Feature number: ", nrow(mmo_filtered$feature_data)))
-  print(paste0(nrow(mmo_filtered$metadata), " samples in ", length(unique(mmo_filtered$metadata$group)), " groups"))
-  return(mmo_filtered)
+
+  # ------------------------------------------------------------------
+  # 5. Optional: filter an MGF in the same call
+  # ------------------------------------------------------------------
+  if (!is.null(mgf_path)) {
+    if (!is.character(mgf_path) || length(mgf_path) != 1L || !nzchar(mgf_path) || !file.exists(mgf_path)) {
+      stop("`mgf_path` must be a single existing file path.", call. = FALSE)
+    }
+    mgf_res <- filter_mgf_to_mmo(
+      mmo = mmo_filtered,
+      mgf_path = mgf_path,
+      output_path = output_path,
+      verbose = FALSE
+    )
+    mmo_filtered$mgf_filtered_path <- mgf_res$output_path
+  }
+
+  message("MMO object was subset")
+  message(paste0("Feature number: ", nrow(mmo_filtered$feature_data)))
+  message(paste0(nrow(mmo_filtered$metadata), " samples in ",
+                 length(unique(mmo_filtered$metadata[[group_col]])), " groups"))
+
+  mmo_filtered
 }
+
 
 
 ########################################################################################
