@@ -1,7 +1,9 @@
 # Treatment-based_study_tutorial
 
 ``` r
-# pak::pak("phytoecia/eCOMET")
+#install.packages("pak")
+#pak::pkg_install("Phytoecia/eCOMET", dependencies = TRUE)
+#pak::pkg_install("Phytoecia/eCOMET", dependencies = TRUE, upgrade = TRUE)
 library(ecomet)
 library(dplyr)
 #> 
@@ -19,7 +21,7 @@ here()
 #> [1] "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET"
 ```
 
-## Background
+### Background
 
 In this tutorial, we will demonstrate how to use the **eCOMET** package
 for analyzing metabolomics data from a treatment-based study.
@@ -50,6 +52,28 @@ for analyzing metabolomics data from a treatment-based study.
   analysis workflow. They are meant for demonstration and testing, not
   as complete research datasets.
 
+Step 1: Gathering the paths for MMO object inputs.
+
+To generate an mmo object you need to supply at minimum:
+
+- feature abundance table from mzmine. It is best to export the “full
+  feature table” which provides the maximum amount of information
+  regarding the abundance in each sample as well as feature information
+  (i.e mass to charge (m/z) and retention time)
+
+- path to sample meta data. You need to identify the two columns in the
+  metdata:
+
+  - group column that can be used as the main group for comparisons
+
+  - sample column which defines the name or path of the sample columns.
+
+- Optionally you can provide:
+
+  - sirius outputs
+
+  - ms/ms similarity based on cosine, ms2deep score OR dreams.
+
 ``` r
 
 # Locate tutorial data shipped with the eCOMET package
@@ -69,7 +93,7 @@ demo_dreams <- file.path(data_dir, "dreams_sim_demo.csv")
 gls_db <- file.path(data_dir, "custom_DB_glucosinolates.csv")
 ```
 
-## 1. Create an `mmo` object
+### 1. Create an `mmo` object
 
 Following steps are performed to create an `mmo` object and add various
 normalizations and annotations. Inspect the structure of the ‘mmo’
@@ -79,36 +103,224 @@ updated.
 ``` r
 # Initialize eCOMET object
 mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group', sample_col = 'sample')
-# Add normalizations
+
+mmo$feature_data
+```
+
+``` r
+mmo$feature_info
+```
+
+``` r
+mmo$pairwise
+```
+
+``` r
+mmo$metadata
+```
+
+\#MS - I discussed this with Sedio Group and everyone things the feature
+table to be appended to list not replace… \#Can we adjust to address
+this?? At the very least we want to discuss when to apply this.
+
+\#Add explanation of why we would replace zero how it will impact
+downstream calculations (i.e valcano plots vs richness calculations)
+
+``` r
 mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
+mmo$feature_data
+```
+
+\#MS-same don’t replace add \#annotate exactly how Mass is Normalized
+and how it knows what column to use
+
+``` r
 mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
+mmo$feature_data 
+```
+
+\#Can you add a little more annotation here and in the
+help/documentation to explain what meancenter normalization works? Sedio
+group had questions.
+
+\#ecoMET offers the following types of normalization each will append a
+new feature_abundance matrix to the mmo object and can be called when
+plotting.
+
+``` r
 mmo <- MeancenterNormalization(mmo) # Add mean-centered area
 mmo <- LogNormalization(mmo) # Add log-transformed area
 mmo <- ZNormalization(mmo) # Add Zscore
+```
 
+You can also convert the feature abundance matrix to a presence absence
+matrix based on a threshold using the function FeaturePresence
+
+``` r
+mmo <- FeaturePresence(mmo, threshold = 1) # Add Zscore
+```
+
+MS-I am still getting duplicates and it gives a warning. We should
+address this in the tutorial but also did I lose the fix you implemented
+to handle the duplicates?
+
+``` r
 # Add SIRIUS annotation
 mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
-# Make a vector of flavonoids using SIRIUS annotation
-FLVs <- mmo$sirius_annot %>% filter(str_detect(mmo$sirius_annot[['ClassyFire#most specific class']], "Flavonoid")) %>% pull(feature)
+mmo$sirius_annot
 
+
+#Need to explain how to handle duplicates!
+```
+
+#### MS- There are still duplicates. Do you know how to exclude them and how to handle it? If duplicates appear in the tutorial we need to at least explain what’s going on here…
+
+We can filter sirius annotations based on confidence score. We can do
+this both for the probabilities in the canopus class predictions and/or
+to the formula/smiles predictions.
+
+Starting with the class predictions we can use the
+filter_canopus_annotations() function
+
+We define what pathway levels we want to filter: i.e. pathway_level =
+“NPC#pathway”, “All” or “All_NPC” You can also provide a list of
+columns.. c(“NPC#superclass”,“NPC#class”)
+
+Define a threshold cut of i.e. threshold = 0.9
+
+The function will add a new annotation list to the mmo object and a
+suffex can be added to note what settings were used - suffix =
+“NPC_pathway_0.9”
+
+Sirius provides some info on how to set this threshold -
+
+The relevant warning for this threshold is here:
+<https://v6.docs.sirius-ms.io/methods-background/#CANOPUS>
+
+“Be aware that there is no universally accepted threshold to classify
+predictions as “good” or “bad.” The posterior probability estimates
+provided do not adhere to a fixed standard, and while a binary
+classifier might suggest a threshold of 0.5, this is not always
+sufficient in real-world applications. If a user desires more nuanced
+classifications, such as “Yes,” “No,” and “Maybe,” thresholds like 0.15
+and 0.85 may be helpful, although these are just approximations.
+Moreover, for statistical analysis, such as determining the number of
+occurrences of a specific compound class in a sample, users can sum up
+the probabilities to get an expected count. It’s also important to
+consider that when a compound is significantly different from known
+compounds, CANOPUS may return lower probabilities for all compound
+classes, which means users might need to accept predictions with
+probabilities below 0.5 depending on their specific needs. Thus, the
+choice of threshold depends on the context and the user’s tolerance for
+uncertainty.”
+
+It can be helpful to visialize the distribution of thresholds to see how
+much you would be filtering out
+
+``` r
+
+hist(mmo$sirius_annot$`NPC#pathway Probability`)
+```
+
+Here we see that there is a long tail of low confidence values. In this
+tutorial we will filter these out just as one example.
+
+``` r
+mmo <- filter_canopus_annotations(mmo, pathway_level = "NPC#pathway", threshold = 0.8,suffix = "NPC_pathway_0.8",overwrite = T)
+```
+
+``` r
+mmo$sirius_annot_filtered_NPC_pathway_0.8
+```
+
+A similar logic can be applied to filter the smiles confidence
+
+In order to filter sequentially we have to define what Sirius_annotation
+filter we want to apply this too setting input
+
+See the documentation for details about this score!
+
+<https://v6.docs.sirius-ms.io/methods-background/#CANOPUS>
+
+More details in this
+paper:<https://www.nature.com/articles/s41587-021-01045-9>
+
+“Interpretation of COSMIC confidence values: COSMIC confidence scores
+should be interpreted with caution. It’s crucial to understand that
+these scores are not probabilities and, therefore, do not have a direct
+statistical interpretation. When performing large-scale analyses, it’s
+advisable to focus on the highest-confidence hits (e.g., the top
+1/5/10%), generally independent of their specific confidence value.”
+
+``` r
+
+#Replace -Infinity w/ 0
+
+mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate[
+    which(mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate == "-Infinity")
+  ] <- 0
+
+Cosmic_Scores <- as.numeric(mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate)
+
+hist(Cosmic_Scores, main = "Cosmic Confidence Score for Structures")
+```
+
+We can see the distribution of scores very different than in the class
+probabilities.
+
+To get the top 10% of hits
+
+``` r
+quantile(x = Cosmic_Scores,probs = 0.9,na.rm = T)
+```
+
+``` r
+mmo <- filter_cosmic_structure(
+  mmo,
+  input = "sirius_annot_filtered_NPC_pathway_0.8",
+  cosmic_mode = "approx",
+  threshold = 0.3892,
+  suffix = "CANOPUS_0.9__COSMIC_Top_10"
+)
+```
+
+## Make a vector of flavonoids using SIRIUS annotation
+
+``` r
+FLVs_features <- mmo$sirius_annot %>% filter(str_detect(mmo$sirius_annot[['ClassyFire#most specific class']], "Flavonoid")) %>% pull(feature)
+FLVs_features
+```
+
+``` r
 # Add custom annotation using inhouse glucosinolate library
 mmo <- AddCustomAnnot(mmo, DB = gls_db, mztol = 5, rttol = 0.2)
 # Make a vector of glucosinolates using custom annotation
 GLSs <- mmo$custom_annot %>% filter(lengths(custom_annot) > 0) %>% pull(feature)
-
-# Add Dreams distance
-mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+GLSs
 ```
 
-## 2. Plot dimensionality reduction plots
+``` r
+# Add Dreams distance
+mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
-### PCA plot and PERMANOVA
+mmo$dreams.dissim[1:10,1:10]
+```
+
+### 2. Plot dimensionality reduction plots
+
+#### PCA plot and PERMANOVA
 
 A PCA plot is commonly used to visualize the overall distribution of
 groups. Following PERMANOVA test can be performed to check if the groups
 are significantly different.
 [`PCAplot()`](https://phytoecia.github.io/eCOMET/reference/PCAplot.md)
 function use mmo to perform PCA, plot them, and perform PERMANOVA test.
+
+MS - I think that we should explain the logic of how to either save the
+output directly OR how to return the obect. Did you set it up so that if
+an outdir is provided it will save otherwise it will just return? I
+would start with returning the obect and showing the format of the
+output/plot Then showing how you can add your own astetics and resave…
 
 ``` r
 # Set colors for groups
@@ -147,7 +359,7 @@ PLSDAplot(mmo, color = colors, outdir = 'plot/PLSDA.pdf')
 PLSDAplot(mmo, color = colors, outdir = 'plot/PLSDA_meancentered.pdf', normalization = 'Meancentered') # Data normalization option
 ```
 
-## 3. Identify differentially accumulated metabolites (DAMs)
+### 3. Identify differentially accumulated metabolites (DAMs)
 
 Many analyses targets to find **Differentially Accumulated Metabolites
 (DAMs)**. DAMs can be defined by thresholds of log2-fold change and
@@ -173,7 +385,7 @@ DAMs_down <- DAMs$DAMs_down
 head(DAMs_up)
 ```
 
-### 3.1. Volcano plot
+#### 3.1. Volcano plot
 
 A volcano plot can be used to visualize the overall distribution of
 features based on fold change and p-value.
@@ -184,7 +396,7 @@ VolcanoPlot(mmo, comp = 'ctrl_vs_sl1', outdir = 'plot/Volcano_ctrl_vs_sl1.pdf')
 VolcanoPlot(mmo, comp = 'ctrl_vs_le1', outdir = 'plot/Volcano_ctrl_vs_le1.pdf', topk = 0) # Remove label by setting topk = 0
 ```
 
-### 3.2. Venn diagram and upset plot
+#### 3.2. Venn diagram and upset plot
 
 A Venn diagram or upset plot can be used to visualize the overlap of
 DAMs between different comparisons.
@@ -209,7 +421,7 @@ upset(fromList(VennInput), nsets=10, nintersects=20,order.by='freq', mainbar.y.l
 dev.off()
 ```
 
-## 4. Heatmap
+### 4. Heatmap
 
 To visualize the relative abundance of features across samples, a
 heatmap can be generated. The features can be either clusterd using
@@ -294,7 +506,7 @@ pheatmap(mat = heatmap_inputs_GLS$FC_matrix,
 dev.off()
 ```
 
-## 5. CANOPUS class enrichment analysis
+### 5. CANOPUS class enrichment analysis
 
 Biological questions ask which class of chemical compounds are enriched
 in a set of compounds of interest (e.g., DAMs from above). This is
@@ -324,7 +536,7 @@ CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'NPC', pthr = 0.1, pref
 CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'ClassyFire', pthr = 0.1, prefix = 'plot/DAMs_up_all_terms', width = 8, height = 12)
 ```
 
-## 6. Correlation analysis
+### 6. Correlation analysis
 
 To find phenotype-linked metabolties, we can use correlation analysis.
 In this tutorial, we will use correlation between amount of each feature
@@ -336,7 +548,7 @@ sl_cor <- ScreenFeaturePhenotypeCorrelation(mmo, phenotype = 'sl', groups = c('s
 head(sl_cor)
 ```
 
-## 7. Sharing MMO object
+### 7. Sharing MMO object
 
 MMO object can be shared with other users by saving it to a file and
 loading it from a file.

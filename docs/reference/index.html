@@ -47,14 +47,7 @@
           <code><a href="GetMZmineFeature.html">GetMZmineFeature()</a></code>
 
         </dt>
-        <dd>Import mzmine feature data and metadata to create a mmo object</dd>
-
-        <dt>
-
-          <code><a href="AddFeatureInfo.html">AddFeatureInfo()</a></code>
-
-        </dt>
-        <dd>Add feature_info to an existing mmo from a full_feature CSV</dd>
+        <dd>Import MZmine feature table and metadata to create a mmo object</dd>
 
         <dt>
 
@@ -132,6 +125,50 @@
 
         </dt>
         <dd>Convert feature abundances to presence / absence</dd>
+      </dl></div><div class="section level2">
+      <h2 id="filterng-mmo-and-associated-mgf">Filterng MMO and associated MGF<a class="anchor" aria-label="anchor" href="#filterng-mmo-and-associated-mgf"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="filter_mmo.html">filter_mmo()</a></code>
+
+        </dt>
+        <dd>Filter an mmo object by samples, groups, and/or features</dd>
+
+        <dt>
+
+          <code><a href="filter_mgf_to_mmo.html">filter_mgf_to_mmo()</a></code>
+
+        </dt>
+        <dd>Filter an MGF file to keep only spectra for features present in mmo$feature_data$id</dd>
+
+        <dt>
+
+          <code><a href="annotate_feature_info_ms2_from_mgf.html">annotate_feature_info_ms2_from_mgf()</a></code>
+
+        </dt>
+        <dd>Annotate mmo$feature_info with MS2 presence and MS2 block counts from an MGF</dd>
+
+        <dt>
+
+          <code><a href="filter_canopus_annotations.html">filter_canopus_annotations()</a></code>
+
+        </dt>
+        <dd>Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold</dd>
+
+        <dt>
+
+          <code><a href="filter_cosmic_structure.html">filter_cosmic_structure()</a></code>
+
+        </dt>
+        <dd>Filter SIRIUS structure (CSI:FingerID) annotations by COSMIC confidence score</dd>
       </dl></div><div class="section level2">
       <h2 id="basic-statistics-and-visualization">Basic statistics and visualization<a class="anchor" aria-label="anchor" href="#basic-statistics-and-visualization"></a></h2>
 

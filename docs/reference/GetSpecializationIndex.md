@@ -57,7 +57,13 @@ metadata, with columns for group and specialization index.
 
 ``` r
 if (FALSE) {
-specialization_index <- GetSpecializationIndex(mmo, normalization = 'None', filter_group = FALSE)
-specialization_index <- GetSpecializationIndex(mmo, normalization = 'Z', filter_group = TRUE, group_list = c('Control', 'Treatment1'), filter_feature = TRUE)
+specialization_index <- GetSpecializationIndex(mmo,
+                                               normalization = 'None',
+                                               filter_group = FALSE)
+specialization_index <- GetSpecializationIndex(mmo,
+                                               normalization = 'Z',
+                                               filter_group = TRUE,
+                                               group_list = c('Control', 'Treatment1'),
+                                               filter_feature = TRUE)
 }
 ```

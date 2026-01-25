@@ -28,7 +28,6 @@ reference:
   - title: "Core dataset processing"
     contents:
       - GetMZmineFeature
-      - AddFeatureInfo
       - AddSiriusAnnot
       - AddChemDist
       - AddCustomAnnot
@@ -40,6 +39,16 @@ reference:
       - ReorderGroups
       - SwitchGroup
       - FeaturePresence
+
+
+  - title: "Filterng MMO and associated MGF"
+    contents:
+      - filter_mmo
+      - filter_mgf_to_mmo
+      - annotate_feature_info_ms2_from_mgf
+      - filter_canopus_annotations
+      - filter_cosmic_structure
+
 
   - title: "Basic statistics and visualization"
     contents:
@@ -112,7 +121,7 @@ reference:
 articles:
   - title: "Tutorials"
     contents:
-      - Intro
+      - eCOMET-intro
       - Treatment-based_study_tutorial
 
 news:

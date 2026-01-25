@@ -1,0 +1,131 @@
+---
+title: "using package down"
+author: "Dale L. Forrister & Min-Soo Choi"
+date: "2026-01-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#routine workflow after edits
+
+Use this whenever you update functions, roxygen docs, README, or vignettes.
+
+Update docs from roxygen
+
+```{r}
+devtools::document()       # regenerates NAMESPACE + Rd from #' comments
+```
+
+(If README.Rmd changed) knit README
+```{r}
+devtools::build_readme()   # renders README.Rmd -> README.md
+```
+
+(If you added/edited vignettes)
+
+# keep Suggests: knitr, rmarkdown; and VignetteBuilder: knitr in DESCRIPTION
+```{r}
+devtools::build_vignettes()
+```
+
+Quick quality check
+```{r}
+devtools::check()          # should be clean (0 errors/warnings/notes ideally)
+```
+
+Optional: preview site locally
+
+```{r}
+setwd("/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/")
+pkgdown::build_site()      # view locally; doesn’t affect GitHub
+```
+
+Commit & push (source only)
+
+Commit your changes (R/, man/, NAMESPACE, README.md, vignettes/, etc.).
+
+Do not commit built site files if you’re using the GitHub Action (no docs/ or gh-pages changes).
+
+Push to your default branch (e.g., main).
+
+GitHub builds & deploys
+
+GitHub Actions runs pkgdown and updates the gh-pages branch.
+
+Check the Actions tab for a green run, then visit your site URL.
+
+common tasks
+```{r}
+#Add a vignette
+
+usethis::use_vignette("intro")  # creates vignettes/intro.Rmd
+devtools::build_vignettes()
+```
+
+It will appear under the “Articles” menu after the Action rebuilds.
+
+Control homepage
+
+Use README.md at package root for the home page.
+
+Don’t create pkgdown/index.Rmd unless you want to override README.
+
+Customize navigation / reference
+Edit _pkgdown.yml (commit it) — examples:
+
+url: https://<user>.github.io/<repo>/
+template:
+  bootstrap: 5
+
+home:
+  title: eCOMET
+  description: Tools for ecological metabolomics
+
+reference:
+  - title: Core workflow
+    contents:
+      - GetMZmineFeature
+      - AddSiriusAnnot
+      - AddChemDist
+  - title: Stats & plots
+    contents:
+      - VolcanoPlot
+      - PLSDAplot
+      - AnovaBarPlot
+
+
+News / changelog on the site
+```{r}
+usethis::use_news_md()
+
+```
+Update NEWS.md; it will show under “Changelog”.
+
+Version bump (optional)
+```{r}
+usethis::use_version("dev")  # or "minor"/"patch" etc.
+```
+#quick “did something break?” checklist
+
+README not showing? Make sure README.md is in the package root and you don’t have pkgdown/index.*.
+
+404 on site? Confirm Pages is set to gh-pages branch and the Action succeeded.
+
+Vignettes missing? Ensure Suggests contains knitr, rmarkdown; VignetteBuilder: knitr; and that vignettes build locally.
+
+Site not updating? Check the Actions logs for errors, commit _pkgdown.yml if you changed it.
+
+bare-minimum command sequence (copy/paste)
+```{r}
+devtools::document()
+devtools::build_readme()     # if README.Rmd changed
+devtools::build_vignettes()  # if vignettes changed
+devtools::check()
+pkgdown::build_site()  
+```
+# commit & push; GitHub Action updates the site
+
+That’s it—edit, document, check, push, and let GitHub Actions publish.

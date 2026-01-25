@@ -1,5 +1,7 @@
 ---
 title: "Treatment-based_study_tutorial"
+authors: "Dale L. Forrister & Min-Soo Choi"
+date: "2026-01-26"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Treatment-based_study_tutorial}
@@ -61,7 +63,7 @@ To generate an mmo object you need to supply at minimum:
 
     -   ms/ms similarity based on cosine, ms2deep score OR dreams.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 
 # Locate tutorial data shipped with the eCOMET package
 data_dir <- system.file(
@@ -85,52 +87,60 @@ gls_db <- file.path(data_dir, "custom_DB_glucosinolates.csv")
 
 Following steps are performed to create an `mmo` object and add various normalizations and annotations. Inspect the structure of the 'mmo' object using 'summary(mmo)'' after each step to see how the object is updated.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Initialize eCOMET object
 mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group', sample_col = 'sample')
 
 mmo$feature_data
 ```
 
+```{r, eval=FALSE}
+mmo$feature_info
+```
+
+```{r, eval=FALSE}
+mmo$pairwise
+```
+
 ```{r, eval = FALSE}
 mmo$metadata
 ```
 
-#MS - I discussed this with Sedio Group and everyone things the feature table to be appended to list not replace...
-#Can we adjust to address this?? At the very least we want to discuss when to apply this.
+#MS - I discussed this with Sedio Group and everyone things the feature table to be appended to list not replace... #Can we adjust to address this?? At the very least we want to discuss when to apply this.
 
 #Add explanation of why we would replace zero how it will impact downstream calculations (i.e valcano plots vs richness calculations)
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
 mmo$feature_data
 ```
-#MS-same don't replace add
-#annotate exactly how Mass is Normalized and how it knows what column to use
 
-```{r, eval = FALSE}
+#MS-same don't replace add #annotate exactly how Mass is Normalized and how it knows what column to use
+
+```{r, eval=FALSE}
 mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
 mmo$feature_data 
 ```
 
-#Can you add a little more annotation here and in the help/documentation to explain what meancenter normalization works? Sedio group had questions. 
+#Can you add a little more annotation here and in the help/documentation to explain what meancenter normalization works? Sedio group had questions.
 
 #ecoMET offers the following types of normalization each will append a new feature_abundance matrix to the mmo object and can be called when plotting.
 
-
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 mmo <- MeancenterNormalization(mmo) # Add mean-centered area
 mmo <- LogNormalization(mmo) # Add log-transformed area
 mmo <- ZNormalization(mmo) # Add Zscore
 ```
+
 You can also convert the feature abundance matrix to a presence absence matrix based on a threshold using the function FeaturePresence
-```{r}
+
+```{r, eval=FALSE}
 mmo <- FeaturePresence(mmo, threshold = 1) # Add Zscore
 ```
 
 MS-I am still getting duplicates and it gives a warning. We should address this in the tutorial but also did I lose the fix you implemented to handle the duplicates?
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Add SIRIUS annotation
 mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
 mmo$sirius_annot
@@ -139,63 +149,56 @@ mmo$sirius_annot
 #Need to explain how to handle duplicates!
 
 ```
+
 ### MS- There are still duplicates. Do you know how to exclude them and how to handle it? If duplicates appear in the tutorial we need to at least explain what's going on here...
 
-
-We can filter sirius annotations based on confidence score. We can do this both for the probabilities in the canopus class predictions and/or to the formula/smiles predictions. 
+We can filter sirius annotations based on confidence score. We can do this both for the probabilities in the canopus class predictions and/or to the formula/smiles predictions.
 
 Starting with the class predictions we can use the filter_canopus_annotations() function
 
-We define what pathway levels we want to filter:
- i.e. pathway_level = "NPC#pathway", "All" or "All_NPC" 
- You can also provide a list of columns..  c("NPC#superclass","NPC#class")
+We define what pathway levels we want to filter: i.e. pathway_level = "NPC#pathway", "All" or "All_NPC" You can also provide a list of columns.. c("NPC#superclass","NPC#class")
 
 Define a threshold cut of i.e. threshold = 0.9
 
-The function will add a new annotation list to the mmo object and a suffex can be added to note what settings were used 
-- suffix = "NPC_pathway_0.9"
+The function will add a new annotation list to the mmo object and a suffex can be added to note what settings were used - suffix = "NPC_pathway_0.9"
 
-Sirius provides some info on how to set this threshold - 
+Sirius provides some info on how to set this threshold -
 
-
-The relevant warning for this threshold is here: https://v6.docs.sirius-ms.io/methods-background/#CANOPUS
+The relevant warning for this threshold is here: <https://v6.docs.sirius-ms.io/methods-background/#CANOPUS>
 
 "Be aware that there is no universally accepted threshold to classify predictions as “good” or “bad.” The posterior probability estimates provided do not adhere to a fixed standard, and while a binary classifier might suggest a threshold of 0.5, this is not always sufficient in real-world applications. If a user desires more nuanced classifications, such as “Yes,” “No,” and “Maybe,” thresholds like 0.15 and 0.85 may be helpful, although these are just approximations. Moreover, for statistical analysis, such as determining the number of occurrences of a specific compound class in a sample, users can sum up the probabilities to get an expected count. It’s also important to consider that when a compound is significantly different from known compounds, CANOPUS may return lower probabilities for all compound classes, which means users might need to accept predictions with probabilities below 0.5 depending on their specific needs. Thus, the choice of threshold depends on the context and the user’s tolerance for uncertainty."
 
 It can be helpful to visialize the distribution of thresholds to see how much you would be filtering out
 
-
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 
 hist(mmo$sirius_annot$`NPC#pathway Probability`)
 ```
-Here we see that there is a long tail of low confidence values. In this tutorial we will filter these out just as one example. 
 
-```{r, eval = FALSE}
+Here we see that there is a long tail of low confidence values. In this tutorial we will filter these out just as one example.
+
+```{r, eval=FALSE}
 mmo <- filter_canopus_annotations(mmo, pathway_level = "NPC#pathway", threshold = 0.8,suffix = "NPC_pathway_0.8",overwrite = T)
 ```
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 mmo$sirius_annot_filtered_NPC_pathway_0.8
 
 ```
+
 A similar logic can be applied to filter the smiles confidence
 
 In order to filter sequentially we have to define what Sirius_annotation filter we want to apply this too setting input
 
 See the documentation for details about this score!
 
-https://v6.docs.sirius-ms.io/methods-background/#CANOPUS
+<https://v6.docs.sirius-ms.io/methods-background/#CANOPUS>
 
-More details in this paper:https://www.nature.com/articles/s41587-021-01045-9
-
+More details in this paper:<https://www.nature.com/articles/s41587-021-01045-9>
 
 "Interpretation of COSMIC confidence values: COSMIC confidence scores should be interpreted with caution. It’s crucial to understand that these scores are not probabilities and, therefore, do not have a direct statistical interpretation. When performing large-scale analyses, it’s advisable to focus on the highest-confidence hits (e.g., the top 1/5/10%), generally independent of their specific confidence value."
 
-
-
-
-```{r}
+```{r, eval=FALSE}
 
 #Replace -Infinity w/ 0
 
@@ -208,13 +211,16 @@ Cosmic_Scores <- as.numeric(mmo$sirius_annot_filtered_NPC_pathway_0.8$Confidence
 hist(Cosmic_Scores, main = "Cosmic Confidence Score for Structures")
 
 ```
+
 We can see the distribution of scores very different than in the class probabilities.
 
 To get the top 10% of hits
-```{r}
+
+```{r, eval=FALSE}
 quantile(x = Cosmic_Scores,probs = 0.9,na.rm = T)
-```    
-```{r}
+```
+
+```{r, eval=FALSE}
 mmo <- filter_cosmic_structure(
   mmo,
   input = "sirius_annot_filtered_NPC_pathway_0.8",
@@ -227,20 +233,24 @@ mmo <- filter_cosmic_structure(
 
 # Make a vector of flavonoids using SIRIUS annotation
 
-```{r, eval = FALSE}
-FLVs <- mmo$sirius_annot %>% filter(str_detect(mmo$sirius_annot[['ClassyFire#most specific class']], "Flavonoid")) %>% pull(feature)
+```{r, eval=FALSE}
+FLVs_features <- mmo$sirius_annot %>% filter(str_detect(mmo$sirius_annot[['ClassyFire#most specific class']], "Flavonoid")) %>% pull(feature)
+FLVs_features
 ```
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Add custom annotation using inhouse glucosinolate library
 mmo <- AddCustomAnnot(mmo, DB = gls_db, mztol = 5, rttol = 0.2)
 # Make a vector of glucosinolates using custom annotation
 GLSs <- mmo$custom_annot %>% filter(lengths(custom_annot) > 0) %>% pull(feature)
+GLSs
 ```
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Add Dreams distance
 mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+
+mmo$dreams.dissim[1:10,1:10]
 ```
 
 ## 2. Plot dimensionality reduction plots
@@ -249,11 +259,7 @@ mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
 A PCA plot is commonly used to visualize the overall distribution of groups. Following PERMANOVA test can be performed to check if the groups are significantly different. `PCAplot()` function use mmo to perform PCA, plot them, and perform PERMANOVA test.
 
-MS - I think that we should explain the logic of how to either save the output directly OR how to return the obect.
-Did you set it up so that if an outdir is provided it will save otherwise it will just return?
-I would start with returning the obect and showing the format of the output/plot
-Then showing how you can add your own astetics and resave...
-
+MS - I think that we should explain the logic of how to either save the output directly OR how to return the obect. Did you set it up so that if an outdir is provided it will save otherwise it will just return? I would start with returning the obect and showing the format of the output/plot Then showing how you can add your own astetics and resave...
 
 ```{r, eval = FALSE}
 # Set colors for groups
@@ -267,7 +273,7 @@ PCAplot(mmo, color = colors, outdir = 'plot/PCA_FLV', label = FALSE, filter_feat
 
 Alternatively, you can use the output of PCAplot to generate plot with your own aesthetics.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Get PCA plot inputs
 pca_res <- PCAplot(mmo, color = colors, outdir = 'plot/PCA')
 # Generate plot with your own aesthetics
@@ -281,7 +287,7 @@ dev.off()
 
 Likewise, all plot-generating functions in eCOMET return a list of dataframes and other objects that can be used to generate plots with your own aesthetics. Use `summary(pca_res)` to see the structure of the output and try this for other plot-generating functions. \### PLS-DA plot
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Plot PLS-DA
 PLSDAplot(mmo, color = colors, outdir = 'plot/PLSDA.pdf')
 PLSDAplot(mmo, color = colors, outdir = 'plot/PLSDA_meancentered.pdf', normalization = 'Meancentered') # Data normalization option
@@ -291,7 +297,7 @@ PLSDAplot(mmo, color = colors, outdir = 'plot/PLSDA_meancentered.pdf', normaliza
 
 Many analyses targets to find **Differentially Accumulated Metabolites (DAMs)**. DAMs can be defined by thresholds of log2-fold change and adjusted p-value. Those two metrics are calculated by following code. Note that the divisor group is at the left. - `PairwiseComp()` function performs pairwise comparison between two groups using t-test and fold change. The results are stored in mmo\$pairwise_comp. - `GetDAMs()` function extracts DAMs based on user-defined cutoffs for p-value and fold change. - Here, we compare each herbivore treatment group (sl1 and le1) to the control group (ctrl). - Log2(1.5) = 0.5849625 is used as fold change cutoff and 0.1 as p-value cutoff to extract more DAMs
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Run pairwise comparison
 mmo <- PairwiseComp(mmo, group1 = 'ctrl', group2 = 'sl1')
 mmo <- PairwiseComp(mmo, group1 = 'ctrl', group2 = 'le1')
@@ -306,7 +312,7 @@ head(DAMs_up)
 
 A volcano plot can be used to visualize the overall distribution of features based on fold change and p-value.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Volcano plot
 VolcanoPlot(mmo, comp = 'ctrl_vs_sl1', outdir = 'plot/Volcano_ctrl_vs_sl1.pdf')
 VolcanoPlot(mmo, comp = 'ctrl_vs_le1', outdir = 'plot/Volcano_ctrl_vs_le1.pdf', topk = 0) # Remove label by setting topk = 0
@@ -316,7 +322,7 @@ VolcanoPlot(mmo, comp = 'ctrl_vs_le1', outdir = 'plot/Volcano_ctrl_vs_le1.pdf', 
 
 A Venn diagram or upset plot can be used to visualize the overlap of DAMs between different comparisons.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Define input list
 VennInput <- list(
   sl1.up = DAMs_up$ctrl_vs_sl1.up,
@@ -345,7 +351,7 @@ To visualize the relative abundance of features across samples, a heatmap can be
 -   Groups or features can be filtered by setting 'filter_group' or 'filter_feature' to TRUE and providing a list of groups or features.
 -   The input data for the heatmap is generated by 'GenerateHeatmapInputs()' function, then the heatmap is plotted using 'pheatmap' package.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 library(pheatmap)
 # Generate input for heatmap
 # distance is one of the chemical distance (cosine, m2ds, and dreams) for clustering rows
@@ -417,7 +423,7 @@ dev.off()
 
 Biological questions ask which class of chemical compounds are enriched in a set of compounds of interest (e.g., DAMs from above). This is analogue to the Gene Ontology enrichment analysis performed in transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus of SIRIUS are used to perform chemical class enrichment analysis of given list of features. The enrichment score of each term is calculated to plot the number of each term and the significance.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # For a single set of features, a detailed enrichment plot can be generated
 # There are two plotting styles available
 CanopusListEnrichmentPlot(mmo, DAMs_up$ctrl_vs_sl1.up, pthr = 0.1, outdir = 'plot/sl1_up_enrichment.pdf', height = 6, width = 6)
@@ -441,7 +447,7 @@ CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'ClassyFire', pthr = 0.
 
 To find phenotype-linked metabolties, we can use correlation analysis. In this tutorial, we will use correlation between amount of each feature and herbivore performance in bioassay to find defense compounds.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # We will first screen for all features to find whether there is any correlation between amount of each feature and herbivore performance in bioassay
 sl_cor <- ScreenFeaturePhenotypeCorrelation(mmo, phenotype = 'sl', groups = c('sl1'), model = 'spearman', normalization = 'Z')
 head(sl_cor)
@@ -451,7 +457,7 @@ head(sl_cor)
 
 MMO object can be shared with other users by saving it to a file and loading it from a file.
 
-```{r, eval = FALSE}
+```{r, eval=FALSE}
 # Save MMO object
 SaveMMO(mmo, 'mmo.RData')
 

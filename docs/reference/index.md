@@ -3,9 +3,7 @@
 ## Core dataset processing
 
 - [`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md)
-  : Import mzmine feature data and metadata to create a mmo object
-- [`AddFeatureInfo()`](https://phytoecia.github.io/eCOMET/reference/AddFeatureInfo.md)
-  : Add feature_info to an existing mmo from a full_feature CSV
+  : Import MZmine feature table and metadata to create a mmo object
 - [`AddSiriusAnnot()`](https://phytoecia.github.io/eCOMET/reference/AddSiriusAnnot.md)
   : Adding annotation from SIRIUS to the mmo object
 - [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md)
@@ -28,6 +26,23 @@
   : Switch the group column in the mmo object
 - [`FeaturePresence()`](https://phytoecia.github.io/eCOMET/reference/FeaturePresence.md)
   : Convert feature abundances to presence / absence
+
+## Filterng MMO and associated MGF
+
+- [`filter_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mmo.md)
+  : Filter an mmo object by samples, groups, and/or features
+- [`filter_mgf_to_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.md)
+  : Filter an MGF file to keep only spectra for features present in
+  mmo\$feature_data\$id
+- [`annotate_feature_info_ms2_from_mgf()`](https://phytoecia.github.io/eCOMET/reference/annotate_feature_info_ms2_from_mgf.md)
+  : Annotate mmo\$feature_info with MS2 presence and MS2 block counts
+  from an MGF
+- [`filter_canopus_annotations()`](https://phytoecia.github.io/eCOMET/reference/filter_canopus_annotations.md)
+  : Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by
+  probability threshold
+- [`filter_cosmic_structure()`](https://phytoecia.github.io/eCOMET/reference/filter_cosmic_structure.md)
+  : Filter SIRIUS structure (CSI:FingerID) annotations by COSMIC
+  confidence score
 
 ## Basic statistics and visualization
 

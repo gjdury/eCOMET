@@ -5,6 +5,10 @@ distance matrices, and annotations) to a given set of samples, groups,
 and/or feature IDs. Filtering is applied consistently across all slots
 present in `mmo`.
 
+Optionally, if an `mgf_path` is provided, a filtered MGF is written
+containing only spectra for the retained features (using
+[`filter_mgf_to_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.md)).
+
 ## Usage
 
 ``` r
@@ -16,7 +20,9 @@ filter_mmo(
   sample_col = "sample",
   group_col = "group",
   drop_empty_feat = TRUE,
-  empty_threshold = NULL
+  empty_threshold = NULL,
+  mgf_path = NULL,
+  output_path = NULL
 )
 ```
 
@@ -62,18 +68,35 @@ filter_mmo(
 
   Optional numeric threshold used to define “empty” features. If `NULL`
   (default), the smallest positive, non-NA intensity in the retained
-  samples (`min_val`) is used. Features are kept if they have at least
-  one value \> threshold across retained samples.
+  samples is used. Features are kept if they have at least one value \>
+  threshold across retained samples.
+
+- mgf_path:
+
+  Optional character. If provided, an MGF file will be filtered to
+  retained features using
+  [`filter_mgf_to_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.md).
+
+- output_path:
+
+  Character or NULL. Passed to
+  [`filter_mgf_to_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.md).
+  If `NULL` (default), output is `"<input>_filtered.mgf"`.
 
 ## Value
 
 A filtered mmo object with the same structure as `mmo`, but restricted
-to the requested samples / groups / features.
+to the requested samples / groups / features. If `mgf_path` is provided,
+the returned object also includes `mmo_filtered$mgf_filtered_path`.
 
 ## Examples
 
 ``` r
 if (FALSE) { # \dontrun{
 mmo_sub <- filter_mmo(mmo, group_list = c("Species1", "Species2"))
+
+# Also write a filtered mgf:
+mmo_sub <- filter_mmo(mmo, group_list = c("Species1", "Species2"),
+                      mgf_path = "spectra.mgf")
 } # }
 ```

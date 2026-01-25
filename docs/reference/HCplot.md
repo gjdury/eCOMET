@@ -85,7 +85,11 @@ implied).
 
 ``` r
 if (FALSE) {
-bet <- GetBetaDiversity(mmo, method='bray', normalization='Log', distance='dreams', filter_feature=FALSE)
-HCplot(mmo, betadiv = bet, outdir = "output/HC_dreams_bray")
+bet <- GetBetaDiversity(mmo, method='bray',
+        normalization='Log', distance='dreams',
+         filter_feature=FALSE)
+HCplot(mmo,
+       betadiv = bet,
+       outdir = "output/HC_dreams_bray")
 }
 ```

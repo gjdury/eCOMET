@@ -59,7 +59,13 @@ metadata, with columns for group and hill number.
 
 ``` r
 if (FALSE) {
-hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 1, distance = 'dreams', filter_feature = FALSE)
-hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z', q = 3, distance = 'dreams', filter_feature = TRUE, feature_list = Glucosinolates)
+hill_number <- GetFunctionalHillNumber(mmo,
+                                       normalization = 'Z',
+                                       q = 1, distance = 'dreams',
+                                       filter_feature = FALSE)
+hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z',
+                                       q = 3, distance = 'dreams',
+                                       filter_feature = TRUE,
+                                       feature_list = Glucosinolates)
 }
 ```

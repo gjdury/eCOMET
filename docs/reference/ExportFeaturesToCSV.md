@@ -33,7 +33,12 @@ ExportFeaturesToCSV(mmo, feature_list, normalization = "None", output_dir)
 
 ``` r
 if (FALSE) {
-ExportFeaturesToCSV(mmo, feature_list = Glucosinolates, normalization = 'Z', output_dir = 'output.csv')
-ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up, normalization = 'None', output_dir = 'output.csv')
+ExportFeaturesToCSV(mmo,
+                    feature_list = Glucosinolates,
+                     normalization = 'Z',
+                     output_dir = 'output.csv')
+ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+                         normalization = 'None',
+                          output_dir = 'output.csv')
 }
 ```

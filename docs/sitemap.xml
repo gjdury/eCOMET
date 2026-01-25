@@ -3,6 +3,7 @@
 <url><loc>https://phytoecia.github.io/eCOMET/articles/Interspecific_study_tutorial.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/Intro.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/Treatment-based_study_tutorial.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/articles/eCOMET-intro.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/index.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/vignette-eCOMET-intro.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/authors.html</loc></url>
@@ -69,8 +70,12 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/SwitchGroup.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/VolcanoPlot.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ZNormalization.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/annotate_feature_info_ms2_from_mgf.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/anova_tukey_dunnett.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/ecomet-internal-imports.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/filter_canopus_annotations.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/filter_cosmic_structure.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/filter_mmo.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/index.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/permanova_stat.html</loc></url>

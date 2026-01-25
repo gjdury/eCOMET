@@ -29,6 +29,8 @@ control group
 
 ``` r
 if (FALSE) {
-fold_change <- GetLog2FoldChange(GetGroupMeans(mmo, normalization = 'Log'), control_group = 'Control')
+fold_change <- GetLog2FoldChange(GetGroupMeans(mmo,
+                 normalization = 'Log'),
+                 control_group = 'Control')
 }
 ```
