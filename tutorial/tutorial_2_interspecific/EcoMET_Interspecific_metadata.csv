@@ -1,0 +1,72 @@
+filename,Species_binomial,Genus,speciesCode,Path_Demo,mzmine_sample_type,Family
+annRSS85_MDP0005.mzXML,Annona RSS-85,Annona,annRSS85,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/annRSS85_MDP0005.mzXML,sample,Annonaceae
+annRSS85_MDP0091.mzXML,Annona RSS-85,Annona,annRSS85,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/annRSS85_MDP0091.mzXML,sample,Annonaceae
+annRSS85_MDP0307.mzXML,Annona RSS-85,Annona,annRSS85,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/annRSS85_MDP0307.mzXML,sample,Annonaceae
+annRSS85_MDP0415.mzXML,Annona RSS-85,Annona,annRSS85,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/annRSS85_MDP0415.mzXML,sample,Annonaceae
+annRSS85_MDP0464.mzXML,Annona RSS-85,Annona,annRSS85,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/annRSS85_MDP0464.mzXML,sample,Annonaceae
+annRSS85_MDP0636.mzXML,Annona RSS-85,Annona,annRSS85,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/annRSS85_MDP0636.mzXML,sample,Annonaceae
+beitov_MDP0008.mzXML,Beilschmiedia tovarensis,Beilschmiedia,beitov,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/beitov_MDP0008.mzXML,sample,Lauraceae
+beitov_MDP0229.mzXML,Beilschmiedia tovarensis,Beilschmiedia,beitov,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/beitov_MDP0229.mzXML,sample,Lauraceae
+beitov_MDP0466.mzXML,Beilschmiedia tovarensis,Beilschmiedia,beitov,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/beitov_MDP0466.mzXML,sample,Lauraceae
+beitov_MDP0536.mzXML,Beilschmiedia tovarensis,Beilschmiedia,beitov,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/beitov_MDP0536.mzXML,sample,Lauraceae
+beitov_MDP0638.mzXML,Beilschmiedia tovarensis,Beilschmiedia,beitov,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/beitov_MDP0638.mzXML,sample,Lauraceae
+elamar_MDP0022.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0022.mzXML,sample,Rubiaceae
+elamar_MDP0104.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0104.mzXML,sample,Rubiaceae
+elamar_MDP0244.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0244.mzXML,sample,Rubiaceae
+elamar_MDP0423.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0423.mzXML,sample,Rubiaceae
+elamar_MDP0479.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0479.mzXML,sample,Rubiaceae
+elamar_MDP0547.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0547.mzXML,sample,Rubiaceae
+elamar_MDP0651.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0651.mzXML,sample,Rubiaceae
+elamar_MDP0720.mzXML,Elaeagia mariae,Elaeagia,elamar,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/elamar_MDP0720.mzXML,sample,Rubiaceae
+ingalb_MDP0036.mzXML,Inga alba,Inga,ingalb,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ingalb_MDP0036.mzXML,sample,Fabaceae
+ingalb_MDP0115.mzXML,Inga alba,Inga,ingalb,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ingalb_MDP0115.mzXML,sample,Fabaceae
+ingalb_MDP0260.mzXML,Inga alba,Inga,ingalb,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ingalb_MDP0260.mzXML,sample,Fabaceae
+ingalb_MDP0336.mzXML,Inga alba,Inga,ingalb,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ingalb_MDP0336.mzXML,sample,Fabaceae
+ingalb_MDP0735.mzXML,Inga alba,Inga,ingalb,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ingalb_MDP0735.mzXML,sample,Fabaceae
+myr2fal_MDP0051.mzXML,Myrcia fallax,Myrcia,myr2fal,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr2fal_MDP0051.mzXML,sample,Myrtaceae
+myr2fal_MDP0130.mzXML,Myrcia fallax,Myrcia,myr2fal,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr2fal_MDP0130.mzXML,sample,Myrtaceae
+myr2fal_MDP0269.mzXML,Myrcia fallax,Myrcia,myr2fal,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr2fal_MDP0269.mzXML,sample,Myrtaceae
+myr2fal_MDP0360.mzXML,Myrcia fallax,Myrcia,myr2fal,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr2fal_MDP0360.mzXML,sample,Myrtaceae
+myr2fal_MDP0569.mzXML,Myrcia fallax,Myrcia,myr2fal,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr2fal_MDP0569.mzXML,sample,Myrtaceae
+myr2fal_MDP0678.mzXML,Myrcia fallax,Myrcia,myr2fal,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr2fal_MDP0678.mzXML,sample,Myrtaceae
+myr8cor_MDP0214.mzXML,Myrsine coriacea,Myrsine,myr8cor,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr8cor_MDP0214.mzXML,sample,Primulaceae
+myr8cor_MDP0444.mzXML,Myrsine coriacea,Myrsine,myr8cor,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr8cor_MDP0444.mzXML,sample,Primulaceae
+myr8cor_MDP0507.mzXML,Myrsine coriacea,Myrsine,myr8cor,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr8cor_MDP0507.mzXML,sample,Primulaceae
+myr8cor_MDP0617.mzXML,Myrsine coriacea,Myrsine,myr8cor,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr8cor_MDP0617.mzXML,sample,Primulaceae
+myr8cor_MDP0679.mzXML,Myrsine coriacea,Myrsine,myr8cor,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/myr8cor_MDP0679.mzXML,sample,Primulaceae
+ocoaci_MDP0057.mzXML,Ocotea aciphylla,Ocotea,ocoaci,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ocoaci_MDP0057.mzXML,sample,Lauraceae
+ocoaci_MDP0134.mzXML,Ocotea aciphylla,Ocotea,ocoaci,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ocoaci_MDP0134.mzXML,sample,Lauraceae
+ocoaci_MDP0275.mzXML,Ocotea aciphylla,Ocotea,ocoaci,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ocoaci_MDP0275.mzXML,sample,Lauraceae
+ocoaci_MDP0365.mzXML,Ocotea aciphylla,Ocotea,ocoaci,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ocoaci_MDP0365.mzXML,sample,Lauraceae
+ocoaci_MDP0576.mzXML,Ocotea aciphylla,Ocotea,ocoaci,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ocoaci_MDP0576.mzXML,sample,Lauraceae
+ocoaci_MDP0751.mzXML,Ocotea aciphylla,Ocotea,ocoaci,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/ocoaci_MDP0751.mzXML,sample,Lauraceae
+pou2bic_MDP0068.mzXML,Pourouma bicolor,Pourouma,pou2bic,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/pou2bic_MDP0068.mzXML,sample,Urticaceae
+pou2bic_MDP0144.mzXML,Pourouma bicolor,Pourouma,pou2bic,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/pou2bic_MDP0144.mzXML,sample,Urticaceae
+pou2bic_MDP0284.mzXML,Pourouma bicolor,Pourouma,pou2bic,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/pou2bic_MDP0284.mzXML,sample,Urticaceae
+pou2bic_MDP0375.mzXML,Pourouma bicolor,Pourouma,pou2bic,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/pou2bic_MDP0375.mzXML,sample,Urticaceae
+pou2bic_MDP0764.mzXML,Pourouma bicolor,Pourouma,pou2bic,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/pou2bic_MDP0764.mzXML,sample,Urticaceae
+sch4obo_MDP0079.mzXML,Schizocalyx obovatus,Schizocalyx,sch4obo,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/sch4obo_MDP0079.mzXML,sample,Rubiaceae
+sch4obo_MDP0156.mzXML,Schizocalyx obovatus,Schizocalyx,sch4obo,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/sch4obo_MDP0156.mzXML,sample,Rubiaceae
+sch4obo_MDP0293.mzXML,Schizocalyx obovatus,Schizocalyx,sch4obo,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/sch4obo_MDP0293.mzXML,sample,Rubiaceae
+sch4obo_MDP0394.mzXML,Schizocalyx obovatus,Schizocalyx,sch4obo,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/sch4obo_MDP0394.mzXML,sample,Rubiaceae
+sch4obo_MDP0772.mzXML,Schizocalyx obovatus,Schizocalyx,sch4obo,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/sch4obo_MDP0772.mzXML,sample,Rubiaceae
+weilec_MDP0087.mzXML,Weinmannia lechleriana,Weinmannia,weilec,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/weilec_MDP0087.mzXML,sample,Cunoniaceae
+weilec_MDP0160.mzXML,Weinmannia lechleriana,Weinmannia,weilec,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/weilec_MDP0160.mzXML,sample,Cunoniaceae
+weilec_MDP0526.mzXML,Weinmannia lechleriana,Weinmannia,weilec,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/weilec_MDP0526.mzXML,sample,Cunoniaceae
+weilec_MDP0599.mzXML,Weinmannia lechleriana,Weinmannia,weilec,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/weilec_MDP0599.mzXML,sample,Cunoniaceae
+weilec_MDP0703.mzXML,Weinmannia lechleriana,Weinmannia,weilec,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/weilec_MDP0703.mzXML,sample,Cunoniaceae
+Madidi_BLANK_20201117200945.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_BLANK_20201117200945.mzXML,blank,blank
+Blank_Madidi_20210604.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Blank_Madidi_20210604.mzXML,blank,blank
+Madidi_Blank_20210630.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_Blank_20210630.mzXML,blank,blank
+Madidi_Blank.raw.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_Blank.raw.mzXML,blank,blank
+Blank_Madidi_20210617.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Blank_Madidi_20210617.mzXML,blank,blank
+Madidi_Blank_20210319111727.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_Blank_20210319111727.mzXML,blank,blank
+Blank_Madidi_20210624.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Blank_Madidi_20210624.mzXML,blank,blank
+Blank_Madidi_20210615.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Blank_Madidi_20210615.mzXML,blank,blank
+Madidi_BLANK_Madidi_20210622.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_BLANK_Madidi_20210622.mzXML,blank,blank
+Blank_Madidi_20210608.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Blank_Madidi_20210608.mzXML,blank,blank
+Madidi_Blank_20210728.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_Blank_20210728.mzXML,blank,blank
+Madidi_blank_2.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_blank_2.mzXML,blank,blank
+Madidi_Blank_20210729.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_Blank_20210729.mzXML,blank,blank
+Madidi_Blank_3.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_Blank_3.mzXML,blank,blank
+Madidi_Blank_20210721.mzXML,blank,blank,blank,/Users/dlforrister/Downloads/Test_Panama_New_Data/mzXML_Madidi/Madidi_Blank_20210721.mzXML,blank,blank
