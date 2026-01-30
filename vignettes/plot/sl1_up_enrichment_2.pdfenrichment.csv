@@ -1,0 +1,11 @@
+term_level,term,subsetcount,totalcount,foldenrichment,pval,fdr
+ClassyFire_subclass,Benzenesulfonic acids and derivatives ; ClassyFire_subclass,4,4,31.254545454545454,0.03847618581047538,0.8349418329110724
+ClassyFire_most_specific,Benzenesulfonic acids and derivatives ; ClassyFire_most_specific,4,4,31.254545454545454,0.03847618581047538,0.6901536091743378
+ClassyFire_subclass,Ethers ; ClassyFire_subclass,9,18,15.627272727272727,0.03859457135637882,0.8349418329110724
+NPC_class,Glucosinolates ; NPC_class,25,56,13.952922077922077,0.002595541238197881,0.2050477578176326
+NPC_superclass,Amino acid glycosides ; NPC_superclass,30,68,13.788770053475936,0.0011427787558774825,0.04456837147922182
+ClassyFire_most_specific,Alkylglucosinolates ; ClassyFire_most_specific,20,47,13.299806576402322,0.010240845863559656,0.6901536091743378
+NPC_superclass,Tryptophan alkaloids ; NPC_superclass,12,29,12.932915360501568,0.04884838114363976,0.6350289548673169
+NPC_superclass,Oligopeptides ; NPC_superclass,23,66,10.891735537190081,0.03520110655285002,0.6350289548673169
+ClassyFire_superclass,Organic oxygen compounds ; ClassyFire_superclass,48,163,9.203792526491913,0.034241995311721396,0.44514593905237815
+ClassyFire_class,Organooxygen compounds ; ClassyFire_class,48,163,9.203792526491913,0.034241995311721396,0.8828150769749725
