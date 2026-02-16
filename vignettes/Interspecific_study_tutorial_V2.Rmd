@@ -6,6 +6,10 @@ output: html_notebook
 This Relative Paths will work if you open the .Rjroject.
 
 ```{r, eval = FALSE}
+pak::pak("phytoecia/eCOMET", upgrade = TRUE)
+
+
+
 library(here)
 here()
 
@@ -16,10 +20,10 @@ library(ggplot2)
 ```
 # Background
 
-In this tutorial, we will demonstrate how to use the eCOMET package for analyzing metabolic data in a study that analyzes samples across biological species. We start by comparing chemical richness and diversity across samples. We then compare the composition of samples using dimensionality reduction (hierachical clustering, PCAs, NMDS) to display how samples within groups compare to one another. Up until this point, we have assumed that all MZ-RT features are (statistically) independent. However,this assumption is very often wrong in untargeted metabolomic studies. To address this in the second half of the tutorial we take measures to account for associations between features, first by grouping freatures likely belonging to the same metabolite, and then by accounting for structural similarity between features.
+In this tutorial, we will demonstrate how to use the eCOMET package for analyzing multiple species of trees that co-occur accross a network of forest plots. We start by comparing chemical richness and diversity across samples. We then compare the composition of samples using dimensional reduction (hierarchical clustering, PCAs, NMDS) to display how samples within groups compare to one another. Up until this point, we have assumed that all MZ-RT features are (statistically) independent. However,this assumption is often wrong when analyzing untargeted metabolomic datasets because multiple features are detected for each compound (i.e. adducts, isotopes and in-source fragments). To address this in the second half of the tutorial we take measures to account for associations between features, first by grouping features from to the same metabolite, and then by accounting for structural similarity between features.
 
 
-Unlike in a treatment based study, where the expectation is that many compounds will be shared between treatment groups, and the goal is to identify differential expressed metabolites. In studies comparing across species, we are often presented with a case where the vast majority of compounds are not shared between groups (i.e species of plants). In these cases, metrics of chemical similarity can become relatively meaningless if we rely completely on shared MZ-RT features. To address this, chemical ecologists have integrated tools such a feature based molecular networking and structurally weighted scores of chemical similarity to account for the fact that although two samples do not contain the same mz-rt feature, they both are producing compounds from the same biosynthetic origin and thus, should be considered more chemically similar than another sample that produces compounds from a different class. 
+Unlike in a treatment based study, where the expectation is that many compounds will be shared between treatment groups, and the goal is to identify differential expressed metabolites. In studies comparing across species, we are often presented with a case where the vast majority of compounds are not shared between groups (i.e species of plants). In these cases, metrics of chemical similarity can become relatively meaningless if we rely completely on shared MZ-RT features. To address this, chemical ecologists have integrated tools that account for relationships between detected features - feature based and ion identity molecular networking and structurally weighted scores of chemical similarity. These tools take into account for the fact that although two samples do not contain the same mz-rt feature, they both are producing compounds from the same biosynthetic origin and thus, should be considered more chemically similar than another sample that produces compounds from a different class/pathway. 
 
 Step 1: Load input data and generate the MMO object
 
@@ -33,8 +37,21 @@ demo_metadata <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_me
 demo_dreams <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_edges_dreams_dreams.csv")
 
 # Initialize eCOMET object
+
+
 mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'Species_binomial',sample_col = "filename")
+names(mmo)
+
+mmo$feature_data[1:10,1:10]
+
+### Ok, we need to update the mmo input so that it feature_info automatically...
+
 mmo <- AddFeatureInfo(mmo = mmo,full_feature_csv=demo_feature)
+
+
+names(mmo)
+
+
 # Add normalizations
 mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
 mmo <- LogNormalization(mmo) # Add log-transformed area
