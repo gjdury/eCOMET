@@ -8,8 +8,6 @@ This Relative Paths will work if you open the .Rjroject.
 ```{r, eval = FALSE}
 pak::pak("phytoecia/eCOMET", upgrade = TRUE)
 
-
-
 library(here)
 here()
 
@@ -31,49 +29,135 @@ Step 1: Load input data and generate the MMO object
 here()
 
 demo_feature <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_full_feature_table.csv")
-demo_metadata <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_metadata_blank.csv")
-#demo_sirius_formula <- here("tutorial/tutorial_2_interspecific/sirius/formula_identifications.tsv")
-#demo_sirius_structure <- here("tutorial/tutorial_2_interspecific/sirius/structure_identifications.tsv")
+demo_metadata <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_metadata_no_blank.csv")
+demo_sirius_formula <- here("tutorial/tutorial_2_interspecific/canopus_formula_summary.tsv")
+demo_sirius_structure <- here("tutorial/tutorial_2_interspecific/canopus_structure_summary.tsv")
 demo_dreams <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_edges_dreams_dreams.csv")
 
 # Initialize eCOMET object
-
+here()
 
 mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'Species_binomial',sample_col = "filename")
-names(mmo)
 
-mmo$feature_data[1:10,1:10]
-
-### Ok, we need to update the mmo input so that it feature_info automatically...
-
-mmo <- AddFeatureInfo(mmo = mmo,full_feature_csv=demo_feature)
-
-
-names(mmo)
-
-
-# Add normalizations
-mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
-mmo <- LogNormalization(mmo) # Add log-transformed area
-mmo <- ZNormalization(mmo) # Add Zscore
-
+mmo
 
 ```
+Building the MMO object creates three objects:
 
-Now the mmo object contains the Feature x Abundance matrix where the first two columns identify individual metabolites and the remaining columns represent the abundance in each sample
+1) Sample Metadata:
 
-```{r, eval = FALSE}
-mmo$feature_data
-
-```
-
-In this tutorial we will be comparing samples across groups of species. This information is stored in the metadata file and was defined when the mmo object was created.
-
+We are working with a dataset containing 10 species of tropical trees with 5-8 replicate samples for each species.
 
 
 ```{r}
-table(mmo$metadata$group)
+
+mmo$metadata
 ```
+
+2) Feature info...
+```{r}
+mmo$feature_info
+```
+
+
+3) Feature data...
+
+Feature x Abundance matrix where the first two columns identify individual metabolites and the remaining columns represent the abundance in each sample
+
+```{r}
+mmo$feature_data
+```
+
+
+If gap filling was not applied when processing mzmine the feature matrix will contain many NA values and/or zero ubundance features. These will cause issues for downstream statistics so we start the tutorial by imputing the data replacing NAs and zeros with a small non-zero constant. 
+
+By adding a non-zero constant, our calculating of compound presence absence and compound richness will be over inflated... Thus, the function ReplaceZero will simultanious add both an inputed feature table and a presence absence table to the object.
+
+### update the replaceZero to function to account for this.
+
+# Add normalizations
+```{r}
+mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
+
+mmo$feature_data
+```
+Task 1: 
+A) Calculate the number of features observed in each sample and each species:
+
+```{r}
+
+#GetAlphadiv but only for richness - no compdis, q = 0)
+
+df_s <- CalculateRichness(mmo, threshold = 1)
+
+
+
+ggplot2::ggplot(df_s, ggplot2::aes(x = group, y = richness)) +
+  ggplot2::geom_boxplot(outlier.shape = NA) +
+  ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6)
+
+```
+We can calculate the richness per feature annotation level by adding in the sirius annotations
+
+```{r}
+
+# Add SIRIUS annotation
+mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
+mmo$sirius_annot
+
+#problem 1 is the duplicated....
+#problem 2 is cbind with repeated columns...
+
+
+
+```
+#ok, need to make each level flexible to handle the x and y because they are duplicated.
+#need to add in probability threshold either in the function above or below...
+
+
+    richness
+    sirius annotation
+    stacked barplot - 
+
+####
+richness rarefaction
+
+
+
+```
+
+#same thing but rarify across samples...
+cumualitive richness
+    
+2) PCA and Brey Curtis
+
+3) We illustrate how different species of trees share a small fraction of there mz-rt features and show how this can be usefull for identifying chemotypes. 
+
+### introduce relationship amongst features...
+
+4) We introduce feature based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
+
+
+show a feature based molecular network...
+
+
+Show different trees. 
+actual based on the standards chemodev
+cosine, dreams, 
+
+#dendrogram of 
+
+
+5) We illustrate how a feature abundance matrix and a chemical dendrogram/similarity matrix can be used to calculate:
+
+a) Structurally weighted Chemical Diversity
+  c) Structurally weighted Chemical Similarity between samples
+  b) richness by pathway NPCstacked barplot - potentially add in pathway stacked
+
+
+
+
+
 ### Would prefer to add and introduce distance below but bray is currently requiring it?
 ```{r}
 # Add Dreams distance

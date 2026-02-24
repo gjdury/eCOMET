@@ -773,87 +773,124 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 }
 
 
-#' Replace zero and NA values in the mmo object
+#' #' Replace zero and NA values in the mmo object
+#' #'
+#' #' This function replaces zero and NA values in the feature data of the mmo object.
+#' #' Run this function before MassNormalization(), LogNormalization(), MeancenterNormalization(), or ZNormalization().
+#' #'
+#' #' @param mmo The mmo object
+#' #' @param method The method to use for replacement. Options are 'one' (replace with 1) or 'half_mean' (replace with half of the smallest non-zero value in the row)
+#' #' @return The mmo object with replaced values in the feature data (mmo$feature_data)
+#' #' @export
+#' #' @examplesIf FALSE
+#' ReplaceZero <- function(mmo, method = "one") {
+#'   df <- mmo$feature_data
 #'
-#' This function replaces zero and NA values in the feature data of the mmo object.
-#' Run this function before MassNormalization(), LogNormalization(), MeancenterNormalization(), or ZNormalization().
+#'   # assume first two cols are id, feature; everything else is numeric-ish
+#'   id_feat <- df[, 1:2]
+#'   num_df  <- df[, -(1:2), drop = FALSE]
 #'
-#' @param mmo The mmo object
-#' @param method The method to use for replacement. Options are 'one' (replace with 1) or 'half_mean' (replace with half of the smallest non-zero value in the row)
-#' @return The mmo object with replaced values in the feature data (mmo$feature_data)
-#' @export
-#' @examplesIf FALSE
-#' mmo <- ReplaceZero(mmo, method = 'one')
-# ReplaceZero <- function(mmo, method = 'one') {
-#   df <- mmo$feature_data
-#   df[] <- apply(df, 1, function(row) {
-#     # Convert the row to numeric, ignoring non-numeric columns
-#     numeric_row <- as.numeric(row[-c(1, 2)])  # Skip 'id' and 'feature' columns
-#     # Get the smallest non-zero, non-NA value in the row
-#     smallest_value <- min(numeric_row[numeric_row > 0], na.rm = TRUE)
-#     # Replace 0 and NA with half of the smallest_value
-#     row[-c(1, 2)] <- sapply(numeric_row, function(x) {
-#       if (is.na(x) || x == 0) {
-#         if (method == 'one') {
-#           return(1)
-#         } else if (method == 'half_mean') {
-#           return(smallest_value / 2)
-#         }
-#       } else {
-#         return(x)
-#       }
-#     })
-#
-#     return(row)
-#   }) |>
-#     t() |>
-#     as.data.frame()  # Convert back to dataframe
-#   mmo$feature_data <- df
-#   print(paste('Missing values were filled with', method))
-#   return(mmo)
-# }
-ReplaceZero <- function(mmo, method = "one") {
-  df <- mmo$feature_data
+#'   # force numeric matrix (without dragging id/feature in)
+#'   num_mat <- as.matrix(sapply(num_df, as.numeric))
+#'
+#'   new_mat <- t(apply(num_mat, 1, function(numeric_row) {
+#'     # smallest non-zero, non-NA
+#'     smallest_value <- suppressWarnings(
+#'       min(numeric_row[numeric_row > 0], na.rm = TRUE)
+#'     )
+#'
+#'     # replace per element
+#'     vapply(numeric_row, function(x) {
+#'       if (is.na(x) || x == 0) {
+#'         if (method == "one") {
+#'           1
+#'         } else if (method == "half_mean") {
+#'           smallest_value / 2
+#'         } else {
+#'           x
+#'         }
+#'       } else {
+#'         x
+#'       }
+#'     }, numeric(1))
+#'   }))
+#'
+#'   # rebuild data.frame with original id/feature + numeric matrix
+#'   num_df_out <- as.data.frame(new_mat, stringsAsFactors = FALSE)
+#'   names(num_df_out) <- names(num_df)
+#'
+#'   df_out <- cbind(id_feat, num_df_out)
+#'
+#'   mmo$feature_data_replaced <- df_out
+#'   message(sprintf("Missing values were filled with %s", method))
+#'   mmo
+#' }
 
-  # assume first two cols are id, feature; everything else is numeric-ish
-  id_feat <- df[, 1:2]
+
+#' #' Replace zero and NA values in the mmo object
+#'
+#' This function replaces zero and NA values in the feature table of an mmo object.
+#' On first use, the original feature table is stored as `mmo$feature_data_raw`
+#' and is never modified. All replacements are always performed from this raw
+#' copy to avoid compounding imputation across multiple runs.
+#'
+#' The modified table is written back to `mmo$feature_data`.
+#'
+#' This function should be run before any normalization or transformation steps.
+#'
+#' @param mmo An mmo object containing `feature_data`
+#' @param method Replacement method:
+#'   - "one": replace zeros and NA values with 1
+#'   - "half_min": replace zeros and NA values with half of the smallest
+#'     non-zero value in each feature (row)
+#'
+#' @return The updated mmo object
+#' @export
+ReplaceZero <- function(mmo, method = c("one", "half_min")) {
+
+  method <- match.arg(method)
+
+  # store an immutable copy of the original feature table
+  if (is.null(mmo$feature_data_raw)) {
+    mmo$feature_data_raw <- mmo$feature_data
+  }
+
+  df <- mmo$feature_data_raw
+
+  # assume first two columns are identifiers
+  id_feat <- df[, 1:2, drop = FALSE]
   num_df  <- df[, -(1:2), drop = FALSE]
 
-  # force numeric matrix (without dragging id/feature in)
-  num_mat <- as.matrix(sapply(num_df, as.numeric))
+  # coerce numeric values only
+  num_mat <- as.matrix(
+    sapply(num_df, function(x) as.numeric(as.character(x)))
+  )
 
-  new_mat <- t(apply(num_mat, 1, function(numeric_row) {
-    # smallest non-zero, non-NA
-    smallest_value <- suppressWarnings(
-      min(numeric_row[numeric_row > 0], na.rm = TRUE)
-    )
+  new_mat <- t(apply(num_mat, 1, function(row) {
 
-    # replace per element
-    vapply(numeric_row, function(x) {
-      if (is.na(x) || x == 0) {
-        if (method == "one") {
-          1
-        } else if (method == "half_mean") {
-          smallest_value / 2
-        } else {
-          x
-        }
-      } else {
-        x
-      }
-    }, numeric(1))
+    if (method == "one") {
+      row[is.na(row) | row == 0] <- 1
+      return(row)
+    }
+
+    # method == "half_min"
+    pos <- row[row > 0 & !is.na(row)]
+    if (length(pos) == 0) {
+      stop("half_min replacement failed: at least one feature has no non-zero values.")
+    }
+
+    row[is.na(row) | row == 0] <- min(pos) / 2
+    row
   }))
 
-  # rebuild data.frame with original id/feature + numeric matrix
   num_df_out <- as.data.frame(new_mat, stringsAsFactors = FALSE)
   names(num_df_out) <- names(num_df)
 
-  df_out <- cbind(id_feat, num_df_out)
+  mmo$feature_data <- cbind(id_feat, num_df_out)
 
-  mmo$feature_data <- df_out
-  message(sprintf("Missing values were filled with %s", method))
   mmo
 }
+
 #' Convert feature abundances to presence / absence
 #'
 #' This function converts the feature abundance matrix in an mmo object
@@ -956,40 +993,86 @@ LogNormalization <- function(mmo){
 
 #' Mean-center the peak area in the mmo object
 #'
-#' This function applies mean-centering to the peak area in the feature data of the mmo object.
+#' This function applies mean-centering to the peak area in the feature data
+#' of the mmo object. Mean-centering is performed per feature (row) across samples.
+#' Features with zero variance are returned as all zeros and are reported in a warning.
 #'
 #' @param mmo The mmo object
-#' @return The mmo object with mean-centered feature data (mmo$meancentered)
+#' @return The mmo object with mean-centered feature data stored in `mmo$meancentered`
 #' @export
-#' @examplesIf FALSE
-#' mmo <- MeancenterNormalization(mmo)
 MeancenterNormalization <- function(mmo){
-  feature_data_only <- mmo$feature_data[,-(1:2)]
-  mean_centered_data <- t(apply(feature_data_only, 1, function(x) x - mean(x, na.rm = TRUE)))
-  mean_centered_df <- cbind(mmo$feature_data[, 1:2], mean_centered_data)
+
+  feature_data_only <- mmo$feature_data[, -(1:2)]
+  feature_ids <- mmo$feature_data[, 1:2]
+
+  # detect zero-variance features
+  row_sd <- apply(feature_data_only, 1, sd, na.rm = TRUE)
+  zero_sd_idx <- which(is.na(row_sd) | row_sd == 0)
+
+  if (length(zero_sd_idx) > 0) {
+    warning(
+      "MeancenterNormalization: the following features have zero variance and were mean-centered to all zeros:\n",
+      paste(
+        apply(feature_ids[zero_sd_idx, , drop = FALSE], 1, paste, collapse = " | "),
+        collapse = "\n"
+      ),
+      call. = FALSE
+    )
+  }
+
+  mean_centered_data <- t(apply(feature_data_only, 1, function(x) {
+    x - mean(x, na.rm = TRUE)
+  }))
+
+  mean_centered_df <- cbind(feature_ids, mean_centered_data)
   mmo$meancentered <- mean_centered_df
-  print('Meancentered values were added to mmo$meancentered')
-  return(mmo)
+
+  mmo
 }
 
 #' Z-normalize the peak area in the mmo object
 #'
-#' This function applies Z-score normalization to the peak area in the feature data of the mmo object.
+#' This function applies Z-score normalization to the peak area in the feature data
+#' of the mmo object. Z-scores are calculated per feature (row) across samples.
+#' Features with zero variance cannot be Z-normalized and are returned as NA.
 #'
 #' @param mmo The mmo object
-#' @return The mmo object with Z-normalized feature data (mmo$zscore)
+#' @return The mmo object with Z-normalized feature data stored in `mmo$zscore`
 #' @export
-#' @examplesIf FALSE
-#' mmo <- ZNormalization(mmo)
-ZNormalization <- function(mmo){
-  feature_data_only <- mmo$feature_data[,-(1:2)]
-  zscore_df <- t(apply(feature_data_only, 1, function(x) {
-    (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)
+ZNormalization <- function(mmo) {
+
+  feature_data_only <- mmo$feature_data[, -(1:2)]
+  feature_ids <- mmo$feature_data[, 1:2]
+
+  # compute per-feature SD
+  row_sd <- apply(feature_data_only, 1, sd, na.rm = TRUE)
+
+  # identify zero-variance features
+  zero_sd_idx <- which(is.na(row_sd) | row_sd == 0)
+
+  if (length(zero_sd_idx) > 0) {
+    warning(
+      "ZNormalization: the following features have zero variance and were set to NA:\n",
+      paste(
+        apply(feature_ids[zero_sd_idx, , drop = FALSE], 1, paste, collapse = " | "),
+        collapse = "\n"
+      ),
+      call. = FALSE
+    )
+  }
+
+  zscore_mat <- t(apply(feature_data_only, 1, function(x) {
+    s <- sd(x, na.rm = TRUE)
+    if (is.na(s) || s == 0) {
+      return(rep(NA_real_, length(x)))
+    }
+    (x - mean(x, na.rm = TRUE)) / s
   }))
-  zscore_df <- cbind(mmo$feature_data[, 1:2], zscore_df)
+
+  zscore_df <- cbind(feature_ids, zscore_mat)
   mmo$zscore <- zscore_df
-  print('Z-score values were added to mmo$zscore')
-  return(mmo)
+
+  mmo
 }
 
 
@@ -3612,32 +3695,79 @@ ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', outpu
   readr::write_csv(merged_df, output_dir)
 }
 
-
-#' GetRichness
+#' GetSampleRichness
 #'
-#' This function calculates the richness of features for each sample in the mmo object.
-#' Richness is defined as the number of non-missing features observed in each sample.
+#' Sample-level richness: number of features present in each sample.
+#' A feature is present if value > threshold; NA never counts as present.
+#'
 #' @param mmo The mmo object containing feature data and metadata
-#' @param filter_feature A boolean indicating whether to filter features based on a provided list (default: FALSE)
-#' @param feature_list A list of features to include in the richness calculation if filter_feature is TRUE (default: NULL)
-#' @return A data frame containing the richness for each sample, with columns for sample, richness, and group.
+#' @param filter_feature Logical; filter features using feature_list (default: FALSE)
+#' @param feature_list Character vector of features to include if filter_feature is TRUE (default: NULL)
+#' @param threshold Numeric; detection threshold for presence (default: 0)
+#'
+#' @return data.frame with columns: sample, group, richness
 #' @export
-GetRichness <- function(mmo, filter_feature = FALSE, feature_list = NULL) {
+CalculateRichness <- function(
+    mmo,
+    filter_feature = FALSE,
+    feature_list = NULL,
+    threshold = 0
+) {
   feature_data <- mmo$feature_data
-  if (filter_feature) {
-    feature_data <- feature_data |> filter(.data$feature %in% feature_list)
-  }
-  richness <- apply(feature_data[, -(1:2)], 2, function(x) sum(!is.na(x)))
-
   metadata <- mmo$metadata
-  groups <- c()
-  for (col in colnames(feature_data)[-c(1, 2)]) {
-    groups <- append(groups, metadata[metadata$sample == col, ]$group)
+
+  if (isTRUE(filter_feature)) {
+    if (is.null(feature_list)) stop("filter_feature = TRUE requires feature_list.")
+    feature_data <- feature_data |>
+      dplyr::filter(.data$feature %in% feature_list)
   }
 
-  richness_df <- data.frame(sample = colnames(feature_data)[-c(1, 2)], richness = richness, group = groups)
-  return(richness_df)
+  sample_cols <- colnames(feature_data)[-c(1, 2)]
+  sample_cols <- intersect(sample_cols, metadata$sample)  # keep aligned samples only
+
+  x <- feature_data[, sample_cols, drop = FALSE]
+
+  richness <- colSums((x > threshold) & !is.na(x))
+
+  group_map <- metadata$group[match(sample_cols, metadata$sample)]
+
+  data.frame(
+    sample = sample_cols,
+    group = group_map,
+    richness = as.numeric(richness),
+    stringsAsFactors = FALSE
+  )
 }
+
+
+
+
+#' #' GetRichness
+#' #'
+#' #' This function calculates the richness of features for each sample in the mmo object.
+#' #' Richness is defined as the number of non-missing features observed in each sample.
+#' #' @param mmo The mmo object containing feature data and metadata
+#' #' @param filter_feature A boolean indicating whether to filter features based on a provided list (default: FALSE)
+#' #' @param feature_list A list of features to include in the richness calculation if filter_feature is TRUE (default: NULL)
+#' #' @return A data frame containing the richness for each sample, with columns for sample, richness, and group.
+#' #' @export
+#' GetRichness <- function(mmo, filter_feature = FALSE, feature_list = NULL) {
+#'   feature_data <- mmo$feature_data
+#'   if (filter_feature) {
+#'     feature_data <- feature_data |> filter(.data$feature %in% feature_list)
+#'   }
+#'   richness <- apply(feature_data[, -(1:2)], 2, function(x) sum(!is.na(x)))
+#'
+#'   metadata <- mmo$metadata
+#'   groups <- c()
+#'   for (col in colnames(feature_data)[-c(1, 2)]) {
+#'     groups <- append(groups, metadata[metadata$sample == col, ]$group)
+#'   }
+#'
+#'   richness_df <- data.frame(sample = colnames(feature_data)[-c(1, 2)], richness = richness, group = groups)
+#'   return(richness_df)
+#' }
+
 
 #' CalculateCumulativeRichness
 #'
