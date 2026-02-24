@@ -2177,10 +2177,10 @@ PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
   group1_data <- feature |> dplyr::select(.data$id, .data$feature, all_of(group1_samples))
   group2_data <- feature |> dplyr::select(.data$id, .data$feature, all_of(group2_samples))
   #Make empty column
-  log2FC <- numeric(nrow(.data$feature))
-  pval <- numeric(nrow(.data$feature))
+  log2FC <- numeric(nrow(feature))
+  pval <- numeric(nrow(feature))
   #Pairwise comparison
-  for (i in 1:nrow(.data$feature)){
+  for (i in 1:nrow(feature)){
     group1_value <- as.numeric(group1_data[i, -c(1,2)])
     group2_value <- as.numeric(group2_data[i, -c(1,2)])
 
