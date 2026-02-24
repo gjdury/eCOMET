@@ -2305,7 +2305,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
     guides(colour = guide_legend(override.aes = list(size=1.5))) +
     theme_classic()+
     ggrepel::geom_label_repel(data = top_features,
-                    mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature),
+                    mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$id),
                     size = 2)
 
   plot
