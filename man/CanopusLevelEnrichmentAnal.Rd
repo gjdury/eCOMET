@@ -17,7 +17,7 @@ CanopusLevelEnrichmentAnal(
 \arguments{
 \item{mmo}{The mmo object with sirius annotation and normalized data}
 
-\item{list_test}{A vector containing names of features to analyze}
+\item{list_test}{A vector containing ids of features to analyze}
 
 \item{pthr}{The threshold for adjusted p-value to be considered significant (default: 0.1)}
 

@@ -18,7 +18,7 @@ The normalized AUC is computed by dividing the AUC by the maximum possible area,
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-curve <- CalculateCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
+curve <- GetCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
 norm_auc <- CalcNormalizedAUC(curve)
 \dontshow{\}) # examplesIf}
 }

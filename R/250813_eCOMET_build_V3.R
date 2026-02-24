@@ -65,7 +65,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
     stringsAsFactors = FALSE,
     na.strings = c("", "NA")
   )
-
+  # Check if group_col and sample_col are provided and exist in the metadata file
   if (missing(group_col) || !(group_col %in% names(metadata))) {
     stop("group_col must be provided and exist in the metadata file.", call. = FALSE)
   }
@@ -85,11 +85,11 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
     else stop("No RT column found (expected 'rt' or 'row retention time', or provide rt_col).", call. = FALSE)
   }
 
-  # --- stable feature key ---
+  # --- generate stable feature key by mz_rt---
   data <- data |>
     dplyr::mutate(feature = paste(.data[[mz_col]], .data[[rt_col]], sep = "_"))
 
-  # --- sample names from metadata ---
+  # --- extract sample names from metadata ---
   samples <- trimws(as.character(metadata[[sample_col]]))
   samples_core <- sub("\\.(mzML|mzXML|raw)$", "", samples, ignore.case = TRUE)
 
@@ -192,6 +192,9 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 
   feature_df$id <- gsub(" ", "", as.character(feature_df$id))
 
+  # --- Replace NA by 0 --- MC
+  feature_df[is.na(feature_df)] <- 0
+
   # --- build feature info table (mmo$feature_info) ---
   # minimum required to be a useful feature_info
   required_min <- c("id", mz_col, rt_col)
@@ -233,6 +236,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 
   mmo$feature_data <- feature_df
   mmo$feature_info <- feature_info
+  mmo$pairwise <- data.frame(feature = mmo$feature_data$feature, id = mmo$feature_data$id) # make blank form for PairwiseComp
   mmo$metadata <- metadata
 
   class(mmo) <- "mmo"
@@ -290,14 +294,19 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
   structure_identifications$mappingFeatureId <- gsub(" ", "", structure_identifications$mappingFeatureId)
   canopus_formula_summary <- readr::read_tsv(canopus_formuladir, show_col_types = FALSE)
   canopus_formula_summary$mappingFeatureId <- gsub(" ", "", canopus_formula_summary$mappingFeatureId)
-  siriused_ids <- unique(union(structure_identifications$mappingFeatureId, canopus_formula_summary$mappingFeatureId))
+  all_ids <- union(structure_identifications$mappingFeatureId, canopus_formula_summary$mappingFeatureId)
+  duplicated_ids <- all_ids[duplicated(all_ids)]
+  if (length(duplicated_ids) > 0) {
+    warning(paste0("Duplicated IDs found in SIRIUS files: ", paste(duplicated_ids, collapse = ", ")))
+  }
   sirius_df <- mmo$feature_data |> dplyr::select(.data$id, .data$feature)
   sirius_df <- sirius_df |>
   left_join(structure_identifications, by = c("id" = "mappingFeatureId"), multiple = "last") |>
-  left_join(canopus_formula_summary, by = c("id" = "mappingFeatureId"), multiple = "last")
+  left_join(canopus_formula_summary, by = c("id" = "mappingFeatureId", 'formulaRank', 'molecularFormula', 'adduct', 'precursorFormula', 'ionMass',
+                                            'retentionTimeInSeconds', 'retentionTimeInMinutes', 'formulaId', 'alignedFeatureId', 'compoundId', 
+                                            'overallFeatureQuality'), multiple = "last")
   mmo$sirius_annot <- sirius_df
   print('SIRIUS annotation added to mmo$sirius_annot')
-  print("Duplicated annotation might be occurred in SIRIUS. Inspect the raw data to check the annotation")
   return(mmo)
 }
 
@@ -773,70 +782,15 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 }
 
 
-#' #' Replace zero and NA values in the mmo object
-#' #'
-#' #' This function replaces zero and NA values in the feature data of the mmo object.
-#' #' Run this function before MassNormalization(), LogNormalization(), MeancenterNormalization(), or ZNormalization().
-#' #'
-#' #' @param mmo The mmo object
-#' #' @param method The method to use for replacement. Options are 'one' (replace with 1) or 'half_mean' (replace with half of the smallest non-zero value in the row)
-#' #' @return The mmo object with replaced values in the feature data (mmo$feature_data)
-#' #' @export
-#' #' @examplesIf FALSE
-#' ReplaceZero <- function(mmo, method = "one") {
-#'   df <- mmo$feature_data
-#'
-#'   # assume first two cols are id, feature; everything else is numeric-ish
-#'   id_feat <- df[, 1:2]
-#'   num_df  <- df[, -(1:2), drop = FALSE]
-#'
-#'   # force numeric matrix (without dragging id/feature in)
-#'   num_mat <- as.matrix(sapply(num_df, as.numeric))
-#'
-#'   new_mat <- t(apply(num_mat, 1, function(numeric_row) {
-#'     # smallest non-zero, non-NA
-#'     smallest_value <- suppressWarnings(
-#'       min(numeric_row[numeric_row > 0], na.rm = TRUE)
-#'     )
-#'
-#'     # replace per element
-#'     vapply(numeric_row, function(x) {
-#'       if (is.na(x) || x == 0) {
-#'         if (method == "one") {
-#'           1
-#'         } else if (method == "half_mean") {
-#'           smallest_value / 2
-#'         } else {
-#'           x
-#'         }
-#'       } else {
-#'         x
-#'       }
-#'     }, numeric(1))
-#'   }))
-#'
-#'   # rebuild data.frame with original id/feature + numeric matrix
-#'   num_df_out <- as.data.frame(new_mat, stringsAsFactors = FALSE)
-#'   names(num_df_out) <- names(num_df)
-#'
-#'   df_out <- cbind(id_feat, num_df_out)
-#'
-#'   mmo$feature_data_replaced <- df_out
-#'   message(sprintf("Missing values were filled with %s", method))
-#'   mmo
-#' }
 
 
 #' #' Replace zero and NA values in the mmo object
 #'
-#' This function replaces zero and NA values in the feature table of an mmo object.
-#' On first use, the original feature table is stored as `mmo$feature_data_raw`
-#' and is never modified. All replacements are always performed from this raw
-#' copy to avoid compounding imputation across multiple runs.
-#'
-#' The modified table is written back to `mmo$feature_data`.
-#'
-#' This function should be run before any normalization or transformation steps.
+#' This function replaces zero values in the feature table of an mmo object.
+#' Imputed data are stored in mmo$imputed_feature_data, to be used for 
+#' downsteam analyses including PairwiseComp(). 
+#' Note that imputation affects normalizations (Log-transformation, etc.),
+#' as well as chemical diversity calculations that uses presence/absence.
 #'
 #' @param mmo An mmo object containing `feature_data`
 #' @param method Replacement method:
@@ -847,15 +801,7 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 #' @return The updated mmo object
 #' @export
 ReplaceZero <- function(mmo, method = c("one", "half_min")) {
-
-  method <- match.arg(method)
-
-  # store an immutable copy of the original feature table
-  if (is.null(mmo$feature_data_raw)) {
-    mmo$feature_data_raw <- mmo$feature_data
-  }
-
-  df <- mmo$feature_data_raw
+  df <- mmo$feature_data
 
   # assume first two columns are identifiers
   id_feat <- df[, 1:2, drop = FALSE]
@@ -886,8 +832,8 @@ ReplaceZero <- function(mmo, method = c("one", "half_min")) {
   num_df_out <- as.data.frame(new_mat, stringsAsFactors = FALSE)
   names(num_df_out) <- names(num_df)
 
-  mmo$feature_data <- cbind(id_feat, num_df_out)
-
+  mmo$imputed_feature_data <- cbind(id_feat, num_df_out)
+  message(sprintf("0 values were replaced with %s, then stored as mmo$imputed_feature_data", method))
   mmo
 }
 
@@ -978,14 +924,21 @@ MassNormalization <- function(mmo){
 #' Run ReplaceZero() before this function to avoid -Inf values.
 #'
 #' @param mmo The mmo object
+#' @param imputed_data Whether to use imputed feature data (default = FALSE)
 #' @return The mmo object with log-normalized feature data (mmo$log)
 #' @export
 #' @examplesIf FALSE
 #' mmo <- LogNormalization(mmo)
-LogNormalization <- function(mmo){
-  feature_data_only <- mmo$feature_data[,-(1:2)]
-  log_data <- log2(feature_data_only)
-  log_df <- cbind(mmo$feature_data[, 1:2], log_data)
+LogNormalization <- function(mmo, imputed_data = FALSE){
+  if (imputed_data == FALSE){
+    feature_data_only <- mmo$feature_data[,-(1:2)]
+    feature_ids <- mmo$feature_data[, 1:2]
+  }else{
+    feature_data_only <- mmo$imputed_feature_data[,-(1:2)]
+    feature_ids <- mmo$imputed_feature_data[, 1:2]
+  }
+  log_data <- log2(feature_data_only+1)
+  log_df <- cbind(feature_ids, log_data)
   mmo$log <- log_df
   print('Log-normalized values were added to mmo$log')
   return(mmo)
@@ -998,11 +951,15 @@ LogNormalization <- function(mmo){
 #' Features with zero variance are returned as all zeros and are reported in a warning.
 #'
 #' @param mmo The mmo object
+#' @param imputed_data Whether to use imputed feature data (default = FALSE)
 #' @return The mmo object with mean-centered feature data stored in `mmo$meancentered`
 #' @export
-MeancenterNormalization <- function(mmo){
-
-  feature_data_only <- mmo$feature_data[, -(1:2)]
+MeancenterNormalization <- function(mmo, imputed_data = FALSE){
+  if (imputed_data == FALSE){
+    feature_data_only <- mmo$feature_data[, -(1:2)]
+  }else{
+    feature_data_only <- mmo$imputed_feature_data[,-(1:2)]
+  }
   feature_ids <- mmo$feature_data[, 1:2]
 
   # detect zero-variance features
@@ -1027,7 +984,7 @@ MeancenterNormalization <- function(mmo){
   mean_centered_df <- cbind(feature_ids, mean_centered_data)
   mmo$meancentered <- mean_centered_df
 
-  mmo
+  return(mmo)
 }
 
 #' Z-normalize the peak area in the mmo object
@@ -1037,11 +994,15 @@ MeancenterNormalization <- function(mmo){
 #' Features with zero variance cannot be Z-normalized and are returned as NA.
 #'
 #' @param mmo The mmo object
+#' @param imputed_data Whether to use imputed feature data (default = FALSE)
 #' @return The mmo object with Z-normalized feature data stored in `mmo$zscore`
 #' @export
-ZNormalization <- function(mmo) {
-
-  feature_data_only <- mmo$feature_data[, -(1:2)]
+ZNormalization <- function(mmo, imputed_data = FALSE) {
+  if (imputed_data == FALSE){
+    feature_data_only <- mmo$feature_data[, -(1:2)]
+  }else{
+    feature_data_only <- mmo$imputed_feature_data[,-(1:2)]
+  }
   feature_ids <- mmo$feature_data[, 1:2]
 
   # compute per-feature SD
@@ -1072,7 +1033,7 @@ ZNormalization <- function(mmo) {
   zscore_df <- cbind(feature_ids, zscore_mat)
   mmo$zscore <- zscore_df
 
-  mmo
+  return(mmo)
 }
 
 
@@ -1608,7 +1569,7 @@ annotate_feature_info_ms2_from_mgf <- function(
 #' @param group_list Optional character vector of group labels (matching
 #'   \code{group_col} in \code{mmo$metadata}) to retain. Mutually exclusive with
 #'   \code{sample_list}.
-#' @param feature_list Optional character vector of feature IDs to retain.
+#' @param id_list Optional character vector of feature IDs to retain.
 #'   If \code{NULL}, features are determined from \code{feature_data} and optionally
 #'   filtered by \code{drop_empty_feat}.
 #' @param sample_col Column name in \code{mmo$metadata} containing sample IDs.
@@ -1643,7 +1604,7 @@ annotate_feature_info_ms2_from_mgf <- function(
 filter_mmo <- function(mmo,
                        sample_list  = NULL,
                        group_list   = NULL,
-                       feature_list = NULL,
+                       id_list = NULL,
                        sample_col   = "sample",
                        group_col    = "group",
                        drop_empty_feat   = TRUE,
@@ -1654,8 +1615,8 @@ filter_mmo <- function(mmo,
   # ------------------------------------------------------------------
   # 0. Basic checks on arguments
   # ------------------------------------------------------------------
-  if (is.null(sample_list) && is.null(group_list) && is.null(feature_list)) {
-    stop("Must provide at least one of 'sample_list', 'group_list', or 'feature_list'.", call. = FALSE)
+  if (is.null(sample_list) && is.null(group_list) && is.null(id_list)) {
+    stop("Must provide at least one of 'sample_list', 'group_list', or 'id_list'.", call. = FALSE)
   }
   if (!is.null(sample_list) && !is.null(group_list)) {
     stop("Provide exactly one of 'sample_list' or 'group_list', not both.", call. = FALSE)
@@ -1735,11 +1696,11 @@ filter_mmo <- function(mmo,
     feat_abund_filtered <- feat_abund_filtered[nonempty_idx, , drop = FALSE]
   }
 
-  if (!is.null(feature_list)) {
-    feature_list <- as.character(feature_list)
-    features_keep <- intersect(auto_features, feature_list)
+  if (!is.null(id_list)) {
+    id_list <- as.character(id_list)
+    features_keep <- intersect(auto_features, id_list)
     if (length(features_keep) == 0L) {
-      stop("No overlap between 'feature_list' and features present in mmo$feature_data.", call. = FALSE)
+      stop("No overlap between 'id_list' and features present in mmo$feature_data.", call. = FALSE)
     }
     feat_abund_filtered <- feat_abund_filtered[feat_abund_filtered$id %in% features_keep, , drop = FALSE]
   } else {
@@ -1862,7 +1823,7 @@ filter_mmo <- function(mmo,
 #' This function retrieves the feature data from the mmo object based on the specified normalization method.
 #'
 #' @param mmo The mmo object
-#' @param normalization The normalization method to use. Options are 'None', 'Log', 'Meancentered', or 'Z'
+#' @param normalization The normalization method to use. Options are 'None', 'Log', 'Meancentered', 'Z', or 'Imputed'
 #' @return The feature data corresponding to the specified normalization method
 #' @export
 #' @examplesIf FALSE
@@ -1876,8 +1837,10 @@ GetNormFeature <- function(mmo, normalization){
     feature <- mmo$meancentered
   } else if (normalization == 'Z'){
     feature <- mmo$zscore
+  } else if (normalization == 'Imputed'){
+    feature <- mmo$imputed_feature_data
   } else {
-    print('The normalization should be None, Log, Meancentered, or Z')
+    print('The normalization should be None, Log, Meancentered, Z, or Imputed')
   }
   return(feature)
 }
@@ -1959,8 +1922,8 @@ IDToFeature <- function(mmo, feature_ids) {
 #'
 #' @param mmo The mmo object
 #' @param normalization The normalization method to use. Options are 'None', 'Log', 'Meancentered', or 'Z'
-#' @param filter_feature Boolean to filter features based on a provided list (default: FALSE)
-#' @param feature_list A vector of feature names to filter (default: NULL)
+#' @param filter_id Boolean to filter features based on a provided list (default: FALSE)
+#' @param id_list A vector of feature names to filter (default: NULL)
 #' @param filter_group Boolean to filter groups based on a provided list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @return A data frame containing the mean feature values for each group
@@ -1969,7 +1932,7 @@ IDToFeature <- function(mmo, feature_ids) {
 #' group_means <- GetGroupMeans(mmo, normalization = 'Log')
 #' group_means <- GetGroupMeans(mmo,
 #'  normalization = 'None',
-#'  filter_feature = TRUE, feature_list = Glucosinolates
+#'  filter_id = TRUE, id_list = Glucosinolates
 #' ) # if Glucosinolates is a vector of feature names
 #' group_means <- GetGroupMeans(mmo,
 #'  normalization = 'Z',
@@ -1978,10 +1941,13 @@ IDToFeature <- function(mmo, feature_ids) {
 #' )
 #' group_means <- GetGroupMeans(mmo,
 #'  normalization = 'Meancentered',
-#'  filter_feature = TRUE, feature_list = Glucosinolates,
+#'  filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1")
 #' ) # if Glucosinolates is a vector of feature names
-GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL) {
+GetGroupMeans <- function(mmo, normalization = 'None', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL) {
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }
   feature_data <- GetNormFeature(mmo, normalization = normalization)
   metadata <- mmo$metadata
 
@@ -1997,9 +1963,9 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, f
 
   # Merge with metadata to get group information
   merged_data <- merge(long_feature_data, metadata[, c('sample', 'group')], by = 'sample')
-  if (filter_group == TRUE){
-    merged_data <- merged_data |> filter(.data$group %in% group_list)
-  }
+  # if (filter_group == TRUE){
+  #   merged_data <- merged_data |> filter(.data$group %in% group_list)
+  # }
   # Calculate group means
   group_means <- merged_data |>
     dplyr::group_by(.data$group, .data$id) |>
@@ -2008,11 +1974,6 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_feature = FALSE, f
       names_from = .data$group,
       values_from = .data$mean_value
     )
-
-  if (filter_feature) {
-    group_means <- group_means |>
-      dplyr::filter(.data$id %in% FeatureToID(mmo, feature_list))
-  }
   return(group_means)
 }
 
@@ -2202,11 +2163,16 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
 #' @examplesIf FALSE
 #' mmo <- PairwiseComp(mmo, group1 = 'Control', group2 = 'Treatment1')
 PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
-  feature <- mmo$feature_data
+  if (is.null(mmo$imputed_feature_data)){
+    message('No imputed data found. Using feature_data for pairwise comparison. Might cause error if there are missing values.')
+    feature <- mmo$feature_data
+  } else {
+    feature <- mmo$imputed_feature_data
+  }
   metadata <- mmo$metadata
   #Get sample names
-  group1_samples <- metadata |> filter(.data$group == group1) |> pull(sample)
-  group2_samples <- metadata |> filter(.data$group == group2) |> pull(sample)
+  group1_samples <- metadata |> dplyr::filter(.data$group == group1) |> dplyr::pull(sample)
+  group2_samples <- metadata |> dplyr::filter(.data$group == group2) |> dplyr::pull(sample)
   #Get data from the samples
   group1_data <- feature |> dplyr::select(.data$id, .data$feature, all_of(group1_samples))
   group2_data <- feature |> dplyr::select(.data$id, .data$feature, all_of(group2_samples))
@@ -2278,8 +2244,8 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
   for (comp in comparisons) {
     group1 <- strsplit(comp, "_vs_")[[1]][1]
     group2 <- strsplit(comp, "_vs_")[[1]][2]
-    DAMs_up[[paste(comp, "up", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) > fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$feature
-    DAMs_down[[paste(comp, "down", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) < -fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$feature
+    DAMs_up[[paste(comp, "up", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) > fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$id
+    DAMs_down[[paste(comp, "down", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) < -fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$id
   }
   names(DAMs_up) <- paste(comparisons, "up", sep = ".")
   names(DAMs_down) <- paste(comparisons, "down", sep = ".")
@@ -2364,8 +2330,8 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #' @param color A vector of colors for the groups in the plot. Make sure the names correspond to the group names in metadata
 #' @param outdir The output file path for the PCA plot (default: 'PCA')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
-#' @param filter_feature Boolean to filter features by feature_list (default: FALSE)
-#' @param feature_list A vector of feature names to filter (default: NULL)
+#' @param filter_id Boolean to filter features by id_list (default: FALSE)
+#' @param id_list A vector of feature names to filter (default: NULL)
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param label Boolean to indicate whether to label points with sample names (default: TRUE)
@@ -2378,22 +2344,23 @@ VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png
 #' PCAplot(
 #'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
 #'  outdir = 'PCA_plot', normalization = 'None',
-#'  filter_feature = FALSE, filter_group = FALSE, label = FALSE
+#'  filter_id = FALSE, filter_group = FALSE, label = FALSE
 #' )
 #' PCAplot(
 #'  mmo, color = c("Control" = "blue", "Treatment1" = "red"),
 #'  outdir = 'PCA_plot', normalization = 'Z',
-#'  filter_feature = TRUE, feature_list = Glucosinolates,
+#'  filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
 #' )
-PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE, save_output = TRUE){
+PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE, save_output = TRUE){
   .require_pkg("ggrepel")
   .require_pkg("stats")
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
-  if (filter_feature == TRUE){
-    feature <- feature |> filter(.data$feature %in% feature_list)
-  }
+
   # Perform PCA on normalized feature data
   feature_data_pca <- feature[, -(1:2)]
   feature_data_pca <- t(feature_data_pca) # samples as rows, features as columns
@@ -2401,9 +2368,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
   pca_df <- as.data.frame(pca_res$x)
   pca_df$group <- metadata$group[match(rownames(pca_df), metadata$sample)]
 
-  if (filter_group == TRUE){
-    pca_df <- pca_df |> filter(.data$group %in% group_list)
-  }
+
   if (label == TRUE){
     plot <- ggplot(pca_df, aes(x = .data$PC1, y = .data$PC2, color = .data$group, label = rownames(pca_df))) +
       geom_point(size = 3) +
@@ -2447,8 +2412,8 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
 #' @param topk The number of top features to display in the plot (default: 10)
 #' @param outdir The output file path for the PLS-DA plot
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
-#' @param filter_feature Boolean to filter features by feature_list (default: FALSE)
-#' @param feature_list A vector of feature names to filter (default: NULL)
+#' @param filter_id Boolean to filter features by id_list (default: FALSE)
+#' @param id_list A vector of feature names to filter (default: NULL)
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param save_output Boolean; if TRUE (default) write plot (.pdf) and loadings
@@ -2460,27 +2425,25 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_feat
 #' PLSDAplot(
 #'  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
 #'  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z',
-#'  filter_feature = FALSE, filter_group = FALSE
+#'  filter_id = FALSE, filter_group = FALSE
 #' )
 #' PLSDAplot(
 #'  mmo, color = c("Control" = "blue", "Treatment1" = "red"),
 #'  topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log',
-#'  filter_feature = TRUE, feature_list = Glucosinolates,
+#'  filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1")
 #' )
-PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL, save_output = TRUE) {
+PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, save_output = TRUE) {
   .require_pkg("caret")
   .require_pkg("ggrepel")
-
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }
   metadata <- mmo$metadata
   #Get appropriate feature by normalization parameter
   feature <- GetNormFeature(mmo, normalization)
 
   # All feature or filtered feature
-  if (filter_feature == TRUE){
-    feature <- feature |> filter(feature %in% feature_list)
-  }
-
   X <- t(as.matrix(feature[, -(1:2)]))
   Y <- c()
   for (col in colnames(feature)[-c(1,2)]){
@@ -2494,16 +2457,9 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
   loadings <- plsda_model$loadings
   loadings_comp1 <- loadings[, 1]
   loadings_comp2 <- loadings[, 2]
-  if (filter_feature == FALSE){
-    loadings_df <- data.frame(Feature = mmo$feature_data$feature,
+  loadings_df <- data.frame(ID = mmo$feature_data$id,
                             Comp1_Loading = loadings_comp1,
                             Comp2_Loading = loadings_comp2)
-  } else {
-    loadings_df <- data.frame(Feature = feature_list,
-                            Comp1_Loading = loadings_comp1,
-                            Comp2_Loading = loadings_comp2)
-  }
-
 
   top_features <- loadings_df |>
   mutate(abs_loading_comp1 = abs(.data$Comp1_Loading),
@@ -2513,10 +2469,6 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
   loading_scale <- 1
   if (topk > 0){
   loading_scale <- max(abs(scores))/(4*max(abs(top_features$Comp1_Loading)))
-  }
-
-  if (filter_group == TRUE){
-    plsda_df <- plsda_df |> filter(.data$Group %in% group_list)
   }
 
  plot <-  ggplot(plsda_df, aes(x = .data$Comp1, y = .data$Comp2, color = .data$Group)) +
@@ -2532,7 +2484,7 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
                 arrow = grid::arrow(length = grid::unit(0.3, "cm")), color = "grey", linewidth = 1) +
     # Add labels for the top 10 features
     ggrepel::geom_text_repel(data = top_features,
-              aes(x = .data$Comp1_Loading * loading_scale, y = .data$Comp2_Loading * loading_scale, label = .data$Feature),
+              aes(x = .data$Comp1_Loading * loading_scale, y = .data$Comp2_Loading * loading_scale, label = .data$ID),
               color = "black", vjust = 1.5, size = 3)
   plot
   if (save_output) {
@@ -2548,8 +2500,8 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #' distance matrix, and row labels for custom-annotated features.
 #'
 #' @param mmo The mmo object with sirius annotation and normalized data
-#' @param filter_feature Boolean to filter features by feature_list (default: FALSE)
-#' @param feature_list A vector of feature names to filter (default: NULL)
+#' @param filter_id Boolean to filter features by id_list (default: FALSE)
+#' @param id_list A vector of feature names to filter (default: NULL)
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
 #' @param group_list A vector of group names to filter (default: NULL)
 #' @param summarize The summarization method to use. Options are 'fold_change' or 'mean' (default: 'mean')
@@ -2592,16 +2544,15 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #'     annotation_names_row = TRUE,
 #'     labels_row = heatmap_inputs$row_label,
 #'     )
-GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NULL,
+GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
                                 filter_group = FALSE, group_list = NULL,
                                 summarize = 'mean', control_group = 'ctrl',
                                 normalization = 'None', distance = 'dreams') {
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }  
   # 12.1.1. Get summarized data (group mean or FC)
-  if (filter_group){
-    group_means <- GetGroupMeans(mmo, normalization = normalization, filter_group = TRUE, group_list = group_list)
-  } else {
-    group_means <- GetGroupMeans(mmo, normalization = normalization)
-  }
+  group_means <- GetGroupMeans(mmo, normalization = normalization)
   if (summarize == 'fold_change'){
     fold_change <- GetLog2FoldChange(group_means, control_group = control_group)
     heatmap_data <- fold_change
@@ -2612,7 +2563,7 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
   # 12.1.2. Filter features
   # Determine distance metric
   distance_matrix <- GetDistanceMat(mmo, distance = distance)
-  heatmap_data <- heatmap_data |> filter(id %in% rownames(distance_matrix)) # remove features not in distance matrix
+  heatmap_data <- heatmap_data |> filter(.data$id %in% rownames(distance_matrix)) # remove features not in distance matrix
 
   # make matrix for heatmap
   FC_matrix <- as.matrix(heatmap_data[,-1])
@@ -2622,31 +2573,6 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
   dist_matrix <- as.dist(distance_matrix)
 
   row_label <- rownames(FC_matrix)
-  if (filter_feature){
-    filter_list <- feature_list
-    filter_id <- FeatureToID(mmo, filter_list)
-    filter_id <- filter_id[filter_id %in% rownames(distance_matrix)] # remove custom-annotated but not in the distance matrix
-    filter_distance <- distance_matrix[filter_id, filter_id]
-    heatmap_data <- heatmap_data |> filter(id %in% filter_id)
-
-    # make matrix for heatmap
-    FC_matrix <- as.matrix(heatmap_data[,-1])
-    rownames(FC_matrix) <- heatmap_data$id
-
-
-    # Reorder the rows of distance_matrix to match the order of FC_matrix_
-    filter_distance <- filter_distance[rownames(FC_matrix), rownames(FC_matrix)]
-    dist_matrix <- as.dist(filter_distance)
-    #Label custm-annotated features
-    row_label <- rownames(FC_matrix)
-    for (i in 1:length(rownames(FC_matrix))){
-      id <- rownames(FC_matrix)[i]
-      custom_annot <- mmo$custom_annot$custom_annot[mmo$custom_annot$id == id]
-      if (length(custom_annot[[1]]) > 0) {
-        row_label[i] <- custom_annot[[1]]
-      }
-    }
-  }
   return(list(FC_matrix = FC_matrix, dist_matrix = dist_matrix, row_label = row_label, heatmap_data = heatmap_data))
 }
 
@@ -2727,7 +2653,7 @@ PlotNPCStackedBar <- function(mmo, group_col, outdir, width = 6, height = 3, sav
 #' This function performs enrichment analysis for Canopus-predicted terms on a given list of features.
 #'
 #' @param mmo The mmo object with sirius annotation and normalized data
-#' @param list_test A vector containing names of features to analyze
+#' @param list_test A vector containing ids of features to analyze
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.1)
 #' @param sig A logical value indicating whether to return only significant terms (default: TRUE)
 #' @param term_level The level of term to use for enrichment analysis
@@ -2752,7 +2678,7 @@ PlotNPCStackedBar <- function(mmo, group_col, outdir, width = 6, height = 3, sav
 #' )
 CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term_level = 'NPC_pathway', representation = 'greater', pval = 'pval'){
   all_feature <- mmo$sirius_annot
-  subset_feature <- mmo$sirius_annot |> filter(.data$feature %in% list_test)
+  subset_feature <- mmo$sirius_annot |> filter(.data$id %in% list_test)
   # print(paste('total features:', nrow(all_feature), 'list_test features:', nrow(subset_feature)))
   # Select the appropriate term level for enrichment analysis
   if (term_level == "NPC_pathway") {
@@ -2837,7 +2763,7 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' showing fold enrichment, p-value, and subset count for each term level.
 #'
 #' @param mmo The mmo object with sirius annotation and normalized data
-#' @param feature_list A vector containing names of features to analyze
+#' @param id_list A vector containing names of features to analyze
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.05)
 #' @param outdir The output file path for the enrichment plot
 #' @param height The height of the output plot in inches (default: 5)
@@ -2848,16 +2774,16 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' @export
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot(
-#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+#'  mmo, id_list = DAMs_up$control_vs_treatment1.up,
 #'  pthr = 0.05, outdir = 'canopus_enrichment_plot.pdf',
 #'  height = 5, width = 5
 #' )
 #'
-CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, pval = 'pval', save_output = TRUE){
+CanopusListEnrichmentPlot <- function(mmo, id_list, pthr = 0.05, outdir, height = 5, width = 5, pval = 'pval', save_output = TRUE){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
   for (term_level in term_levels){
-    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater', pval = pval))
+    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, id_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater', pval = pval))
   }
   sig.canopus <- sig.canopus |> arrange(dplyr::desc(.data$foldenrichment))
   plot <- ggplot(sig.canopus, aes(x = .data$foldenrichment, y = reorder(.data$term, .data$foldenrichment), color = -log(.data$fdr), size = .data$subsetcount)) +
@@ -2882,7 +2808,7 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #' showing fold enrichment, p-value, and subset count for each term level.
 #'
 #' @param mmo The mmo object with sirius annotation and normalized data
-#' @param feature_list A vector containing names of features to analyze
+#' @param id_list A vector containing names of features to analyze
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.05)
 #' @param outdir The output file path for the enrichment plot
 #' @param height The height of the output plot in inches (default: 5)
@@ -2894,15 +2820,15 @@ CanopusListEnrichmentPlot <- function(mmo, feature_list, pthr = 0.05, outdir, he
 #' @export
 #' @examplesIf FALSE
 #' CanopusListEnrichmentPlot_2(
-#'  mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+#'  mmo, id_list = DAMs_up$control_vs_treatment1.up,
 #'  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf',
 #'  height = 5, width = 5, topn = 5
 #' )
-CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5, pval = 'pval', save_output = TRUE){
+CanopusListEnrichmentPlot_2 <- function(mmo, id_list, pthr = 0.05, outdir, height = 5, width = 5, topn = 5, pval = 'pval', save_output = TRUE){
   term_levels = c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', 'ClassyFire_most_specific')
   sig.canopus <- data.frame(term = character(),  term_level = character(),subsetcount = double(), totalcount = double(), foldenrichment = double(), pval = double(), fdr = double())
   for (term_level in term_levels){
-    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, feature_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater', pval = pval))
+    sig.canopus <- rbind(sig.canopus, CanopusLevelEnrichmentAnal(mmo, id_list, pthr = pthr, sig = TRUE, term_level = term_level, representation = 'greater', pval = pval))
   }
   sig.canopus$term <- paste(sig.canopus$term, ';', sig.canopus$term_level)
   sig.canopus <- sig.canopus |> dplyr::slice_max(order_by = -.data$pval, n = topn)
@@ -2927,7 +2853,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, feature_list, pthr = 0.05, outdir, 
 #' showing fold enrichment, p-value, and subset count for each term.
 #'
 #' @param mmo The mmo object with sirius annotation and normalized data
-#' @param comp.list A list to analyze, where each element is a vector of feature names
+#' @param comp.list A list to analyze, where each element is a vector of feature ids
 #' @param term_level The level of term to use for enrichment analysis.
 #'               Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
 #'              'ClassyFire_superclass', 'ClassyFire_class', 'ClassyFire_subclass',
@@ -3121,7 +3047,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' It takes a ranked list of feature scores and tests for enrichment of metabolite sets based on Canopus-predicted terms.
 #' The results are saved as a CSV file and a PDF plot.
 #' @param mmo The mmo object with sirius annotation and normalized data
-#' @param feature_name A vector of feature names corresponding to the feature scores
+#' @param feature_id A vector of feature ids corresponding to the feature scores
 #' @param feature_score A vector of feature scores (e.g., log2 fold changes)
 #' @param term_level The level of term to use for enrichment analysis.
 #'               Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
@@ -3142,30 +3068,30 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #'  term_level = 'NPC_class', pthr = 0.05, outdir = 'MSEA_NPC_class',
 #'  width = 8, height = 12, sig = FALSE
 #' )
-MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pthr = 0.05, outdir = 'MSEA', width = 8, height = 12, sig = FALSE, save_output = TRUE){
+MSEA <- function(mmo, feature_id, feature_score, term_level = 'NPC_class', pthr = 0.05, outdir = 'MSEA', width = 8, height = 12, sig = FALSE, save_output = TRUE){
   # Create a named vector of feature scores
   .require_pkg("fgsea")
   ranked_list <- feature_score
-  names(ranked_list) <- feature_name
+  names(ranked_list) <- feature_id
   ranked_list <- sort(ranked_list, decreasing = TRUE)
 
   # Retrieve metabolite sets based on the specified term level
   if(term_level == 'NPC_class'){
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['NPC#class']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['NPC#class']])
   } else if (term_level == 'NPC_superclass'){
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['NPC#superclass']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['NPC#superclass']])
   } else if (term_level == 'NPC_pathway'){
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['NPC#pathway']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['NPC#pathway']])
   } else if (term_level == "ClassyFire_superclass") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#superclass']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['ClassyFire#superclass']])
   } else if (term_level == "ClassyFire_class") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#class']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['ClassyFire#class']])
   } else if (term_level == "ClassyFire_subclass") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#subclass']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['ClassyFire#subclass']])
   } else if (term_level == "ClassyFire_level5") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#level 5']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['ClassyFire#level 5']])
   } else if (term_level == "ClassyFire_most_specific") {
-    metabolite_sets <- split(mmo$sirius_annot$feature, mmo$sirius_annot[['ClassyFire#most specific class']])
+    metabolite_sets <- split(mmo$sirius_annot$id, mmo$sirius_annot[['ClassyFire#most specific class']])
   } else {
     stop("Invalid term level. Please choose a valid term level.")
   }
@@ -3205,7 +3131,7 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
 #' The default regression line of the plot uses linear model
 #'
 #' @param mmo The mmo object with feature data and metadata
-#' @param feature The name of the feature to analyze
+#' @param feature_id The id of the feature to analyze
 #' @param phenotype The name of the phenotype  in the metadata
 #' @param groups A vector of group names from the metadata containing phenotype data
 #' @param model The type of regression model to use. Options are 'lmm' for linear mixed model, 'lm' for simple linear regression, or 'pearson' for Pearson correlation (default: 'lmm')
@@ -3217,14 +3143,14 @@ MSEA <- function(mmo, feature_name, feature_score, term_level = 'NPC_class', pth
 #' @return A list of the plot and the raw data
 #' @export
 
-FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model = 'lm', normalization = 'Z', outdir = 'FeaturePhenotypeCorrelation', width = 6, height = 6, save_output = TRUE){
+FeaturePhenotypeCorrelation <- function(mmo, feature_id, phenotype, groups, model = 'lm', normalization = 'Z', outdir = 'FeaturePhenotypeCorrelation', width = 6, height = 6, save_output = TRUE){
   .require_pkg("ggrepel")
   feature <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
 
   # Get phenotype phenotype from the metadata, get the feature value from the feature matrix, then combine
   phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, phenotype = metadata[,phenotype]) |> filter(.data$group %in% groups)
-  feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[feature$feature == feature, -(1:2)]))
+  feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[feature$id == feature_id, -(1:2)]))
   combined_df <- merge(phenotype.df, feature_df, by='sample')
 
   # Perform linear mixed model or simple linear regression
@@ -3247,7 +3173,7 @@ FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model =
     geom_smooth(method = "lm", se = TRUE, color = "black") +
     ggrepel::geom_text_repel(aes(label = sample), size = 2.5, show.legend = FALSE) +
     theme_classic() +
-    labs(title = paste("Regression of", feature, "against", phenotype, "phenotype"),
+    labs(title = paste("Regression of", feature_id, "against", phenotype, "phenotype"),
          x = "Feature Value",
          y = "phenotype") +
     theme(legend.position = "right") +
@@ -3255,8 +3181,8 @@ FeaturePhenotypeCorrelation <- function(mmo, feature, phenotype, groups, model =
              hjust = 1.1, vjust = 1.1, size = 3, color = "black")
   plot
   if (save_output){
-    ggsave(paste0(outdir,'_', feature,'_vs_', phenotype,'.pdf'), height = height, width = width)
-    readr::write_csv(combined_df, paste0(outdir,'_', feature,'_vs_', phenotype,'_data.csv'))
+    ggsave(paste0(outdir,'_', feature_id,'_vs_', phenotype,'.pdf'), height = height, width = width)
+    readr::write_csv(combined_df, paste0(outdir,'_', feature_id,'_vs_', phenotype,'_data.csv'))
   }
   return (list(plot = plot, df = combined_df))
 }
@@ -3286,7 +3212,7 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
   phenotype_df <- data.frame(sample = metadata$sample, group = metadata$group, phenotype = metadata[,phenotype]) |> filter(.data$group %in% groups)
   corr_res <- data.frame(feature = character(), coefficient = numeric(), p_value = numeric(), stringsAsFactors = FALSE)
   for (i in 1:nrow(feature)){
-    feature_name <- feature$feature[i]
+    feature_id <- feature$id[i]
     feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
     combined_df <- merge(phenotype_df, feature_df, by='sample')
     if (model == 'lmm'){
@@ -3305,7 +3231,7 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
       stop("Invalid model type. Please use 'lmm', 'lm', 'pearson', 'spearman' or 'kendall'")
     }
     corr_res <- rbind(corr_res, data.frame(
-      feature = feature_name, coefficient = coefficient, p_value = p_value))
+      feature = feature_id, coefficient = coefficient, p_value = p_value))
   }
   return (corr_res)
   print(paste0(normalization, '-normalized feature data screened using ', model))
@@ -3336,7 +3262,7 @@ GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, co
 
   regression_results <- data.frame(feature = character(), effect.size = numeric(), p_value = numeric(), is.Spec = logical(), stringsAsFactors = FALSE)
   for (i in 1:nrow(feature)) {
-    feature_name <- feature$feature[i]
+    feature_id <- feature$id[i]
     feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
     combined_df <- merge(phenotype.df, feature_df, by='sample')
 
@@ -3345,14 +3271,14 @@ GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, co
     p_value <- summary(fit)$coefficients[2, 4]
     tag <- "else"
     for (list_name in names(DAM.list)) {
-      if (feature_name %in% DAM.list[[list_name]]) {
+      if (feature_id %in% DAM.list[[list_name]]) {
         tag <- list_name
       }
     }
     #is.Spec <- feature_name %in% target
 
     regression_results <- rbind(regression_results, data.frame(
-      feature = feature_name, effect.size = effect.size, p_value = p_value, tag = tag
+      feature = feature_id, effect.size = effect.size, p_value = p_value, tag = tag
     ))
   }
   # Add FC columns to regression_results
@@ -3395,7 +3321,7 @@ GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, compariso
   # iterate regression analysis
   for (i in 1:nrow(feature)) {
     # for each feature, generate phenotype performance X feature value data
-    feature_name <- feature$feature[i]
+    feature_id <- feature$id[i]
     feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
     combined_df <- merge(phenotype.df, feature_df, by='sample')
 
@@ -3408,13 +3334,13 @@ GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, compariso
     #tag using DAM.list
     tag <- "else"
     for (list_name in names(DAM.list)) {
-      if (feature_name %in% DAM.list[[list_name]]) {
+      if (feature_id %in% DAM.list[[list_name]]) {
         tag <- list_name
       }
     }
 
     regression_results <- rbind(regression_results, data.frame(
-      feature = feature_name, effect.size = effect.size, p_value = p_value, tag = tag
+      feature = feature_id, effect.size = effect.size, p_value = p_value, tag = tag
     ))
   }
   # Add FC columns to regression_results
@@ -3450,7 +3376,7 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
 
   regression_results <- data.frame(feature = character(), effect.size = numeric(), p_value = numeric(), is.Spec = logical(), stringsAsFactors = FALSE)
   for (i in 1:nrow(feature)) {
-    feature_name <- feature$feature[i]
+    feature_id <- feature$id[i]
     feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
     combined_df <- merge(phenotype.df, feature_df, by='sample')
     cor <- cor.test(combined_df$performance, combined_df$feature_value, method = cor_method)
@@ -3458,14 +3384,14 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
     cor <- cor[[4]]
     tag <- "else"
     for (list_name in names(DAM.list)) {
-      if (feature_name %in% DAM.list[[list_name]]) {
+      if (feature_id %in% DAM.list[[list_name]]) {
         tag <- list_name
       }
     }
     #is.Spec <- feature_name %in% target
 
     regression_results <- rbind(regression_results, data.frame(
-      feature = feature_name, effect.size = cor, p_value = pval, tag = tag
+      feature = feature_id, effect.size = cor, p_value = pval, tag = tag
     ))
   }
   # Add FC columns to regression_results
@@ -3624,6 +3550,9 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #' )
 AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL, save_output = TRUE, width = 6, height = 6) {
   .require_pkg("ggbeeswarm")
+  if (filter_group){
+    mmo <- filter_mmo(mmo, group_list = group_list)
+  }  
   # Extract metadata and feature data
   metadata <- mmo$metadata
   feature_data <- GetNormFeature(mmo, normalization)
@@ -3639,9 +3568,6 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
     colnames(feature_values) <- "value"
     feature_values$sample <- rownames(feature_values)
     feature_values <- merge(feature_values, metadata, by = "sample")
-    if (filter_group == TRUE){
-      feature_values <- feature_values |> filter(.data$group %in% group_list)
-    }
     # Perform ANOVA
     anova <- anova_tukey_dunnett(feature_values, 'value ~ group')
 
@@ -3669,58 +3595,48 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
 #' This function exports selected features, their annotations, and pairwise comparisons to a CSV file.
 #'
 #' @param mmo The mmo object containing feature data, annotations, and pairwise comparisons
-#' @param feature_list A list of feature names to filter and export
+#' @param id_list A list of feature names to filter and export
 #' @param normalization The normalization method to use for feature data.
 #'        Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @param output_dir The output directory to save the CSV file
 #' @export
 #' @examplesIf FALSE
 #' ExportFeaturesToCSV(mmo,
-#'                     feature_list = Glucosinolates,
+#'                     id_list = Glucosinolates,
 #'                      normalization = 'Z',
 #'                      output_dir = 'output.csv')
-#' ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+#' ExportFeaturesToCSV(mmo, id_list = DAMs_up$control_vs_treatment1.up,
 #'                          normalization = 'None',
 #'                           output_dir = 'output.csv')
 #'
-ExportFeaturesToCSV <- function(mmo, feature_list, normalization = 'None', output_dir){
+ExportFeaturesToCSV <- function(mmo, id_list, normalization = 'None', output_dir){
   feature <- GetNormFeature(mmo, normalization = normalization) # Get normalized feature data
   # Filter the feature data, annotation, and DA analysis for the list provided
-  selected_feature <- feature |> filter(feature %in% feature_list)
-  selected_pairwise <- mmo$pairwise |> filter(feature %in% feature_list)
+  selected_feature <- feature |> filter(.data$id %in% id_list)
+  selected_pairwise <- mmo$pairwise |> filter(.data$id %in% id_list)
   # Merge all
-  merged_df <- merge(mmo$sirius_annot, selected_feature, by = 'feature')
-  merged_df <- merge(merged_df, selected_pairwise, by = 'feature')
+  merged_df <- merge(mmo$sirius_annot, selected_feature, by = 'id')
+  merged_df <- merge(merged_df, selected_pairwise, by = 'id')
 
   readr::write_csv(merged_df, output_dir)
 }
 
-#' GetSampleRichness
+#' GetRichness
 #'
 #' Sample-level richness: number of features present in each sample.
-#' A feature is present if value > threshold; NA never counts as present.
+#' A feature is present if value > threshold; 0 never counts as present.
 #'
 #' @param mmo The mmo object containing feature data and metadata
-#' @param filter_feature Logical; filter features using feature_list (default: FALSE)
-#' @param feature_list Character vector of features to include if filter_feature is TRUE (default: NULL)
 #' @param threshold Numeric; detection threshold for presence (default: 0)
 #'
 #' @return data.frame with columns: sample, group, richness
 #' @export
-CalculateRichness <- function(
+GetRichness <- function(
     mmo,
-    filter_feature = FALSE,
-    feature_list = NULL,
     threshold = 0
 ) {
   feature_data <- mmo$feature_data
   metadata <- mmo$metadata
-
-  if (isTRUE(filter_feature)) {
-    if (is.null(feature_list)) stop("filter_feature = TRUE requires feature_list.")
-    feature_data <- feature_data |>
-      dplyr::filter(.data$feature %in% feature_list)
-  }
 
   sample_cols <- colnames(feature_data)[-c(1, 2)]
   sample_cols <- intersect(sample_cols, metadata$sample)  # keep aligned samples only
@@ -3742,34 +3658,9 @@ CalculateRichness <- function(
 
 
 
-#' #' GetRichness
-#' #'
-#' #' This function calculates the richness of features for each sample in the mmo object.
-#' #' Richness is defined as the number of non-missing features observed in each sample.
-#' #' @param mmo The mmo object containing feature data and metadata
-#' #' @param filter_feature A boolean indicating whether to filter features based on a provided list (default: FALSE)
-#' #' @param feature_list A list of features to include in the richness calculation if filter_feature is TRUE (default: NULL)
-#' #' @return A data frame containing the richness for each sample, with columns for sample, richness, and group.
-#' #' @export
-#' GetRichness <- function(mmo, filter_feature = FALSE, feature_list = NULL) {
-#'   feature_data <- mmo$feature_data
-#'   if (filter_feature) {
-#'     feature_data <- feature_data |> filter(.data$feature %in% feature_list)
-#'   }
-#'   richness <- apply(feature_data[, -(1:2)], 2, function(x) sum(!is.na(x)))
-#'
-#'   metadata <- mmo$metadata
-#'   groups <- c()
-#'   for (col in colnames(feature_data)[-c(1, 2)]) {
-#'     groups <- append(groups, metadata[metadata$sample == col, ]$group)
-#'   }
-#'
-#'   richness_df <- data.frame(sample = colnames(feature_data)[-c(1, 2)], richness = richness, group = groups)
-#'   return(richness_df)
-#' }
 
 
-#' CalculateCumulativeRichness
+#' GetCumulativeRichness
 #'
 #' This function calculates the cumulative richness of features across groups in the metadata.
 #' Cumulative richness is defined as the total number of unique features observed as groups are added sequentially.
@@ -3779,8 +3670,8 @@ CalculateRichness <- function(
 #' @export
 #' @examplesIf FALSE
 #' groups <- c("Control", "Treatment1", "Treatment2")
-#' cumulative_richness <- CalculateCumulativeRichness(mmo, groups)
-CalculateCumulativeRichness <- function(mmo, groups) {
+#' cumulative_richness <- GetCumulativeRichness(mmo, groups)
+GetCumulativeRichness <- function(mmo, groups) {
   feature_data <- mmo$feature_data
   metadata <- mmo$metadata
   cumulative_richness <- numeric(length(groups))
@@ -3817,7 +3708,7 @@ BootstrapCumulativeRichness <- function(mmo, groups, n_boot = 1000, ci = 0.95) {
   boot_mat <- matrix(NA, nrow = n_boot, ncol = n_groups)
   for (i in seq_len(n_boot)) {
     rand_order <- sample(groups)
-    boot_mat[i, ] <- CalculateCumulativeRichness(mmo, rand_order)$cumulative_richness
+    boot_mat[i, ] <- GetCumulativeRichness(mmo, rand_order)$cumulative_richness
   }
   # Each row is a bootstrap, each column is the cumulative richness after adding that many groups
   boot_df <- data.frame(
@@ -3836,7 +3727,7 @@ BootstrapCumulativeRichness <- function(mmo, groups, n_boot = 1000, ci = 0.95) {
   as.data.frame(boot_summary)
 }
 
-#' CalculateNullCumulativeRichness
+#' GetNullCumulativeRichness
 #'
 #' This function calculates the null model of cumulative richness by randomizing samples regardless of group.
 #' It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
@@ -3847,8 +3738,8 @@ BootstrapCumulativeRichness <- function(mmo, groups, n_boot = 1000, ci = 0.95) {
 #' @return A data frame containing the mean cumulative richness and confidence intervals for each group index, with columns for group index, mean, lower CI, and upper CI.
 #' @export
 #' @examplesIf FALSE
-#' null_richness <- CalculateNullCumulativeRichness(mmo, n_boot = 1000, n_groups = 5, ci = 0.95)
-CalculateNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0.95) {
+#' null_richness <- GetNullCumulativeRichness(mmo, n_boot = 1000, n_groups = 5, ci = 0.95)
+GetNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0.95) {
   # Null model: randomize samples regardless of group, then add samples one by one
   feature_data <- mmo$feature_data
   metadata <- mmo$metadata
@@ -3892,7 +3783,7 @@ CalculateNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0
 #' @return The normalized AUC value
 #' @export
 #' @examplesIf FALSE
-#' curve <- CalculateCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
+#' curve <- GetCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
 #' norm_auc <- CalcNormalizedAUC(curve)
 CalcNormalizedAUC <- function(curve) {
   curve$group_index <- seq_len(nrow(curve))
@@ -3919,7 +3810,7 @@ BootCumulRichnessAUC <- function(mmo, groups, n_boot = 500) {
   aucs <- numeric(n_boot)
   for (i in seq_len(n_boot)) {
     rand_order <- sample(groups)
-    curve <- CalculateCumulativeRichness(mmo, rand_order)
+    curve <- GetCumulativeRichness(mmo, rand_order)
     aucs[i] <- CalcNormalizedAUC(curve)
   }
   aucs
@@ -3937,31 +3828,23 @@ BootCumulRichnessAUC <- function(mmo, groups, n_boot = 500) {
 #'        Larger q values give more weight to evenness portion of the hill number over richness.
 #' @param distance The distance metric to use for calculating dissimilarity.
 #'        Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
-#' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
-#' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
 #' @return A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
 #' @export
 #' @examplesIf FALSE
 #' hill_number <- GetFunctionalHillNumber(mmo,
 #'                                        normalization = 'Z',
 #'                                        q = 1, distance = 'dreams',
-#'                                        filter_feature = FALSE)
+#'                                        filter_id = FALSE)
 #' hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z',
 #'                                        q = 3, distance = 'dreams',
-#'                                        filter_feature = TRUE,
-#'                                        feature_list = Glucosinolates)
+#'                                        filter_id = TRUE,
+#'                                        id_list = Glucosinolates)
 #
-GetFunctionalHillNumber <- function(mmo, normalization = 'None',q = 1, distance = 'dreams', filter_feature = FALSE, feature_list = NULL){
+GetFunctionalHillNumber <- function(mmo, normalization = 'None',q = 1, distance = 'dreams'){
   feature <- GetNormFeature(mmo, normalization = normalization)
   metadata <- mmo$metadata
   distance_matrix <- GetDistanceMat(mmo, distance = distance)
   # Scale the  distance matrix to be between 0 and 1
-
-  if (filter_feature == TRUE){
-    id_list <- FeatureToID(mmo, feature_list)
-    id_list <- rownames(distance_matrix)[rownames(distance_matrix) %in% id_list]
-    distance_matrix <- distance_matrix[id_list, id_list]
-  }
   scaled_dissimilarity <- distance_matrix / max(distance_matrix)
   # Calculate the relative proportions of each feature and reorder them to match the order of the distance matrix
   q.feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity))
@@ -4004,21 +3887,16 @@ GetFunctionalHillNumber <- function(mmo, normalization = 'None',q = 1, distance 
 #' @param normalization The normalization method to use for feature data.
 #'        Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @param q The order of the Hill number to calculate (default: 0)
-#' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
-#' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
 #' @return A data frame containing the Hill number for each group in the metadata, with columns for group and hill number.
 #' @export
 #' @examplesIf FALSE
 #' hill_number <- GetHillNumbers(mmo, normalization = 'Z',
-#'                 q = 1, filter_feature = FALSE)
+#'                 q = 1, filter_id = FALSE)
 #' hill_number <- GetHillNumbers(mmo, normalization = 'Z',
-#'                 q = 2, filter_feature = TRUE,
-#'                  feature_list = Glucosinolates)
-GetHillNumbers <- function(mmo, normalization = 'None', q = 0, filter_feature = FALSE, feature_list = NULL) {
+#'                 q = 2, filter_id = TRUE,
+#'                  id_list = Glucosinolates)
+GetHillNumbers <- function(mmo, normalization = 'None', q = 0) {
   feature <- GetNormFeature(mmo, normalization = normalization)
-  if (filter_feature == TRUE) {
-    feature <- feature |> filter(feature %in% feature_list)
-  }
   metadata <- mmo$metadata
 
   hill_numbers <- apply(feature[, -(1:2)], 2, function(x) {
@@ -4043,32 +3921,77 @@ GetHillNumbers <- function(mmo, normalization = 'None', q = 0, filter_feature = 
   return(hill_df)
 }
 
+#' GetFaithPD
+#'
+#' This function calculates the Faith's phylogenetic diversity for a given mmo object and distance metric,
+#' to calculate chemically-informed richness
+#'
+#' @param mmo The mmo object containing feature data and metadata
+#' @param distance The distance metric to use for feature data. Options are 'dreams', 'jaccard', 'bray', 'unifrac', 'wunifrac' (default: 'dreams')
+#' @return A data frame containing the Faith's phylogenetic diversity for each group in the metadata, with columns for group and PD.
+#' @export
+#' @examplesIf FALSE
+#' faith_pd <- GetFaithPD(mmo, distance = 'dreams')
+GetFaithPD <- function(mmo, distance = 'dreams'){
+  .require_pkg("picante")
+  .require_pkg("ape")
+  feature <- GetNormFeature(mmo, 'None')
+  metadata <- mmo$metadata
+  distance_matrix <- GetDistanceMat(mmo, distance)
+  ids <- feature$id
+  feature_t <- t(feature[, -(1:2)])
+  colnames(feature_t) <- ids
+  tree <- ape::as.phylo(hclust(as.dist(distance_matrix), method = 'average'))
+  pd_result <- picante::pd(feature_t, tree)
+  pd_result$group <- mmo$metadata$group[match(rownames(pd_result), mmo$metadata$sample)]
+  return(pd_result)
+}
+
+
+
+
 #' GetAlphaDiversity
 #'
-#' This function calculates the alpha diversity for a given mmo object, order of the Hill number, normalization method, mode (weighted or unweighted), distance metric, and optional feature filtering.
-#' Unweighted mode uses Hill numbers without considering feature dissimilarity, while weighted mode uses functional Hill numbers that account for feature dissimilarity.
+#' This function calculates the alpha diversity for a given mmo object, 
+#' Supported modes are 'weighted' for functional Hill number, 'unweighted' for chemical distance, 
+#' 'faith' for Faith's phylogenetic diversity, 'richness' for simple feature richness (default: 'richness')
+#' 
 #'
 #' @param mmo The mmo object containing feature data and metadata
 #' @param q The order of the Hill number to calculate (default: 1)
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
-#' @param mode The mode of diversity calculation. Options are 'weighted' or 'unweighted' for chemical distance(default: 'weighted')
+#' @param mode The mode of diversity calculation. One of 'weighted', 'unweighted', 'faith', 'richness' (default: 'richness')
 #' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
-#' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
-#' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
+#' @param richness_threshold The threshold for calculating richness (default: 0)
+#' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
+#' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
+#' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
+#' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
 #' @return A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
 #' @export
 #' @examplesIf FALSE
-#' alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
-#'  mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
-#' alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
-#'  mode = 'unweighted', filter_feature = TRUE, feature_list = Glucosinolates)
-GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'weighted', distance = 'dreams', filter_feature = FALSE, feature_list = NULL){
+#' functional_hill_number <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
+#'  mode = 'weighted', distance = 'dreams', filter_id = FALSE)
+#' hill_number <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
+#'  mode = 'unweighted', filter_id = TRUE, id_list = Glucosinolates)
+#' richness <- GetAlphaDiversity(mmo, mode = 'richness', filter_id = TRUE, id_list = Glucosinolates)
+#' faith_pd <- GetAlphaDiversity(mmo, mode = 'faith', distance = 'dreams')
+GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'richness', distance = 'dreams', richness_threshold = 0,
+                              filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL) {
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }  
+
   if (mode == 'weighted'){
-    GetFunctionalHillNumber(mmo, normalization = normalization, q = q, distance = distance, filter_feature = filter_feature, feature_list = feature_list)
+    GetFunctionalHillNumber(mmo, normalization = normalization, q = q, distance = distance)
   } else if (mode == 'unweighted'){
-    GetHillNumbers(mmo, normalization = normalization, q = q, filter_feature = filter_feature, feature_list = feature_list)
+    GetHillNumbers(mmo, normalization = normalization, q = q)
+  } else if (mode == 'richness'){
+    GetRichness(mmo, threshold = richness_threshold)
+  } else if (mode == 'faith'){
+    GetFaithPD(mmo, distance = distance)
   } else{
-    print('mode should be weighted or unweighted')
+    print('mode should be weighted or unweighted or richness or faith')
   }
 }
 
@@ -4081,8 +4004,8 @@ GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'weight
 #'        Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
-#' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
-#' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
+#' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
+#' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
 #' @export
 #' @return A data frame containing the specialization index for each group in the metadata, with columns for group and specialization index.
 #' @examplesIf FALSE
@@ -4093,23 +4016,13 @@ GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'weight
 #'                                                normalization = 'Z',
 #'                                                filter_group = TRUE,
 #'                                                group_list = c('Control', 'Treatment1'),
-#'                                                filter_feature = TRUE)
-GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = FALSE, group_list = NULL, filter_feature = FALSE, feature_list = NULL){
+#'                                                filter_id = TRUE)
+GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = FALSE, group_list = NULL, filter_id = FALSE, id_list = NULL){
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }  
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
-
-  # All feature or filtered feature
-  if (filter_feature == TRUE){
-    feature <- feature |> filter(feature %in% feature_list)
-  }
-  if (filter_group == TRUE){
-    samples <- c()
-    for (group in group_list){
-      samples <- append(samples, metadata |> filter(.data$group == !!group) |> pull(.data$sample))
-    }
-    feature <- feature |> dplyr::select(.data$id, .data$feature, all_of(samples))
-  }
-
   # Get frequency matrix
   Pij <- feature[, -(1:2)]
   rownames(Pij) <- feature$feature
@@ -4147,38 +4060,30 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @param method The method of beta diversity calculation. Options are 'Gen.Uni' for Generalized UniFrac, 'bray' for Bray-Curtis, 'jaccard' for Jaccard, or 'CSCS' for Compound Similarity and Chemical structural and compositional similarity (default: 'Gen.Uni')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
-#' @param filter_feature A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
-#' @param feature_list A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)
+#' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
+#' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
 #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
 #' @return A distance matrix of beta diversity values between samples.
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
-#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#'  normalization = 'None', distance = 'dreams', filter_id = FALSE)
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
-#'  normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates,
+#'  normalization = 'Z', filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
-GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_feature = FALSE, feature_list = NULL, filter_group = FALSE, group_list = NULL){
+GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL){
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }  
   # Get compound distance and build tree for UniFrac
   scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
-  if (filter_feature == TRUE) {
-    id_list <- FeatureToID(mmo, feature_list)
-    scaled_dissimilarity <- scaled_dissimilarity[id_list, id_list]
-  }
   compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))
 
   # Get feature matrix of relative proportion
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
-  if (filter_group == TRUE){
-    samples <- c()
-    for (group in group_list){
-      samples <- append(samples, metadata |> filter(.data$group == !!group) |> pull(sample))
-    }
-    feature <- feature |> dplyr::select(.data$id, .data$feature, all_of(samples))
-  }
-  feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity))
+  feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity)) # remove features without distance
   relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
   rownames(relative_proportions) <- feature$id
   relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), ] #reorder
@@ -4233,7 +4138,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
-#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#'  normalization = 'None', distance = 'dreams', filter_id = FALSE)
 #' # Use method = 'bray' or 'jaccard' if you want to use just feature abundance
 #' # without considering feature spectral dissimilarity
 #' NMDSplot(mmo, betadiv = beta_diversity, outdir = 'output/NMDS', width = 6, height = 6)
@@ -4289,7 +4194,7 @@ NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_ou
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
-#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#'  normalization = 'None', distance = 'dreams', filter_id = FALSE)
 #' PCoAplot(mmo, betadiv = beta_diversity, outdir = 'output/PCoA', width = 6, height = 6)
 PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_output = TRUE){
   .require_pkg('ape')
@@ -4331,7 +4236,7 @@ PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_ou
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
-#'  normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+#'  normalization = 'None', distance = 'dreams', filter_id = FALSE)
 #' group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity,
 #'  reference_group = 'Control', groups = c('Control', 'Treatment1', 'Treatment2'))
 CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
@@ -4453,7 +4358,7 @@ print.mmo <- function(x, ...) {
 #' @examplesIf FALSE
 #' bet <- GetBetaDiversity(mmo, method='bray',
 #'         normalization='Log', distance='dreams',
-#'          filter_feature=FALSE)
+#'          filter_id=FALSE)
 #' HCplot(mmo,
 #'        betadiv = bet,
 #'        outdir = "output/HC_dreams_bray")

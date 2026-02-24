@@ -8,10 +8,13 @@ GetAlphaDiversity(
   mmo,
   q = 1,
   normalization = "None",
-  mode = "weighted",
+  mode = "richness",
   distance = "dreams",
-  filter_feature = FALSE,
-  feature_list = NULL
+  richness_threshold = 0,
+  filter_id = FALSE,
+  id_list = NULL,
+  filter_group = FALSE,
+  group_list = NULL
 )
 }
 \arguments{
@@ -21,26 +24,35 @@ GetAlphaDiversity(
 
 \item{normalization}{The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
 
-\item{mode}{The mode of diversity calculation. Options are 'weighted' or 'unweighted' for chemical distance(default: 'weighted')}
+\item{mode}{The mode of diversity calculation. One of 'weighted', 'unweighted', 'faith', 'richness' (default: 'richness')}
 
 \item{distance}{The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')}
 
-\item{filter_feature}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
+\item{richness_threshold}{The threshold for calculating richness (default: 0)}
 
-\item{feature_list}{A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)}
+\item{filter_id}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
+
+\item{id_list}{A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)}
+
+\item{filter_group}{A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)}
+
+\item{group_list}{A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)}
 }
 \value{
 A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
 }
 \description{
-This function calculates the alpha diversity for a given mmo object, order of the Hill number, normalization method, mode (weighted or unweighted), distance metric, and optional feature filtering.
-Unweighted mode uses Hill numbers without considering feature dissimilarity, while weighted mode uses functional Hill numbers that account for feature dissimilarity.
+This function calculates the alpha diversity for a given mmo object,
+Supported modes are 'weighted' for functional Hill number, 'unweighted' for chemical distance,
+'faith' for Faith's phylogenetic diversity, 'richness' for simple feature richness (default: 'richness')
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-alpha_diversity <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
- mode = 'weighted', distance = 'dreams', filter_feature = FALSE)
-alpha_diversity <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
- mode = 'unweighted', filter_feature = TRUE, feature_list = Glucosinolates)
+functional_hill_number <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
+ mode = 'weighted', distance = 'dreams', filter_id = FALSE)
+hill_number <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
+ mode = 'unweighted', filter_id = TRUE, id_list = Glucosinolates)
+richness <- GetAlphaDiversity(mmo, mode = 'richness', filter_id = TRUE, id_list = Glucosinolates)
+faith_pd <- GetAlphaDiversity(mmo, mode = 'faith', distance = 'dreams')
 \dontshow{\}) # examplesIf}
 }

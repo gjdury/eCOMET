@@ -9,8 +9,8 @@ GetBetaDiversity(
   method = "Gen.Uni",
   normalization = "None",
   distance = "dreams",
-  filter_feature = FALSE,
-  feature_list = NULL,
+  filter_id = FALSE,
+  id_list = NULL,
   filter_group = FALSE,
   group_list = NULL
 )
@@ -24,9 +24,9 @@ GetBetaDiversity(
 
 \item{distance}{The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')}
 
-\item{filter_feature}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
+\item{filter_id}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
 
-\item{feature_list}{A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)}
+\item{id_list}{A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)}
 
 \item{filter_group}{A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)}
 
@@ -44,9 +44,9 @@ Bray-Curtis and Jaccard methods are calculated using the vegan package, not cons
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
- normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+ normalization = 'None', distance = 'dreams', filter_id = FALSE)
 beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
- normalization = 'Z', filter_feature = TRUE, feature_list = Glucosinolates,
+ normalization = 'Z', filter_id = TRUE, id_list = Glucosinolates,
  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
 \dontshow{\}) # examplesIf}
 }

@@ -6,8 +6,8 @@
 \usage{
 GenerateHeatmapInputs(
   mmo,
-  filter_feature = FALSE,
-  feature_list = NULL,
+  filter_id = FALSE,
+  id_list = NULL,
   filter_group = FALSE,
   group_list = NULL,
   summarize = "mean",
@@ -19,9 +19,9 @@ GenerateHeatmapInputs(
 \arguments{
 \item{mmo}{The mmo object with sirius annotation and normalized data}
 
-\item{filter_feature}{Boolean to filter features by feature_list (default: FALSE)}
+\item{filter_id}{Boolean to filter features by id_list (default: FALSE)}
 
-\item{feature_list}{A vector of feature names to filter (default: NULL)}
+\item{id_list}{A vector of feature names to filter (default: NULL)}
 
 \item{filter_group}{Boolean to filter groups by group_list (default: FALSE)}
 

@@ -4,19 +4,18 @@
 \alias{MeancenterNormalization}
 \title{Mean-center the peak area in the mmo object}
 \usage{
-MeancenterNormalization(mmo)
+MeancenterNormalization(mmo, imputed_data = FALSE)
 }
 \arguments{
 \item{mmo}{The mmo object}
+
+\item{imputed_data}{Whether to use imputed feature data (default = FALSE)}
 }
 \value{
-The mmo object with mean-centered feature data (mmo$meancentered)
+The mmo object with mean-centered feature data stored in \code{mmo$meancentered}
 }
 \description{
-This function applies mean-centering to the peak area in the feature data of the mmo object.
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-mmo <- MeancenterNormalization(mmo)
-\dontshow{\}) # examplesIf}
+This function applies mean-centering to the peak area in the feature data
+of the mmo object. Mean-centering is performed per feature (row) across samples.
+Features with zero variance are returned as all zeros and are reported in a warning.
 }

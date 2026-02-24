@@ -4,12 +4,12 @@
 \alias{ExportFeaturesToCSV}
 \title{ExportFeaturesToCSV}
 \usage{
-ExportFeaturesToCSV(mmo, feature_list, normalization = "None", output_dir)
+ExportFeaturesToCSV(mmo, id_list, normalization = "None", output_dir)
 }
 \arguments{
 \item{mmo}{The mmo object containing feature data, annotations, and pairwise comparisons}
 
-\item{feature_list}{A list of feature names to filter and export}
+\item{id_list}{A list of feature names to filter and export}
 
 \item{normalization}{The normalization method to use for feature data.
 Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
@@ -22,10 +22,10 @@ This function exports selected features, their annotations, and pairwise compari
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 ExportFeaturesToCSV(mmo,
-                    feature_list = Glucosinolates,
+                    id_list = Glucosinolates,
                      normalization = 'Z',
                      output_dir = 'output.csv')
-ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+ExportFeaturesToCSV(mmo, id_list = DAMs_up$control_vs_treatment1.up,
                          normalization = 'None',
                           output_dir = 'output.csv')
 \dontshow{\}) # examplesIf}

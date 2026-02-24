@@ -20,7 +20,7 @@
 #' @importFrom ggplot2 xlim geom_vline geom_hline theme_minimal annotate
 #' @importFrom ggplot2 scale_fill_manual geom_boxplot
 #' @importFrom ggplot2 coord_flip scale_fill_gradient position_stack
-#' @importFrom ape pcoa
+#' @importFrom ape pcoa as.phylo
 #' @importFrom vegan metaMDS scores
-#'
+#' @importFrom picante pd
 NULL

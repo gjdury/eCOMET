@@ -6,7 +6,7 @@
 \usage{
 FeaturePhenotypeCorrelation(
   mmo,
-  feature,
+  feature_id,
   phenotype,
   groups,
   model = "lm",
@@ -20,7 +20,7 @@ FeaturePhenotypeCorrelation(
 \arguments{
 \item{mmo}{The mmo object with feature data and metadata}
 
-\item{feature}{The name of the feature to analyze}
+\item{feature_id}{The id of the feature to analyze}
 
 \item{phenotype}{The name of the phenotype  in the metadata}
 

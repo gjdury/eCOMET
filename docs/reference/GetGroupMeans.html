@@ -46,8 +46,8 @@ Use SwitchGroup() to change the grouping variable before running this function.<
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">GetGroupMeans</span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  normalization <span class="op">=</span> <span class="st">"None"</span>,</span>
-<span>  filter_feature <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  feature_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  filter_id <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  id_list <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  filter_group <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  group_list <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -65,11 +65,11 @@ Use SwitchGroup() to change the grouping variable before running this function.<
 <dd><p>The normalization method to use. Options are 'None', 'Log', 'Meancentered', or 'Z'</p></dd>
 
 
-<dt id="arg-filter-feature">filter_feature<a class="anchor" aria-label="anchor" href="#arg-filter-feature"></a></dt>
+<dt id="arg-filter-id">filter_id<a class="anchor" aria-label="anchor" href="#arg-filter-id"></a></dt>
 <dd><p>Boolean to filter features based on a provided list (default: FALSE)</p></dd>
 
 
-<dt id="arg-feature-list">feature_list<a class="anchor" aria-label="anchor" href="#arg-feature-list"></a></dt>
+<dt id="arg-id-list">id_list<a class="anchor" aria-label="anchor" href="#arg-id-list"></a></dt>
 <dd><p>A vector of feature names to filter (default: NULL)</p></dd>
 
 
@@ -92,7 +92,7 @@ Use SwitchGroup() to change the grouping variable before running this function.<
 <span class="r-in"><span><span class="va">group_means</span> <span class="op">&lt;-</span> <span class="fu">GetGroupMeans</span><span class="op">(</span><span class="va">mmo</span>, normalization <span class="op">=</span> <span class="st">'Log'</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">group_means</span> <span class="op">&lt;-</span> <span class="fu">GetGroupMeans</span><span class="op">(</span><span class="va">mmo</span>,</span></span>
 <span class="r-in"><span> normalization <span class="op">=</span> <span class="st">'None'</span>,</span></span>
-<span class="r-in"><span> filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">Glucosinolates</span></span></span>
+<span class="r-in"><span> filter_id <span class="op">=</span> <span class="cn">TRUE</span>, id_list <span class="op">=</span> <span class="va">Glucosinolates</span></span></span>
 <span class="r-in"><span><span class="op">)</span> <span class="co"># if Glucosinolates is a vector of feature names</span></span></span>
 <span class="r-in"><span><span class="va">group_means</span> <span class="op">&lt;-</span> <span class="fu">GetGroupMeans</span><span class="op">(</span><span class="va">mmo</span>,</span></span>
 <span class="r-in"><span> normalization <span class="op">=</span> <span class="st">'Z'</span>,</span></span>
@@ -101,7 +101,7 @@ Use SwitchGroup() to change the grouping variable before running this function.<
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">group_means</span> <span class="op">&lt;-</span> <span class="fu">GetGroupMeans</span><span class="op">(</span><span class="va">mmo</span>,</span></span>
 <span class="r-in"><span> normalization <span class="op">=</span> <span class="st">'Meancentered'</span>,</span></span>
-<span class="r-in"><span> filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">Glucosinolates</span>,</span></span>
+<span class="r-in"><span> filter_id <span class="op">=</span> <span class="cn">TRUE</span>, id_list <span class="op">=</span> <span class="va">Glucosinolates</span>,</span></span>
 <span class="r-in"><span> filter_group <span class="op">=</span> <span class="cn">TRUE</span>, group_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"Treatment1"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span> <span class="co"># if Glucosinolates is a vector of feature names</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
@@ -116,7 +116,7 @@ Use SwitchGroup() to change the grouping variable before running this function.<
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

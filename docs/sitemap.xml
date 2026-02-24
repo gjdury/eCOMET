@@ -1,10 +1,12 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://phytoecia.github.io/eCOMET/404.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/Interspecific_study_tutorial.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/articles/Interspecific_study_tutorial_V2.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/Intro.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/Treatment-based_study_tutorial.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/eCOMET-intro.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/index.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/articles/match_structure_to_features.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/articles/vignette-eCOMET-intro.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/authors.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/index.html</loc></url>
@@ -34,14 +36,17 @@
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GenerateHeatmapInputs.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetBetaDiversity.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/GetCumulativeRichness.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetDAMs.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetDistanceMat.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/GetFaithPD.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetFunctionalHillNumber.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetGroupMeans.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetHillNumbers.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetLog2FoldChange.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetNormFeature.html</loc></url>
+<url><loc>https://phytoecia.github.io/eCOMET/reference/GetNullCumulativeRichness.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetPerformanceFeatureCorrelation.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetPerformanceFeatureLMM.html</loc></url>
 <url><loc>https://phytoecia.github.io/eCOMET/reference/GetPerformanceFeatureRegression.html</loc></url>

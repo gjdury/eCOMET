@@ -55,7 +55,7 @@ This function is intended for visualization (no cluster significance is implied)
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 bet <- GetBetaDiversity(mmo, method='bray',
         normalization='Log', distance='dreams',
-         filter_feature=FALSE)
+         filter_id=FALSE)
 HCplot(mmo,
        betadiv = bet,
        outdir = "output/HC_dreams_bray")

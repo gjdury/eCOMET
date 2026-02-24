@@ -43,6 +43,7 @@ Imports:
   pairwiseAdonis,
   ape,
   RColorBrewer,
+  picante,
   colorspace
 Suggests:
     testthat (>= 3.0.0),

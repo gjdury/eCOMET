@@ -6,7 +6,7 @@
 \usage{
 MSEA(
   mmo,
-  feature_name,
+  feature_id,
   feature_score,
   term_level = "NPC_class",
   pthr = 0.05,
@@ -20,7 +20,7 @@ MSEA(
 \arguments{
 \item{mmo}{The mmo object with sirius annotation and normalized data}
 
-\item{feature_name}{A vector of feature names corresponding to the feature scores}
+\item{feature_id}{A vector of feature ids corresponding to the feature scores}
 
 \item{feature_score}{A vector of feature scores (e.g., log2 fold changes)}
 

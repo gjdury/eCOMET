@@ -135,7 +135,7 @@ Now the mmo object contains the Feature x Abundance matrix where the first two c
 mmo$feature_data
 
 ```
-```{r}
+```{r, eval = FALSE}
 mmo$feature_info %>% arrange(feature_group)
 ```
 
@@ -168,7 +168,7 @@ In this tutorial we will subset to only individual samples removing the pooled s
 
 
 We are going to randomly pick 100 feature groups in order to illustrate how to generate how to make a dendrogram
-```{r}
+```{r, eval = FALSE}
 
 # samples_single <- mmo$metadata$sample[mmo$metadata$speciesCode == "ingalb"]
 # mmo_single <- filter_mmo(mmo,sample_list  = samples_single,drop_empty_feat = TRUE)
@@ -244,7 +244,7 @@ mmo_single_dendrogram <- FeatureDendrogram(mmo=mmo_individual_sampled_features,d
 
 plot(mmo_single_dendrogram$phylo, type = "fan", cex = 0.4, label.offset = 0.002,main="Dreams_Distance")
 
-```{r}
+```{r, eval = FALSE}
 
 table(mmo_individual_sampled_features$feature_info$feature_group)
 table(mmo_individual_sampled_features$feature_info$`ion_identities:iin_id`)
@@ -294,7 +294,7 @@ plot(
 )
 ```
 
-```{r}
+```{r, eval = FALSE}
 mmo_single_dendrogram_correlation <- FeatureDendrogram(mmo=mmo_individual_sampled_features,distance = "dreams",
   method = "average",
   ion_identity = "correlation",
@@ -348,7 +348,7 @@ plot(
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 
 mmo_single_dendrogram_ion_identity <- FeatureDendrogram(mmo=mmo_individual_sampled_features,distance = "dreams",
   method = "average",
@@ -415,7 +415,7 @@ mmo_individual <- filter_mmo(mmo,sample_list  = samples_keep,drop_empty_feat = T
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 
 mmo_individual$metadata
 
@@ -491,7 +491,7 @@ ggsave("plot/Venn_Upreg.pdf", height = 5, width = 5)
 
 # 2) Visualize distance between samples with PLSDA
 
-```{r}
+```{r, eval = FALSE}
 
 
 library(colorspace)
@@ -559,7 +559,7 @@ legend("topleft", legend = sp_levels, col = sp_cols, pch = 15,
 
 
 ```
-```{r}
+```{r, eval = FALSE}
 mmo_individual_dendrogram_correlation <- FeatureDendrogram(mmo=mmo_individual,distance = "dreams",
   method = "average",
   ion_identity = "correlation",

@@ -24,7 +24,7 @@ This function calculates the beta diversity distance between a reference group a
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
- normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+ normalization = 'None', distance = 'dreams', filter_id = FALSE)
 group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity,
  reference_group = 'Control', groups = c('Control', 'Treatment1', 'Treatment2'))
 \dontshow{\}) # examplesIf}

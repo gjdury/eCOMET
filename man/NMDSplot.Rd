@@ -39,7 +39,7 @@ It also performs PERMANOVA analysis to assess the significance of group differen
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
- normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+ normalization = 'None', distance = 'dreams', filter_id = FALSE)
 # Use method = 'bray' or 'jaccard' if you want to use just feature abundance
 # without considering feature spectral dissimilarity
 NMDSplot(mmo, betadiv = beta_diversity, outdir = 'output/NMDS', width = 6, height = 6)

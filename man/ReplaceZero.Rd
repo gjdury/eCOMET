@@ -2,24 +2,27 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{ReplaceZero}
 \alias{ReplaceZero}
-\title{Replace zero and NA values in the mmo object}
+\title{#' Replace zero and NA values in the mmo object}
 \usage{
-ReplaceZero(mmo, method = "one")
+ReplaceZero(mmo, method = c("one", "half_min"))
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{An mmo object containing \code{feature_data}}
 
-\item{method}{The method to use for replacement. Options are 'one' (replace with 1) or 'half_mean' (replace with half of the smallest non-zero value in the row)}
+\item{method}{Replacement method:
+\itemize{
+\item "one": replace zeros and NA values with 1
+\item "half_min": replace zeros and NA values with half of the smallest
+non-zero value in each feature (row)
+}}
 }
 \value{
-The mmo object with replaced values in the feature data (mmo$feature_data)
+The updated mmo object
 }
 \description{
-This function replaces zero and NA values in the feature data of the mmo object.
-Run this function before MassNormalization(), LogNormalization(), MeancenterNormalization(), or ZNormalization().
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-mmo <- ReplaceZero(mmo, method = 'one')
-\dontshow{\}) # examplesIf}
+This function replaces zero values in the feature table of an mmo object.
+Imputed data are stored in mmo$imputed_feature_data, to be used for
+downsteam analyses including PairwiseComp().
+Note that imputation affects normalizations (Log-transformation, etc.),
+as well as chemical diversity calculations that uses presence/absence.
 }

@@ -8,7 +8,7 @@ filter_mmo(
   mmo,
   sample_list = NULL,
   group_list = NULL,
-  feature_list = NULL,
+  id_list = NULL,
   sample_col = "sample",
   group_col = "group",
   drop_empty_feat = TRUE,
@@ -27,7 +27,7 @@ filter_mmo(
 \code{group_col} in \code{mmo$metadata}) to retain. Mutually exclusive with
 \code{sample_list}.}
 
-\item{feature_list}{Optional character vector of feature IDs to retain.
+\item{id_list}{Optional character vector of feature IDs to retain.
 If \code{NULL}, features are determined from \code{feature_data} and optionally
 filtered by \code{drop_empty_feat}.}
 

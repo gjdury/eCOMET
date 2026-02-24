@@ -4,10 +4,12 @@
 \alias{LogNormalization}
 \title{Log-normalize the peak area in the mmo object}
 \usage{
-LogNormalization(mmo)
+LogNormalization(mmo, imputed_data = FALSE)
 }
 \arguments{
 \item{mmo}{The mmo object}
+
+\item{imputed_data}{Whether to use imputed feature data (default = FALSE)}
 }
 \value{
 The mmo object with log-normalized feature data (mmo$log)

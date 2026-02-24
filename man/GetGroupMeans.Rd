@@ -7,8 +7,8 @@
 GetGroupMeans(
   mmo,
   normalization = "None",
-  filter_feature = FALSE,
-  feature_list = NULL,
+  filter_id = FALSE,
+  id_list = NULL,
   filter_group = FALSE,
   group_list = NULL
 )
@@ -18,9 +18,9 @@ GetGroupMeans(
 
 \item{normalization}{The normalization method to use. Options are 'None', 'Log', 'Meancentered', or 'Z'}
 
-\item{filter_feature}{Boolean to filter features based on a provided list (default: FALSE)}
+\item{filter_id}{Boolean to filter features based on a provided list (default: FALSE)}
 
-\item{feature_list}{A vector of feature names to filter (default: NULL)}
+\item{id_list}{A vector of feature names to filter (default: NULL)}
 
 \item{filter_group}{Boolean to filter groups based on a provided list (default: FALSE)}
 
@@ -38,7 +38,7 @@ Use SwitchGroup() to change the grouping variable before running this function.
 group_means <- GetGroupMeans(mmo, normalization = 'Log')
 group_means <- GetGroupMeans(mmo,
  normalization = 'None',
- filter_feature = TRUE, feature_list = Glucosinolates
+ filter_id = TRUE, id_list = Glucosinolates
 ) # if Glucosinolates is a vector of feature names
 group_means <- GetGroupMeans(mmo,
  normalization = 'Z',
@@ -47,7 +47,7 @@ group_means <- GetGroupMeans(mmo,
 )
 group_means <- GetGroupMeans(mmo,
  normalization = 'Meancentered',
- filter_feature = TRUE, feature_list = Glucosinolates,
+ filter_id = TRUE, id_list = Glucosinolates,
  filter_group = TRUE, group_list = c("Control", "Treatment1")
 ) # if Glucosinolates is a vector of feature names
 \dontshow{\}) # examplesIf}

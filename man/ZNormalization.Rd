@@ -4,19 +4,18 @@
 \alias{ZNormalization}
 \title{Z-normalize the peak area in the mmo object}
 \usage{
-ZNormalization(mmo)
+ZNormalization(mmo, imputed_data = FALSE)
 }
 \arguments{
 \item{mmo}{The mmo object}
+
+\item{imputed_data}{Whether to use imputed feature data (default = FALSE)}
 }
 \value{
-The mmo object with Z-normalized feature data (mmo$zscore)
+The mmo object with Z-normalized feature data stored in \code{mmo$zscore}
 }
 \description{
-This function applies Z-score normalization to the peak area in the feature data of the mmo object.
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-mmo <- ZNormalization(mmo)
-\dontshow{\}) # examplesIf}
+This function applies Z-score normalization to the peak area in the feature data
+of the mmo object. Z-scores are calculated per feature (row) across samples.
+Features with zero variance cannot be Z-normalized and are returned as NA.
 }

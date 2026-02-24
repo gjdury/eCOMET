@@ -20,7 +20,7 @@ CanopusLevelEnrichmentPlot(
 \arguments{
 \item{mmo}{The mmo object with sirius annotation and normalized data}
 
-\item{comp.list}{A list to analyze, where each element is a vector of feature names}
+\item{comp.list}{A list to analyze, where each element is a vector of feature ids}
 
 \item{term_level}{The level of term to use for enrichment analysis.
 Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',

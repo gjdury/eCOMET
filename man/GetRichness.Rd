@@ -4,19 +4,17 @@
 \alias{GetRichness}
 \title{GetRichness}
 \usage{
-GetRichness(mmo, filter_feature = FALSE, feature_list = NULL)
+GetRichness(mmo, threshold = 0)
 }
 \arguments{
 \item{mmo}{The mmo object containing feature data and metadata}
 
-\item{filter_feature}{A boolean indicating whether to filter features based on a provided list (default: FALSE)}
-
-\item{feature_list}{A list of features to include in the richness calculation if filter_feature is TRUE (default: NULL)}
+\item{threshold}{Numeric; detection threshold for presence (default: 0)}
 }
 \value{
-A data frame containing the richness for each sample, with columns for sample, richness, and group.
+data.frame with columns: sample, group, richness
 }
 \description{
-This function calculates the richness of features for each sample in the mmo object.
-Richness is defined as the number of non-missing features observed in each sample.
+Sample-level richness: number of features present in each sample.
+A feature is present if value > threshold; 0 never counts as present.
 }

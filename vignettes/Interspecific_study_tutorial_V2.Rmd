@@ -49,13 +49,13 @@ Building the MMO object creates three objects:
 We are working with a dataset containing 10 species of tropical trees with 5-8 replicate samples for each species.
 
 
-```{r}
+```{r, eval = FALSE}
 
 mmo$metadata
 ```
 
 2) Feature info...
-```{r}
+```{r, eval = FALSE}
 mmo$feature_info
 ```
 
@@ -64,7 +64,7 @@ mmo$feature_info
 
 Feature x Abundance matrix where the first two columns identify individual metabolites and the remaining columns represent the abundance in each sample
 
-```{r}
+```{r, eval = FALSE}
 mmo$feature_data
 ```
 
@@ -76,7 +76,7 @@ By adding a non-zero constant, our calculating of compound presence absence and 
 ### update the replaceZero to function to account for this.
 
 # Add normalizations
-```{r}
+```{r, eval = FALSE}
 mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
 
 mmo$feature_data
@@ -84,7 +84,7 @@ mmo$feature_data
 Task 1: 
 A) Calculate the number of features observed in each sample and each species:
 
-```{r}
+```{r, eval = FALSE}
 
 #GetAlphadiv but only for richness - no compdis, q = 0)
 
@@ -99,7 +99,7 @@ ggplot2::ggplot(df_s, ggplot2::aes(x = group, y = richness)) +
 ```
 We can calculate the richness per feature annotation level by adding in the sirius annotations
 
-```{r}
+```{r, eval = FALSE}
 
 # Add SIRIUS annotation
 mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
@@ -159,14 +159,14 @@ a) Structurally weighted Chemical Diversity
 
 
 ### Would prefer to add and introduce distance below but bray is currently requiring it?
-```{r}
+```{r, eval = FALSE}
 # Add Dreams distance
 mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
 mmo$dreams.dissim[1:10,1:10]
 ```
 Note you can change the group column at any time using: SwitchGroup()
-```{r}
+```{r, eval = FALSE}
 names(mmo$metadata)
 
 mmo_genus <- SwitchGroup(mmo, new_group_col = "Genus")
@@ -177,14 +177,14 @@ mmo_genus
 
 ### For the final tutorial I will create data that only includes this subset but for now we can just filter it...
 
-```{r}
+```{r, eval = FALSE}
 
 samples_keep <- mmo$metadata$sample[mmo$metadata$Keep != "No"]
 mmo <- filter_mmo(mmo,sample_list  = samples_keep,drop_empty_feat = TRUE)
 ```
 
 Step 2: Estimate Chemical Richness in each sample and average across species.
-```{r}
+```{r, eval = FALSE}
 
 ```
 
@@ -196,14 +196,14 @@ Step 2: Estimate Chemical Richness in each sample and average across species.
 
 Step 3: Visualize differences between species using a PCA plot and using Hierarchical Clustering
 
-```{r}
+```{r, eval = FALSE}
 
 ```
 
 2) PCA and Bray-Curtis
 
 
-```{r}
+```{r, eval = FALSE}
 
 ```
 Bray-Curtis
@@ -212,7 +212,7 @@ Bray-Curtis
 ### Need to check what this is actually doing...
 
 ### DLF needs to add a function for generating a hclust plot
-```{r}
+```{r, eval = FALSE}
 
 beta_diversity_dreams_bray <- GetBetaDiversity(mmo, method = 'bray', 
  normalization = 'Log', distance = 'dreams', filter_feature = FALSE)
@@ -232,7 +232,7 @@ plot(hc)
 
 ```
 Pvclust allows you to assess significance between groups.
-```{r}
+```{r, eval = FALSE}
 
 ```
     
@@ -244,7 +244,7 @@ Accounting for spectral, structural and biosynthetic similarity among features
 NPCstacked plot
 
   b) richness by pathway NPCstacked barplot - potentially add in pathway stacked
-```{r}
+```{r, eval = FALSE}
 
 ```
 2) Use Ion Identity Molecular Networking to group coeluting features together.
@@ -273,7 +273,7 @@ a) Structurally weighted Chemical Diversity
 
 
 
-```{r}
+```{r, eval = FALSE}
 mmo$feature_info %>% arrange(feature_group)
 ```
 
@@ -306,7 +306,7 @@ In this tutorial we will subset to only individual samples removing the pooled s
 
 
 We are going to randomly pick 100 feature groups in order to illustrate how to generate how to make a dendrogram
-```{r}
+```{r, eval = FALSE}
 
 # samples_single <- mmo$metadata$sample[mmo$metadata$speciesCode == "ingalb"]
 # mmo_single <- filter_mmo(mmo,sample_list  = samples_single,drop_empty_feat = TRUE)
@@ -382,7 +382,7 @@ mmo_single_dendrogram <- FeatureDendrogram(mmo=mmo_individual_sampled_features,d
 
 plot(mmo_single_dendrogram$phylo, type = "fan", cex = 0.4, label.offset = 0.002,main="Dreams_Distance")
 
-```{r}
+```{r, eval = FALSE}
 
 table(mmo_individual_sampled_features$feature_info$feature_group)
 table(mmo_individual_sampled_features$feature_info$`ion_identities:iin_id`)
@@ -432,7 +432,7 @@ plot(
 )
 ```
 
-```{r}
+```{r, eval = FALSE}
 mmo_single_dendrogram_correlation <- FeatureDendrogram(mmo=mmo_individual_sampled_features,distance = "dreams",
   method = "average",
   ion_identity = "correlation",
@@ -486,7 +486,7 @@ plot(
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 
 mmo_single_dendrogram_ion_identity <- FeatureDendrogram(mmo=mmo_individual_sampled_features,distance = "dreams",
   method = "average",
@@ -553,7 +553,7 @@ mmo_individual <- filter_mmo(mmo,sample_list  = samples_keep,drop_empty_feat = T
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 
 mmo_individual$metadata
 
@@ -629,7 +629,7 @@ ggsave("plot/Venn_Upreg.pdf", height = 5, width = 5)
 
 # 2) Visualize distance between samples with PLSDA
 
-```{r}
+```{r, eval = FALSE}
 
 
 library(colorspace)
@@ -697,7 +697,7 @@ legend("topleft", legend = sp_levels, col = sp_cols, pch = 15,
 
 
 ```
-```{r}
+```{r, eval = FALSE}
 mmo_individual_dendrogram_correlation <- FeatureDendrogram(mmo=mmo_individual,distance = "dreams",
   method = "average",
   ion_identity = "correlation",

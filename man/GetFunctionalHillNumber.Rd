@@ -8,9 +8,7 @@ GetFunctionalHillNumber(
   mmo,
   normalization = "None",
   q = 1,
-  distance = "dreams",
-  filter_feature = FALSE,
-  feature_list = NULL
+  distance = "dreams"
 )
 }
 \arguments{
@@ -24,10 +22,6 @@ Larger q values give more weight to evenness portion of the hill number over ric
 
 \item{distance}{The distance metric to use for calculating dissimilarity.
 Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')}
-
-\item{filter_feature}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
-
-\item{feature_list}{A list of feature names to filter the feature data by, if filter_feature is TRUE (default: NULL)}
 }
 \value{
 A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
@@ -41,10 +35,10 @@ See https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for details o
 hill_number <- GetFunctionalHillNumber(mmo,
                                        normalization = 'Z',
                                        q = 1, distance = 'dreams',
-                                       filter_feature = FALSE)
+                                       filter_id = FALSE)
 hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z',
                                        q = 3, distance = 'dreams',
-                                       filter_feature = TRUE,
-                                       feature_list = Glucosinolates)
+                                       filter_id = TRUE,
+                                       id_list = Glucosinolates)
 \dontshow{\}) # examplesIf}
 }

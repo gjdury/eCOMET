@@ -74,10 +74,11 @@ reference:
 
   - title: Chemical diversity Analysis
     contents:
-      - GetRichness
       - GetAlphaDiversity
+      - GetFaithPD
       - GetFunctionalHillNumber
       - GetHillNumbers
+      - GetRichness
       - GetBetaDiversity
       - NMDSplot
       - PCoAplot
@@ -87,8 +88,8 @@ reference:
       - BootCumulRichnessAUC
       - BootstrapCumulativeRichness
       - CalcNormalizedAUC
-      - CalculateCumulativeRichness
-      - CalculateNullCumulativeRichness
+      - GetCumulativeRichness
+      - GetNullCumulativeRichness
 
   - title: Metadata regression analysis
     contents:
@@ -111,6 +112,7 @@ reference:
     contents:
       - FeatureToID
       - IDToFeature
+      - filter_canopus_annotations
       - anova_tukey_dunnett
       - write_anova
       - permanova_stat
@@ -118,11 +120,16 @@ reference:
       - GetNormFeature
       - filter_mmo
       - print.mmo
+
 articles:
   - title: "Tutorials"
     contents:
+      - Intro
       - eCOMET-intro
       - Treatment-based_study_tutorial
+      - Interspecific_study_tutorial
+      - Interspecific_study_tutorial_V2
+      - match_structure_to_features
 
 news:
   one_page: true

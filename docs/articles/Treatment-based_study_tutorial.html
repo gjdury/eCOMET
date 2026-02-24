@@ -47,8 +47,7 @@
 
 
 
-
-<div class="row">
+<script src="Treatment-based_study_tutorial_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Treatment-based_study_tutorial</h1>
@@ -77,62 +76,40 @@
 <span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://here.r-lib.org/" class="external-link">here</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; here() starts at /Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET</span></span>
+<span><span class="co">#&gt; here() starts at /home/minsoo/software/eCOMET</span></span>
 <span><span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "/home/minsoo/software/eCOMET"</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
 </h3>
-<p>In this tutorial, we will demonstrate how to use the
-<strong>eCOMET</strong> package for analyzing metabolomics data from a
-treatment-based study.</p>
+<p>In this tutorial, we will demonstrate how to use the <strong>eCOMET</strong> package for analyzing metabolomics data from a treatment-based study.</p>
 <ul>
-<li><p>Treatment-based studies involve comparing metabolite profiles
-between different treatment groups (e.g., control vs treated).</p></li>
-<li><p>The tutorial covers data preprocessing, normalization,
-statistical analysis, and visualization techniques commonly used in
-treatment-based metabolomics studies.</p></li>
-<li><p>The tutorial files are metabolomics analysis files of
-<em>Arabidopsis thaliana</em> (Col-0) attacked by two different
-herbivores (<em>Spodoptera litura</em>; sl, and <em>Lipaphis
-erysimi</em>; le).</p></li>
-<li><p>Eight replicates were sampled and analyzed for each group. See
-metadata.csv for more details.</p></li>
+<li><p>Treatment-based studies involve comparing metabolite profiles between different treatment groups (e.g., control vs treated).</p></li>
+<li><p>The tutorial covers data preprocessing, normalization, statistical analysis, and visualization techniques commonly used in treatment-based metabolomics studies.</p></li>
+<li><p>The tutorial files are metabolomics analysis files of <em>Arabidopsis thaliana</em> (Col-0) attacked by two different herbivores (<em>Spodoptera litura</em>; sl, and <em>Lipaphis erysimi</em>; le).</p></li>
+<li><p>Eight replicates were sampled and analyzed for each group. See metadata.csv for more details.</p></li>
 <li>
 <p><strong>Tutorial data</strong></p>
-<p>eCOMET is distributed with a small set of example data files that are
-installed automatically with the package. These files are included
-specifically so that the tutorials can be run immediately, without
-downloading additional data or setting file paths by hand.</p>
-<p>The example datasets represent simplified versions of the feature
-tables, metadata, and annotation outputs used in a typical eCOMET
-analysis workflow. They are meant for demonstration and testing, not as
-complete research datasets.</p>
+<p>eCOMET is distributed with a small set of example data files that are installed automatically with the package. These files are included specifically so that the tutorials can be run immediately, without downloading additional data or setting file paths by hand.</p>
+<p>The example datasets represent simplified versions of the feature tables, metadata, and annotation outputs used in a typical eCOMET analysis workflow. They are meant for demonstration and testing, not as complete research datasets.</p>
 </li>
 </ul>
 <p>Step 1: Gathering the paths for MMO object inputs.</p>
 <p>To generate an mmo object you need to supply at minimum:</p>
 <ul>
-<li><p>feature abundance table from mzmine. It is best to export the
-“full feature table” which provides the maximum amount of information
-regarding the abundance in each sample as well as feature information
-(i.e mass to charge (m/z) and retention time)</p></li>
+<li><p>feature abundance table from mzmine. It is best to export the “full feature table” which provides the maximum amount of information regarding the abundance in each sample as well as feature information (i.e mass to charge (m/z) and retention time)</p></li>
 <li>
-<p>path to sample meta data. You need to identify the two columns in
-the metdata:</p>
+<p>path to sample meta data. You need to identify the two columns in the metdata:</p>
 <ul>
-<li><p>group column that can be used as the main group for
-comparisons</p></li>
-<li><p>sample column which defines the name or path of the sample
-columns.</p></li>
+<li><p>group column that can be used as the main group for comparisons</p></li>
+<li><p>sample column which defines the name or path of the sample columns.</p></li>
 </ul>
 </li>
 <li>
 <p>Optionally you can provide:</p>
 <ul>
 <li><p>sirius outputs</p></li>
-<li><p>ms/ms similarity based on cosine, ms2deep score OR
-dreams.</p></li>
+<li><p>ms/ms similarity based on cosine, ms2deep score OR dreams.</p></li>
 </ul>
 </li>
 </ul>
@@ -157,10 +134,7 @@ dreams.</p></li>
 <div class="section level3">
 <h3 id="create-an-mmo-object">1. Create an <code>mmo</code> object<a class="anchor" aria-label="anchor" href="#create-an-mmo-object"></a>
 </h3>
-<p>Following steps are performed to create an <code>mmo</code> object
-and add various normalizations and annotations. Inspect the structure of
-the ‘mmo’ object using ‘summary(mmo)’’ after each step to see how the
-object is updated.</p>
+<p>Following steps are performed to create an <code>mmo</code> object and add various normalizations and annotations. Inspect the structure of the ‘mmo’ object using ‘summary(mmo)’’ after each step to see how the object is updated.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Initialize eCOMET object</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMZmineFeature.html">GetMZmineFeature</a></span><span class="op">(</span>mzmine_dir<span class="op">=</span><span class="va">demo_feature</span>, metadata_dir <span class="op">=</span> <span class="va">demo_metadata</span>, group_col <span class="op">=</span> <span class="st">'group'</span>, sample_col <span class="op">=</span> <span class="st">'sample'</span><span class="op">)</span></span>
@@ -172,38 +146,25 @@ object is updated.</p>
 <code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">pairwise</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span></span></code></pre></div>
-<p>#MS - I discussed this with Sedio Group and everyone things the
-feature table to be appended to list not replace… #Can we adjust to
-address this?? At the very least we want to discuss when to apply
-this.</p>
-<p>#Add explanation of why we would replace zero how it will impact
-downstream calculations (i.e valcano plots vs richness calculations)</p>
+<p>#MS - I discussed this with Sedio Group and everyone things the feature table to be appended to list not replace… #Can we adjust to address this?? At the very least we want to discuss when to apply this.</p>
+<p>#Add explanation of why we would replace zero how it will impact downstream calculations (i.e valcano plots vs richness calculations)</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ReplaceZero.html">ReplaceZero</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'one'</span><span class="op">)</span> <span class="co"># Replace 0 and NA values by 1</span></span>
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span></span></code></pre></div>
-<p>#MS-same don’t replace add #annotate exactly how Mass is Normalized
-and how it knows what column to use</p>
+<p>#MS-same don’t replace add #annotate exactly how Mass is Normalized and how it knows what column to use</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MassNormalization.html">MassNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Normalize peak area by sample mass in metadata</span></span>
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span> </span></code></pre></div>
-<p>#Can you add a little more annotation here and in the
-help/documentation to explain what meancenter normalization works? Sedio
-group had questions.</p>
-<p>#ecoMET offers the following types of normalization each will append
-a new feature_abundance matrix to the mmo object and can be called when
-plotting.</p>
+<p>#Can you add a little more annotation here and in the help/documentation to explain what meancenter normalization works? Sedio group had questions.</p>
+<p>#ecoMET offers the following types of normalization each will append a new feature_abundance matrix to the mmo object and can be called when plotting.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MeancenterNormalization.html">MeancenterNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Add mean-centered area</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/LogNormalization.html">LogNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Add log-transformed area</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ZNormalization.html">ZNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span> <span class="co"># Add Zscore</span></span></code></pre></div>
-<p>You can also convert the feature abundance matrix to a presence
-absence matrix based on a threshold using the function
-FeaturePresence</p>
+<p>You can also convert the feature abundance matrix to a presence absence matrix based on a threshold using the function FeaturePresence</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeaturePresence.html">FeaturePresence</a></span><span class="op">(</span><span class="va">mmo</span>, threshold <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="co"># Add Zscore</span></span></code></pre></div>
-<p>MS-I am still getting duplicates and it gives a warning. We should
-address this in the tutorial but also did I lose the fix you implemented
-to handle the duplicates?</p>
+<p>MS-I am still getting duplicates and it gives a warning. We should address this in the tutorial but also did I lose the fix you implemented to handle the duplicates?</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Add SIRIUS annotation</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot</a></span><span class="op">(</span><span class="va">mmo</span>, canopus_structuredir <span class="op">=</span> <span class="va">demo_sirius_structure</span>, canopus_formuladir <span class="op">=</span> <span class="va">demo_sirius_formula</span><span class="op">)</span></span>
@@ -212,63 +173,31 @@ to handle the duplicates?</p>
 <span></span>
 <span><span class="co">#Need to explain how to handle duplicates!</span></span></code></pre></div>
 <div class="section level4">
-<h4 id="ms--there-are-still-duplicates--do-you-know-how-to-exclude-them-and-how-to-handle-it-if-duplicates-appear-in-the-tutorial-we-need-to-at-least-explain-whats-going-on-here">MS- There are still duplicates. Do you know how to exclude them and
-how to handle it? If duplicates appear in the tutorial we need to at
-least explain what’s going on here…<a class="anchor" aria-label="anchor" href="#ms--there-are-still-duplicates--do-you-know-how-to-exclude-them-and-how-to-handle-it-if-duplicates-appear-in-the-tutorial-we-need-to-at-least-explain-whats-going-on-here"></a>
+<h4 id="ms--there-are-still-duplicates--do-you-know-how-to-exclude-them-and-how-to-handle-it-if-duplicates-appear-in-the-tutorial-we-need-to-at-least-explain-whats-going-on-here">MS- There are still duplicates. Do you know how to exclude them and how to handle it? If duplicates appear in the tutorial we need to at least explain what’s going on here…<a class="anchor" aria-label="anchor" href="#ms--there-are-still-duplicates--do-you-know-how-to-exclude-them-and-how-to-handle-it-if-duplicates-appear-in-the-tutorial-we-need-to-at-least-explain-whats-going-on-here"></a>
 </h4>
-<p>We can filter sirius annotations based on confidence score. We can do
-this both for the probabilities in the canopus class predictions and/or
-to the formula/smiles predictions.</p>
-<p>Starting with the class predictions we can use the
-filter_canopus_annotations() function</p>
-<p>We define what pathway levels we want to filter: i.e. pathway_level =
-“NPC#pathway”, “All” or “All_NPC” You can also provide a list of
-columns.. c(“NPC#superclass”,“NPC#class”)</p>
+<p>We can filter sirius annotations based on confidence score. We can do this both for the probabilities in the canopus class predictions and/or to the formula/smiles predictions.</p>
+<p>Starting with the class predictions we can use the filter_canopus_annotations() function</p>
+<p>We define what pathway levels we want to filter: i.e. pathway_level = “NPC#pathway”, “All” or “All_NPC” You can also provide a list of columns.. c(“NPC#superclass”,“NPC#class”)</p>
 <p>Define a threshold cut of i.e. threshold = 0.9</p>
-<p>The function will add a new annotation list to the mmo object and a
-suffex can be added to note what settings were used - suffix =
-“NPC_pathway_0.9”</p>
+<p>The function will add a new annotation list to the mmo object and a suffex can be added to note what settings were used - suffix = “NPC_pathway_0.9”</p>
 <p>Sirius provides some info on how to set this threshold -</p>
 <p>The relevant warning for this threshold is here: <a href="https://v6.docs.sirius-ms.io/methods-background/#CANOPUS" class="external-link uri">https://v6.docs.sirius-ms.io/methods-background/#CANOPUS</a></p>
-<p>“Be aware that there is no universally accepted threshold to classify
-predictions as “good” or “bad.” The posterior probability estimates
-provided do not adhere to a fixed standard, and while a binary
-classifier might suggest a threshold of 0.5, this is not always
-sufficient in real-world applications. If a user desires more nuanced
-classifications, such as “Yes,” “No,” and “Maybe,” thresholds like 0.15
-and 0.85 may be helpful, although these are just approximations.
-Moreover, for statistical analysis, such as determining the number of
-occurrences of a specific compound class in a sample, users can sum up
-the probabilities to get an expected count. It’s also important to
-consider that when a compound is significantly different from known
-compounds, CANOPUS may return lower probabilities for all compound
-classes, which means users might need to accept predictions with
-probabilities below 0.5 depending on their specific needs. Thus, the
-choice of threshold depends on the context and the user’s tolerance for
-uncertainty.”</p>
-<p>It can be helpful to visialize the distribution of thresholds to see
-how much you would be filtering out</p>
+<p>“Be aware that there is no universally accepted threshold to classify predictions as “good” or “bad.” The posterior probability estimates provided do not adhere to a fixed standard, and while a binary classifier might suggest a threshold of 0.5, this is not always sufficient in real-world applications. If a user desires more nuanced classifications, such as “Yes,” “No,” and “Maybe,” thresholds like 0.15 and 0.85 may be helpful, although these are just approximations. Moreover, for statistical analysis, such as determining the number of occurrences of a specific compound class in a sample, users can sum up the probabilities to get an expected count. It’s also important to consider that when a compound is significantly different from known compounds, CANOPUS may return lower probabilities for all compound classes, which means users might need to accept predictions with probabilities below 0.5 depending on their specific needs. Thus, the choice of threshold depends on the context and the user’s tolerance for uncertainty."</p>
+<p>It can be helpful to visialize the distribution of thresholds to see how much you would be filtering out</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot</span><span class="op">$</span><span class="va">`NPC#pathway Probability`</span><span class="op">)</span></span></code></pre></div>
-<p>Here we see that there is a long tail of low confidence values. In
-this tutorial we will filter these out just as one example.</p>
+<p>Here we see that there is a long tail of low confidence values. In this tutorial we will filter these out just as one example.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_canopus_annotations.html">filter_canopus_annotations</a></span><span class="op">(</span><span class="va">mmo</span>, pathway_level <span class="op">=</span> <span class="st">"NPC#pathway"</span>, threshold <span class="op">=</span> <span class="fl">0.8</span>,suffix <span class="op">=</span> <span class="st">"NPC_pathway_0.8"</span>,overwrite <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot_filtered_NPC_pathway_0.8</span></span></code></pre></div>
 <p>A similar logic can be applied to filter the smiles confidence</p>
-<p>In order to filter sequentially we have to define what
-Sirius_annotation filter we want to apply this too setting input</p>
+<p>In order to filter sequentially we have to define what Sirius_annotation filter we want to apply this too setting input</p>
 <p>See the documentation for details about this score!</p>
 <p><a href="https://v6.docs.sirius-ms.io/methods-background/#CANOPUS" class="external-link uri">https://v6.docs.sirius-ms.io/methods-background/#CANOPUS</a></p>
 <p>More details in this paper:<a href="https://www.nature.com/articles/s41587-021-01045-9" class="external-link uri">https://www.nature.com/articles/s41587-021-01045-9</a></p>
-<p>“Interpretation of COSMIC confidence values: COSMIC confidence scores
-should be interpreted with caution. It’s crucial to understand that
-these scores are not probabilities and, therefore, do not have a direct
-statistical interpretation. When performing large-scale analyses, it’s
-advisable to focus on the highest-confidence hits (e.g., the top
-1/5/10%), generally independent of their specific confidence value.”</p>
+<p>“Interpretation of COSMIC confidence values: COSMIC confidence scores should be interpreted with caution. It’s crucial to understand that these scores are not probabilities and, therefore, do not have a direct statistical interpretation. When performing large-scale analyses, it’s advisable to focus on the highest-confidence hits (e.g., the top 1/5/10%), generally independent of their specific confidence value.”</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Replace -Infinity w/ 0</span></span>
@@ -280,8 +209,7 @@ advisable to focus on the highest-confidence hits (e.g., the top
 <span><span class="va">Cosmic_Scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot_filtered_NPC_pathway_0.8</span><span class="op">$</span><span class="va">ConfidenceScoreApproximate</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">Cosmic_Scores</span>, main <span class="op">=</span> <span class="st">"Cosmic Confidence Score for Structures"</span><span class="op">)</span></span></code></pre></div>
-<p>We can see the distribution of scores very different than in the
-class probabilities.</p>
+<p>We can see the distribution of scores very different than in the class probabilities.</p>
 <p>To get the top 10% of hits</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Cosmic_Scores</span>,probs <span class="op">=</span> <span class="fl">0.9</span>,na.rm <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
@@ -318,16 +246,8 @@ class probabilities.</p>
 <div class="section level4">
 <h4 id="pca-plot-and-permanova">PCA plot and PERMANOVA<a class="anchor" aria-label="anchor" href="#pca-plot-and-permanova"></a>
 </h4>
-<p>A PCA plot is commonly used to visualize the overall distribution of
-groups. Following PERMANOVA test can be performed to check if the groups
-are significantly different. <code><a href="../reference/PCAplot.html">PCAplot()</a></code> function use mmo to
-perform PCA, plot them, and perform PERMANOVA test.</p>
-<p>MS - I think that we should explain the logic of how to either save
-the output directly OR how to return the obect. Did you set it up so
-that if an outdir is provided it will save otherwise it will just
-return? I would start with returning the obect and showing the format of
-the output/plot Then showing how you can add your own astetics and
-resave…</p>
+<p>A PCA plot is commonly used to visualize the overall distribution of groups. Following PERMANOVA test can be performed to check if the groups are significantly different. <code><a href="../reference/PCAplot.html">PCAplot()</a></code> function use mmo to perform PCA, plot them, and perform PERMANOVA test.</p>
+<p>MS - I think that we should explain the logic of how to either save the output directly OR how to return the obect. Did you set it up so that if an outdir is provided it will save otherwise it will just return? I would start with returning the obect and showing the format of the output/plot Then showing how you can add your own astetics and resave…</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set colors for groups</span></span>
 <span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ctrl"</span> <span class="op">=</span> <span class="st">"grey"</span>, <span class="st">"sl1"</span> <span class="op">=</span> <span class="st">"#fdcdac"</span>, <span class="st">"le1"</span> <span class="op">=</span> <span class="st">"#b3e2cd"</span><span class="op">)</span></span>
@@ -336,23 +256,18 @@ resave…</p>
 <span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA'</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA_log'</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, normalization <span class="op">=</span> <span class="st">'Log'</span><span class="op">)</span> <span class="co"># Data normalization option</span></span>
 <span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA_FLV'</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, filter_feature <span class="op">=</span> <span class="cn">TRUE</span>, feature_list <span class="op">=</span> <span class="va">FLVs</span><span class="op">)</span> <span class="co"># Feature filtering option</span></span></code></pre></div>
-<p>Alternatively, you can use the output of PCAplot to generate plot
-with your own aesthetics.</p>
+<p>Alternatively, you can use the output of PCAplot to generate plot with your own aesthetics.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Get PCA plot inputs</span></span>
 <span><span class="va">pca_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PCA'</span><span class="op">)</span></span>
 <span><span class="co"># Generate plot with your own aesthetics</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">pdf</a></span><span class="op">(</span><span class="st">"plot/PCA.pdf"</span>, width <span class="op">=</span> <span class="fl">10</span>, height <span class="op">=</span> <span class="fl">10</span><span class="op">)</span></span>
-<span><span class="fu">ggplot</span><span class="op">(</span><span class="va">pca_res</span><span class="op">$</span><span class="va">df</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="va">PC1</span>, y <span class="op">=</span> <span class="va">PC2</span>, color <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_point</span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">theme_minimal</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">labs</span><span class="op">(</span>title <span class="op">=</span> <span class="st">"PCA plot"</span>, x <span class="op">=</span> <span class="st">"PC1"</span>, y <span class="op">=</span> <span class="st">"PC2"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">pca_res</span><span class="op">$</span><span class="va">df</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">PC1</span>, y <span class="op">=</span> <span class="va">PC2</span>, color <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"PCA plot"</span>, x <span class="op">=</span> <span class="st">"PC1"</span>, y <span class="op">=</span> <span class="st">"PC2"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html" class="external-link">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Likewise, all plot-generating functions in eCOMET return a list of
-dataframes and other objects that can be used to generate plots with
-your own aesthetics. Use <code>summary(pca_res)</code> to see the
-structure of the output and try this for other plot-generating
-functions. ### PLS-DA plot</p>
+<p>Likewise, all plot-generating functions in eCOMET return a list of dataframes and other objects that can be used to generate plots with your own aesthetics. Use <code>summary(pca_res)</code> to see the structure of the output and try this for other plot-generating functions. ### PLS-DA plot</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot PLS-DA</span></span>
 <span><span class="fu"><a href="../reference/PLSDAplot.html">PLSDAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">colors</span>, outdir <span class="op">=</span> <span class="st">'plot/PLSDA.pdf'</span><span class="op">)</span></span>
@@ -362,17 +277,7 @@ functions. ### PLS-DA plot</p>
 <div class="section level3">
 <h3 id="identify-differentially-accumulated-metabolites-dams">3. Identify differentially accumulated metabolites (DAMs)<a class="anchor" aria-label="anchor" href="#identify-differentially-accumulated-metabolites-dams"></a>
 </h3>
-<p>Many analyses targets to find <strong>Differentially Accumulated
-Metabolites (DAMs)</strong>. DAMs can be defined by thresholds of
-log2-fold change and adjusted p-value. Those two metrics are calculated
-by following code. Note that the divisor group is at the left. -
-<code><a href="../reference/PairwiseComp.html">PairwiseComp()</a></code> function performs pairwise comparison
-between two groups using t-test and fold change. The results are stored
-in mmo$pairwise_comp. - <code><a href="../reference/GetDAMs.html">GetDAMs()</a></code> function extracts DAMs
-based on user-defined cutoffs for p-value and fold change. - Here, we
-compare each herbivore treatment group (sl1 and le1) to the control
-group (ctrl). - Log2(1.5) = 0.5849625 is used as fold change cutoff and
-0.1 as p-value cutoff to extract more DAMs</p>
+<p>Many analyses targets to find <strong>Differentially Accumulated Metabolites (DAMs)</strong>. DAMs can be defined by thresholds of log2-fold change and adjusted p-value. Those two metrics are calculated by following code. Note that the divisor group is at the left. - <code><a href="../reference/PairwiseComp.html">PairwiseComp()</a></code> function performs pairwise comparison between two groups using t-test and fold change. The results are stored in mmo$pairwise_comp. - <code><a href="../reference/GetDAMs.html">GetDAMs()</a></code> function extracts DAMs based on user-defined cutoffs for p-value and fold change. - Here, we compare each herbivore treatment group (sl1 and le1) to the control group (ctrl). - Log2(1.5) = 0.5849625 is used as fold change cutoff and 0.1 as p-value cutoff to extract more DAMs</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Run pairwise comparison</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PairwiseComp.html">PairwiseComp</a></span><span class="op">(</span><span class="va">mmo</span>, group1 <span class="op">=</span> <span class="st">'ctrl'</span>, group2 <span class="op">=</span> <span class="st">'sl1'</span><span class="op">)</span></span>
@@ -385,8 +290,7 @@ group (ctrl). - Log2(1.5) = 0.5849625 is used as fold change cutoff and
 <div class="section level4">
 <h4 id="volcano-plot">3.1. Volcano plot<a class="anchor" aria-label="anchor" href="#volcano-plot"></a>
 </h4>
-<p>A volcano plot can be used to visualize the overall distribution of
-features based on fold change and p-value.</p>
+<p>A volcano plot can be used to visualize the overall distribution of features based on fold change and p-value.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Volcano plot</span></span>
 <span><span class="fu"><a href="../reference/VolcanoPlot.html">VolcanoPlot</a></span><span class="op">(</span><span class="va">mmo</span>, comp <span class="op">=</span> <span class="st">'ctrl_vs_sl1'</span>, outdir <span class="op">=</span> <span class="st">'plot/Volcano_ctrl_vs_sl1.pdf'</span><span class="op">)</span></span>
@@ -395,8 +299,7 @@ features based on fold change and p-value.</p>
 <div class="section level4">
 <h4 id="venn-diagram-and-upset-plot">3.2. Venn diagram and upset plot<a class="anchor" aria-label="anchor" href="#venn-diagram-and-upset-plot"></a>
 </h4>
-<p>A Venn diagram or upset plot can be used to visualize the overlap of
-DAMs between different comparisons.</p>
+<p>A Venn diagram or upset plot can be used to visualize the overlap of DAMs between different comparisons.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define input list</span></span>
 <span><span class="va">VennInput</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -404,9 +307,9 @@ DAMs between different comparisons.</p>
 <span>  le1.up <span class="op">=</span> <span class="va">DAMs_up</span><span class="op">$</span><span class="va">ctrl_vs_le1.up</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co"># Venn diagram</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://yanlinlin82.github.io/ggvenn/" class="external-link">ggvenn</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://yanlinlin82.github.io/ggvenn/" class="external-link">ggvenn</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://yanlinlin82.github.io/ggvenn/reference/ggvenn.html" class="external-link">ggvenn</a></span><span class="op">(</span><span class="va">VennInput</span>, stroke_size <span class="op">=</span> <span class="fl">0.5</span>, set_name_size <span class="op">=</span> <span class="fl">4</span>, show_percentage <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va">ggvenn</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">ggvenn</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/ggvenn/man/ggvenn.html" class="external-link">ggvenn</a></span><span class="op">(</span><span class="va">VennInput</span>, stroke_size <span class="op">=</span> <span class="fl">0.5</span>, set_name_size <span class="op">=</span> <span class="fl">4</span>, show_percentage <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span> </span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"plot/Venn_Upreg.pdf"</span>, height <span class="op">=</span> <span class="fl">5</span>, width <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="co"># UpSet plot</span></span>
@@ -420,22 +323,12 @@ DAMs between different comparisons.</p>
 <div class="section level3">
 <h3 id="heatmap">4. Heatmap<a class="anchor" aria-label="anchor" href="#heatmap"></a>
 </h3>
-<p>To visualize the relative abundance of features across samples, a
-heatmap can be generated. The features can be either clusterd using
-hierarchical clustering or by chemical distances (e.g., Dreams
-distance), following idea of Qemistree (Tripathi et al., 2021, Nat Chem.
-Biol.).</p>
+<p>To visualize the relative abundance of features across samples, a heatmap can be generated. The features can be either clusterd using hierarchical clustering or by chemical distances (e.g., Dreams distance), following idea of Qemistree (Tripathi et al., 2021, Nat Chem. Biol.).</p>
 <ul>
-<li>The input matrix for heatmap can be either fold change between each
-treatment and control or mean normalized values across samples.</li>
-<li>Various normalizations can be used (None, Log, Meancentered, and
-Z).</li>
-<li>Groups or features can be filtered by setting ‘filter_group’ or
-‘filter_feature’ to TRUE and providing a list of groups or
-features.</li>
-<li>The input data for the heatmap is generated by
-‘GenerateHeatmapInputs()’ function, then the heatmap is plotted using
-‘pheatmap’ package.</li>
+<li>The input matrix for heatmap can be either fold change between each treatment and control or mean normalized values across samples.</li>
+<li>Various normalizations can be used (None, Log, Meancentered, and Z).</li>
+<li>Groups or features can be filtered by setting ‘filter_group’ or ‘filter_feature’ to TRUE and providing a list of groups or features.</li>
+<li>The input data for the heatmap is generated by ‘GenerateHeatmapInputs()’ function, then the heatmap is plotted using ‘pheatmap’ package.</li>
 </ul>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">pheatmap</span><span class="op">)</span></span>
@@ -507,13 +400,7 @@ features.</li>
 <div class="section level3">
 <h3 id="canopus-class-enrichment-analysis">5. CANOPUS class enrichment analysis<a class="anchor" aria-label="anchor" href="#canopus-class-enrichment-analysis"></a>
 </h3>
-<p>Biological questions ask which class of chemical compounds are
-enriched in a set of compounds of interest (e.g., DAMs from above). This
-is analogue to the Gene Ontology enrichment analysis performed in
-transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus
-of SIRIUS are used to perform chemical class enrichment analysis of
-given list of features. The enrichment score of each term is calculated
-to plot the number of each term and the significance.</p>
+<p>Biological questions ask which class of chemical compounds are enriched in a set of compounds of interest (e.g., DAMs from above). This is analogue to the Gene Ontology enrichment analysis performed in transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus of SIRIUS are used to perform chemical class enrichment analysis of given list of features. The enrichment score of each term is calculated to plot the number of each term and the significance.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># For a single set of features, a detailed enrichment plot can be generated</span></span>
 <span><span class="co"># There are two plotting styles available</span></span>
@@ -536,10 +423,7 @@ to plot the number of each term and the significance.</p>
 <div class="section level3">
 <h3 id="correlation-analysis">6. Correlation analysis<a class="anchor" aria-label="anchor" href="#correlation-analysis"></a>
 </h3>
-<p>To find phenotype-linked metabolties, we can use correlation
-analysis. In this tutorial, we will use correlation between amount of
-each feature and herbivore performance in bioassay to find defense
-compounds.</p>
+<p>To find phenotype-linked metabolties, we can use correlation analysis. In this tutorial, we will use correlation between amount of each feature and herbivore performance in bioassay to find defense compounds.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># We will first screen for all features to find whether there is any correlation between amount of each feature and herbivore performance in bioassay</span></span>
 <span><span class="va">sl_cor</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ScreenFeaturePhenotypeCorrelation.html">ScreenFeaturePhenotypeCorrelation</a></span><span class="op">(</span><span class="va">mmo</span>, phenotype <span class="op">=</span> <span class="st">'sl'</span>, groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'sl1'</span><span class="op">)</span>, model <span class="op">=</span> <span class="st">'spearman'</span>, normalization <span class="op">=</span> <span class="st">'Z'</span><span class="op">)</span></span>
@@ -548,8 +432,7 @@ compounds.</p>
 <div class="section level3">
 <h3 id="sharing-mmo-object">7. Sharing MMO object<a class="anchor" aria-label="anchor" href="#sharing-mmo-object"></a>
 </h3>
-<p>MMO object can be shared with other users by saving it to a file and
-loading it from a file.</p>
+<p>MMO object can be shared with other users by saving it to a file and loading it from a file.</p>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Save MMO object</span></span>
 <span><span class="fu"><a href="../reference/SaveMMO.html">SaveMMO</a></span><span class="op">(</span><span class="va">mmo</span>, <span class="st">'mmo.RData'</span><span class="op">)</span></span>
@@ -569,7 +452,7 @@ loading it from a file.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

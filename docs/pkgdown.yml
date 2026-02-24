@@ -1,10 +1,14 @@
-pandoc: '3.4'
-pkgdown: 2.2.0
+pandoc: 2.9.2.1
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   eCOMET-intro: eCOMET-intro.html
+  Interspecific_study_tutorial_V2: Interspecific_study_tutorial_V2.html
+  Interspecific_study_tutorial: Interspecific_study_tutorial.html
+  Intro: Intro.html
+  match_structure_to_features: match_structure_to_features.html
   Treatment-based_study_tutorial: Treatment-based_study_tutorial.html
-last_built: 2026-01-25T23:53Z
+last_built: 2026-02-24T11:37Z
 urls:
   reference: https://phytoecia.github.io/eCOMET/reference
   article: https://phytoecia.github.io/eCOMET/articles
