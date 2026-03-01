@@ -68,19 +68,6 @@ Feature x Abundance matrix where the first two columns identify individual metab
 mmo$feature_data
 ```
 
-
-If gap filling was not applied when processing mzmine the feature matrix will contain many NA values and/or zero ubundance features. These will cause issues for downstream statistics so we start the tutorial by imputing the data replacing NAs and zeros with a small non-zero constant. 
-
-By adding a non-zero constant, our calculating of compound presence absence and compound richness will be over inflated... Thus, the function ReplaceZero will simultanious add both an inputed feature table and a presence absence table to the object.
-
-### update the replaceZero to function to account for this.
-
-# Add normalizations
-```{r, eval = FALSE}
-mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
-
-mmo$feature_data
-```
 Task 1: 
 A) Calculate the number of features observed in each sample and each species:
 
@@ -89,7 +76,6 @@ A) Calculate the number of features observed in each sample and each species:
 #GetAlphadiv but only for richness - no compdis, q = 0)
 
 df_s <- CalculateRichness(mmo, threshold = 1)
-
 
 
 ggplot2::ggplot(df_s, ggplot2::aes(x = group, y = richness)) +
