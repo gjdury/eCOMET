@@ -303,7 +303,7 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
   sirius_df <- sirius_df |>
   left_join(structure_identifications, by = c("id" = "mappingFeatureId"), multiple = "last") |>
   left_join(canopus_formula_summary, by = c("id" = "mappingFeatureId", 'formulaRank', 'molecularFormula', 'adduct', 'precursorFormula', 'ionMass',
-                                            'retentionTimeInSeconds', 'retentionTimeInMinutes', 'formulaId', 'alignedFeatureId', 'compoundId', 
+                                            'retentionTimeInSeconds', 'retentionTimeInMinutes', 'formulaId', 'alignedFeatureId', 'compoundId',
                                             'overallFeatureQuality'), multiple = "last")
   mmo$sirius_annot <- sirius_df
   print('SIRIUS annotation added to mmo$sirius_annot')
@@ -787,8 +787,8 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 #' #' Replace zero and NA values in the mmo object
 #'
 #' This function replaces zero values in the feature table of an mmo object.
-#' Imputed data are stored in mmo$imputed_feature_data, to be used for 
-#' downsteam analyses including PairwiseComp(). 
+#' Imputed data are stored in mmo$imputed_feature_data, to be used for
+#' downsteam analyses including PairwiseComp().
 #' Note that imputation affects normalizations (Log-transformation, etc.),
 #' as well as chemical diversity calculations that uses presence/absence.
 #'
@@ -1812,6 +1812,74 @@ filter_mmo <- function(mmo,
   mmo_filtered
 }
 
+### Pool Rows by Group
+
+#' pool_mmo_by_group
+#'
+#' Pools sample columns within each group into one pseudo-sample per group.
+#' Feature rows are preserved (no filtering of features).
+#' Keeps all other slots of the mmo object unchanged by copying mmo first.
+#'
+#' @param mmo mmo object
+#' @param group_col column in mmo$metadata used for grouping (default: "group")
+#' @return mmo object with feature_data containing one column per group and metadata updated accordingly
+#' @export
+pool_mmo_by_group <- function(mmo, group_col = "group") {
+  if (is.null(mmo$feature_data) || is.null(mmo$metadata)) {
+    stop("mmo must contain $feature_data and $metadata.")
+  }
+
+  fd <- mmo$feature_data
+  md <- mmo$metadata
+
+  if (!("sample" %in% names(md))) stop("mmo$metadata must contain 'sample'.")
+  if (!(group_col %in% names(md))) stop("group_col not found in metadata: ", group_col)
+
+  # aligned sample columns (assumes first 2 columns are id + feature)
+  sample_cols <- colnames(fd)[-c(1, 2)]
+  sample_cols <- intersect(sample_cols, md$sample)
+  if (length(sample_cols) < 1) stop("No aligned sample columns to pool.")
+
+  group_map <- as.character(md[[group_col]][match(sample_cols, md$sample)])
+  group_map[is.na(group_map) | group_map == ""] <- "ungrouped"
+
+  # stable group order (appearance order in metadata, not alphabetical)
+  groups <- unique(group_map)
+
+  x <- as.matrix(fd[, sample_cols, drop = FALSE])
+
+  pooled_mat <- matrix(NA_real_, nrow = nrow(x), ncol = length(groups))
+  colnames(pooled_mat) <- groups
+
+  for (i in seq_along(groups)) {
+    g <- groups[i]
+    cols_g <- sample_cols[group_map == g]
+    pooled_mat[, i] <- rowSums(x[, cols_g, drop = FALSE], na.rm = TRUE)
+  }
+
+  pooled_fd <- data.frame(
+    fd[, 1:2, drop = FALSE],
+    as.data.frame(pooled_mat, check.names = FALSE),
+    check.names = FALSE
+  )
+  colnames(pooled_fd)[1:2] <- colnames(fd)[1:2]
+
+  pooled_md <- data.frame(
+    sample = groups,
+    group = groups,
+    stringsAsFactors = FALSE
+  )
+  if (group_col != "group") pooled_md[[group_col]] <- groups
+
+  # copy whole object, then overwrite only what must change
+  out <- mmo
+  out$feature_data <- pooled_fd
+  out$metadata <- pooled_md
+  out
+}
+
+
+
 
 
 ########################################################################################
@@ -2550,7 +2618,7 @@ GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
                                 normalization = 'None', distance = 'dreams') {
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
-  }  
+  }
   # 12.1.1. Get summarized data (group mean or FC)
   group_means <- GetGroupMeans(mmo, normalization = normalization)
   if (summarize == 'fold_change'){
@@ -3552,7 +3620,7 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
   .require_pkg("ggbeeswarm")
   if (filter_group){
     mmo <- filter_mmo(mmo, group_list = group_list)
-  }  
+  }
   # Extract metadata and feature data
   metadata <- mmo$metadata
   feature_data <- GetNormFeature(mmo, normalization)
@@ -3654,11 +3722,6 @@ GetRichness <- function(
     stringsAsFactors = FALSE
   )
 }
-
-
-
-
-
 
 #' GetCumulativeRichness
 #'
@@ -3950,12 +4013,68 @@ GetFaithPD <- function(mmo, distance = 'dreams'){
 
 
 
+#' #' GetAlphaDiversity
+#' #'
+#' #' This function calculates the alpha diversity for a given mmo object,
+#' #' Supported modes are 'weighted' for functional Hill number, 'unweighted' for chemical distance,
+#' #' 'faith' for Faith's phylogenetic diversity, 'richness' for simple feature richness (default: 'richness')
+#' #'
+#' #'
+#' #' @param mmo The mmo object containing feature data and metadata
+#' #' @param q The order of the Hill number to calculate (default: 1)
+#' #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
+#' #' @param mode The mode of diversity calculation. One of 'weighted', 'unweighted', 'faith', 'richness' (default: 'richness')
+#' #' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
+#' #' @param richness_threshold The threshold for calculating richness (default: 0)
+#' #' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
+#' #' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
+#' #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
+#' #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
+#' #' @return A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
+#' #' @export
+#' #' @examplesIf FALSE
+#' #' functional_hill_number <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
+#' #'  mode = 'weighted', distance = 'dreams', filter_id = FALSE)
+#' #' hill_number <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
+#' #'  mode = 'unweighted', filter_id = TRUE, id_list = Glucosinolates)
+#' #' richness <- GetAlphaDiversity(mmo, mode = 'richness', filter_id = TRUE, id_list = Glucosinolates)
+#' #' faith_pd <- GetAlphaDiversity(mmo, mode = 'faith', distance = 'dreams')
+#' GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'richness', distance = 'dreams', richness_threshold = 0,
+#'                               filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL) {
+#'   if (filter_id||filter_group){
+#'     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+#'   }
+#'
+#'   if (mode == 'weighted'){
+#'     GetFunctionalHillNumber(mmo, normalization = normalization, q = q, distance = distance)
+#'   } else if (mode == 'unweighted'){
+#'     GetHillNumbers(mmo, normalization = normalization, q = q)
+#'   } else if (mode == 'richness'){
+#'     GetRichness(mmo, threshold = richness_threshold)
+#'   } else if (mode == 'faith'){
+#'     GetFaithPD(mmo, distance = distance)
+#'   } else{
+#'     print('mode should be weighted or unweighted or richness or faith')
+#'   }
+#' }
+
+
 #' GetAlphaDiversity
 #'
-#' This function calculates the alpha diversity for a given mmo object, 
-#' Supported modes are 'weighted' for functional Hill number, 'unweighted' for chemical distance, 
-#' 'faith' for Faith's phylogenetic diversity, 'richness' for simple feature richness (default: 'richness')
-#' 
+#' Calculate alpha diversity for an mmo object with flexible output modes.
+#' Supported diversity modes:
+#' - 'weighted'   : functional Hill number (GetFunctionalHillNumber)
+#' - 'unweighted' : Hill numbers on abundances (GetHillNumbers)
+#' - 'faith'      : Faith's phylogenetic diversity (GetFaithPD)
+#' - 'richness'   : simple feature richness (GetRichness)
+#'
+#' Output modes control how samples are handled:
+#' 1) 'sample_level'     : alpha per sample -> returns sample, group, value
+#' 2) 'group_average'    : mean alpha per group (summarize sample_level) -> group, mean, sd, se, n, lwr, upr
+#' 3) 'group_cumulative' : pooled gamma per group (pool samples within group) -> group, value
+#' 4) 'rarefied_sample'  : sample-based rarefaction within group (subsample N samples, pool, compute) -> group, n_samples, mean, lwr, upr, n_perm
+#'
+#' NOTE: For outputs 3 and 4, pooling is performed by summing feature intensities across samples.
 #'
 #' @param mmo The mmo object containing feature data and metadata
 #' @param q The order of the Hill number to calculate (default: 1)
@@ -3967,32 +4086,245 @@ GetFaithPD <- function(mmo, distance = 'dreams'){
 #' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
 #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
-#' @return A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
+#'
+#' @param output Output mode: 'sample_level', 'group_average', 'group_cumulative', or 'rarefied_sample'
+#' @param group_col Column in mmo$metadata that defines groups (default: 'group')
+#' @param sample_col Column in mmo$metadata that defines sample IDs (default: 'sample')
+#'
+#' @param rarefy_n Integer; number of samples to rarefy to per group (only used for output='rarefied_sample').
+#'   Default: min(15, smallest group size).
+#' @param n_perm Integer; number of permutations for rarefaction (default: 200)
+#' @param ci Numeric; confidence level (default: 0.95)
+#' @param seed Optional integer seed for reproducibility (default: NULL)
+#'
+#' @return A data.frame depending on output mode (see details above).
 #' @export
-#' @examplesIf FALSE
-#' functional_hill_number <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
-#'  mode = 'weighted', distance = 'dreams', filter_id = FALSE)
-#' hill_number <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
-#'  mode = 'unweighted', filter_id = TRUE, id_list = Glucosinolates)
-#' richness <- GetAlphaDiversity(mmo, mode = 'richness', filter_id = TRUE, id_list = Glucosinolates)
-#' faith_pd <- GetAlphaDiversity(mmo, mode = 'faith', distance = 'dreams')
-GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'richness', distance = 'dreams', richness_threshold = 0,
-                              filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL) {
-  if (filter_id||filter_group){
-    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
-  }  
+GetAlphaDiversity <- function(
+    mmo,
+    q = 1,
+    normalization = "None",
+    mode = "richness",
+    distance = "dreams",
+    richness_threshold = 0,
+    filter_id = FALSE,
+    id_list = NULL,
+    filter_group = FALSE,
+    group_list = NULL,
+    output = c("sample_level", "group_average", "group_cumulative", "rarefied_sample"),
+    group_col = "group",
+    sample_col = "sample",
+    rarefy_n = NULL,
+    n_perm = 200,
+    ci = 0.95,
+    seed = NULL
+) {
+  output <- match.arg(output)
 
-  if (mode == 'weighted'){
-    GetFunctionalHillNumber(mmo, normalization = normalization, q = q, distance = distance)
-  } else if (mode == 'unweighted'){
-    GetHillNumbers(mmo, normalization = normalization, q = q)
-  } else if (mode == 'richness'){
-    GetRichness(mmo, threshold = richness_threshold)
-  } else if (mode == 'faith'){
-    GetFaithPD(mmo, distance = distance)
-  } else{
-    print('mode should be weighted or unweighted or richness or faith')
+  # -----------------------------
+  # 0) Optional filtering
+  # -----------------------------
+  if (filter_id || filter_group) {
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list,
+                      sample_col = sample_col, group_col = group_col)
   }
+
+  # -----------------------------
+  # 1) Metric engine (returns per-sample)
+  # -----------------------------
+  metric_engine <- function(mmo_local) {
+    if (mode == "weighted") {
+      GetFunctionalHillNumber(mmo_local, normalization = normalization, q = q, distance = distance)
+    } else if (mode == "unweighted") {
+      GetHillNumbers(mmo_local, normalization = normalization, q = q)
+    } else if (mode == "richness") {
+      GetRichness(mmo_local, threshold = richness_threshold)
+    } else if (mode == "faith") {
+      GetFaithPD(mmo_local, distance = distance)
+    } else {
+      stop("mode should be 'weighted', 'unweighted', 'richness', or 'faith'")
+    }
+  }
+
+  # -----------------------------
+  # 2) Standardize output to (sample, group, value)
+  # -----------------------------
+  to_sample_group_value <- function(df, mmo_ref) {
+    if (!is.data.frame(df) || nrow(df) < 1) stop("Metric function returned empty output.")
+    if (!("sample" %in% names(df))) {
+      stop("Metric output must include a 'sample' column.")
+    }
+    if (!("group" %in% names(df))) {
+      # map group from metadata
+      md <- mmo_ref$metadata
+      if (is.null(md) || !(sample_col %in% names(md)) || !(group_col %in% names(md))) {
+        stop("Metric output lacks 'group' and cannot map it from mmo$metadata.")
+      }
+      df$group <- md[[group_col]][match(df$sample, md[[sample_col]])]
+    }
+
+    if ("richness" %in% names(df)) {
+      value <- df$richness
+    } else if ("value" %in% names(df)) {
+      value <- df$value
+    } else if ("alpha" %in% names(df)) {
+      value <- df$alpha
+    } else {
+      stop("Metric output must include a numeric column named 'value' (or 'alpha'/'richness').")
+    }
+
+    data.frame(
+      sample = as.character(df$sample),
+      group  = as.character(df$group),
+      value  = as.numeric(value),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  # -----------------------------
+  # Output 1) sample_level
+  # -----------------------------
+  if (output == "sample_level") {
+    df <- metric_engine(mmo)
+    return(to_sample_group_value(df, mmo))
+  }
+
+  # From here on we need metadata + grouping
+  if (is.null(mmo$metadata) || !is.data.frame(mmo$metadata)) {
+    stop("mmo$metadata must be present for this output mode.")
+  }
+  if (!(sample_col %in% names(mmo$metadata))) stop("metadata is missing sample_col: ", sample_col)
+  if (!(group_col %in% names(mmo$metadata))) stop("metadata is missing group_col: ", group_col)
+
+  # -----------------------------
+  # Output 2) group_average
+  # -----------------------------
+  if (output == "group_average") {
+    df <- metric_engine(mmo)
+    sgv <- to_sample_group_value(df, mmo)
+
+    alpha <- (1 - ci) / 2
+    probs <- c(alpha, 1 - alpha)
+
+    out <- sgv |>
+      dplyr::group_by(.data$group) |>
+      dplyr::summarise(
+        mean = mean(.data$value, na.rm = TRUE),
+        sd   = stats::sd(.data$value, na.rm = TRUE),
+        n    = sum(!is.na(.data$value)),
+        se   = .data$sd / sqrt(.data$n),
+        lwr  = stats::quantile(.data$value, probs = probs[1], na.rm = TRUE),
+        upr  = stats::quantile(.data$value, probs = probs[2], na.rm = TRUE),
+        .groups = "drop"
+      )
+    return(as.data.frame(out))
+  }
+
+  # -----------------------------
+  # Output 3) group_cumulative (pool within group, then compute metric)
+  # -----------------------------
+  if (output == "group_cumulative") {
+    pooled_mmo <- pool_mmo_by_group(mmo, group_col = group_col)
+    df <- metric_engine(pooled_mmo)
+    sgv <- to_sample_group_value(df, pooled_mmo)
+
+    # here sample names are the group labels (because pooling renames sample columns to groups)
+    out <- data.frame(
+      group = sgv$sample,
+      value = sgv$value,
+      stringsAsFactors = FALSE
+    )
+    return(out)
+  }
+
+  # -----------------------------
+  # Output 4) rarefied_sample (curve up to max_k; sample-based)
+  # -----------------------------
+  if (output == "rarefied_sample") {
+
+    if (!is.null(seed)) set.seed(seed)
+
+    md <- mmo$metadata
+    fd <- mmo$feature_data
+
+    sample_cols <- setdiff(colnames(fd), c("id", "feature"))
+    sample_cols <- intersect(sample_cols, as.character(md[[sample_col]]))
+    if (length(sample_cols) < 2) {
+      stop("Need at least 2 aligned samples for rarefaction.")
+    }
+
+    group_map <- as.character(md[[group_col]][match(sample_cols, md[[sample_col]])])
+    group_map[is.na(group_map) | group_map == ""] <- "ungrouped"
+    groups <- unique(group_map)
+
+    # cap curve length
+    max_k <- if (is.null(rarefy_n)) 15L else as.integer(rarefy_n)
+    if (max_k < 1) stop("max_k must be >= 1.")
+
+    alpha <- (1 - ci) / 2
+    probs <- c(alpha, 1 - alpha)
+
+    # helper: maximum unique permutations
+    max_unique_perms <- function(ng) {
+      if (ng <= 1) return(1L)
+      if (ng <= 10) return(as.integer(factorial(ng)))
+      Inf
+    }
+
+    res <- lapply(groups, function(g) {
+
+      samp_g <- sample_cols[group_map == g]
+      ng <- length(samp_g)
+      Kg <- min(max_k, ng)
+
+      n_perm_eff <- min(n_perm, max_unique_perms(ng))
+
+      mat <- matrix(NA_real_, nrow = n_perm_eff, ncol = Kg)
+
+      for (p in seq_len(n_perm_eff)) {
+
+        ord <- sample(samp_g, size = ng, replace = FALSE)
+
+        for (k in seq_len(Kg)) {
+
+          pick <- ord[seq_len(k)]
+
+          mmo_sub <- suppressMessages(
+            filter_mmo(
+              mmo,
+              sample_list = pick,
+              sample_col = sample_col,
+              group_col = group_col,
+              drop_empty_feat = FALSE
+            )
+          )
+
+          mmo_sub$metadata[[group_col]] <- "pool"
+          mmo_pool <- pool_mmo_by_group(mmo_sub, group_col = group_col)
+
+          df_pool <- metric_engine(mmo_pool)
+          sgv_pool <- to_sample_group_value(df_pool, mmo_pool)
+
+          mat[p, k] <- sgv_pool$value[1]
+        }
+      }
+
+      data.frame(
+        group = g,
+        n_samples = seq_len(Kg),
+        mean = colMeans(mat, na.rm = TRUE),
+        lwr  = apply(mat, 2, stats::quantile, probs = probs[1], na.rm = TRUE),
+        upr  = apply(mat, 2, stats::quantile, probs = probs[2], na.rm = TRUE),
+        n_perm_eff = n_perm_eff,
+        stringsAsFactors = FALSE
+      )
+    })
+
+    out <- do.call(rbind, res)
+    rownames(out) <- NULL
+    return(out)
+  }
+
+  stop("Unhandled output mode.")
 }
 
 #' GetSpecializationIndex
@@ -4020,7 +4352,7 @@ GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'richne
 GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = FALSE, group_list = NULL, filter_id = FALSE, id_list = NULL){
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
-  }  
+  }
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
   # Get frequency matrix
@@ -4049,6 +4381,10 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
   output <- data.frame(group = groups, specialization = Pij.specialization)
 }
 
+
+
+
+
 #' GetBetaDiversity
 #'
 #' This function calculates the beta diversity for a given mmo object, method (Generalized Unifrac, bray, jaccard, or CSCS), normalization method, distance metric, and optional feature filtering.
@@ -4075,7 +4411,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL){
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
-  }  
+  }
   # Get compound distance and build tree for UniFrac
   scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
   compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))

@@ -31,7 +31,7 @@ here()
 demo_feature <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_full_feature_table.csv")
 demo_metadata <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_metadata_no_blank.csv")
 demo_sirius_formula <- here("tutorial/tutorial_2_interspecific/canopus_formula_summary.tsv")
-demo_sirius_structure <- here("tutorial/tutorial_2_interspecific/canopus_structure_summary.tsv")
+demo_sirius_structure <- here("tutorial/tutorial_2_interspecific/structure_identifications.tsv")
 demo_dreams <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_edges_dreams_dreams.csv")
 
 # Initialize eCOMET object
@@ -71,72 +71,203 @@ mmo$feature_data
 Task 1: 
 A) Calculate the number of features observed in each sample and each species:
 
+We can use the GetAlphaDiversity function to calculate many diversity indices from the data. This function uses the functional hill framework(CITE) for calculating diversity and thus can integrate simple diversity measures (i.e. richness) or measures that take into account relative abundance of feature AND structural relationships between features. 
+
+For simple Richness, we set Q= 0, as this converts the abundance matrix to presence absence and we set mode= "unweighted" meaning we do not weight features by their structural similarity. 
+
+By default we set a 
+
 ```{r, eval = FALSE}
 
-#GetAlphadiv but only for richness - no compdis, q = 0)
+#Will update functional hill number to calculate above threshold not on NA.
+sample_richness <- GetAlphaDiversity(mmo, q = 0, normalization = 'None',mode = 'unweighted',richness_threshold = 0)
+#must be here! return length(p when counting presence absence is just going to return the number of features?)
+# hill_numbers <- apply(feature[, -(1:2)], 2, function(x) {
+#     p <- x / sum(x)
+#     if (q == 0) {
+#       return(length(p))
+#     } else if (q == 1) {
+#       return(exp(-sum(p * log(p))))
+#     } else {
+#       return((sum(p^q))^(1 / (1 - q)))
+#     }
+#   })
 
-df_s <- CalculateRichness(mmo, threshold = 1)
 
+sample_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  richness_threshold = 0,
+  output = "sample_level"
+)
 
-ggplot2::ggplot(df_s, ggplot2::aes(x = group, y = richness)) +
+ggplot2::ggplot(sample_richness, ggplot2::aes(x = group, y = value)) +
   ggplot2::geom_boxplot(outlier.shape = NA) +
-  ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6)
+  ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6) +
+  ggplot2::labs(
+    x = "Species",
+    y = "Feature Richness"
+  ) +
+  ggplot2::theme_classic() +
+  ggplot2::theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.5)
+  )
 
 ```
-We can calculate the richness per feature annotation level by adding in the sirius annotations
+This plot shows the distribution of richness, but we can also summarize the richness per group directly...
+
+```{r}
+
+group_mean_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  richness_threshold = 0,
+  output = "group_average",
+  ci = 0.95   # optional; controls lwr/upr quantiles in the summary
+)
+group_mean_richness
+```
+We can calculate the cumualitive richess across each group. 
+
+
+```{r}
+#Should add option for mean or sum when pooling samples
+
+group_pooled_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  richness_threshold = 0,
+  output = "group_cumulative"
+)
+
+group_pooled_richness
+```
+
+Finally, we can create a compound accumulation curve per group by rarefying samples and seeing how compound richness increases as we add samples
+
+`
+
+
+
+
+
+```{r}
+#this is too slow because of filtering. Need to update functions so they don't require mmo..
+#update so it includes raw data of the rarefaction needs ot be conserved
+group_rarefied_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  richness_threshold = 0,
+  output = "rarefied_sample",
+  n_perm = 200,    # permutations for CI
+  ci = 0.95,
+  seed = 1
+)
+
+
+group_rarefied_richness
+```
+
+
+```{r}
+
+
+
+p <- PlotAccumulation(group_rarefied_richness_V2)
+p
+
+
+group_rarefied_richness_V2
+
+
+
+```
+#Stacked Barplot and Loading in Sirius... This is in bad shape. Need to discuss.
 
 ```{r, eval = FALSE}
+
+
+#Eventually Dale will implement addGNPS and addDREAMS hits...
 
 # Add SIRIUS annotation
 mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
 mmo$sirius_annot
 
-#problem 1 is the duplicated....
-#problem 2 is cbind with repeated columns...
+#MS will add this...
+###Next add stacked barcplot...
 
+PlotNPCStackedBar(
+#'  mmo, group_col = 'treatment',
+#'  outdir = 'NPC_stacked_bar.png', width = 6, height = 3
+#' )
 
-
-```
-#ok, need to make each level flexible to handle the x and y because they are duplicated.
-#need to add in probability threshold either in the function above or below...
-
-
-    richness
-    sirius annotation
-    stacked barplot - 
-
-####
-richness rarefaction
-
-
+#Task 2: Visualize difference between Species
 
 ```
 
-#same thing but rarify across samples...
-cumualitive richness
-    
-2) PCA and Brey Curtis
 
-3) We illustrate how different species of trees share a small fraction of there mz-rt features and show how this can be usefull for identifying chemotypes. 
+2) PCA and Bray Curtis
+
+a) PCA
+```{r}
+
+## MS will add this
+mmo <- ecomet::ReplaceZero(mmo,method = "one")
+
+PCAplot(mmo, normalization = 'None')
+
+```
+
+b) HC of Bray-Curtis - Dale adds does this.
+```{r}
+```
+
+
+
+3) We illustrate how different species of trees share a small fraction of there mz-rt features and show how this can be useful for identifying chemotypes. 
+
+
 
 ### introduce relationship amongst features...
 
 4) We introduce feature based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
 
+```{r, eval = FALSE}
+# Add Dreams distance
+mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
-show a feature based molecular network...
+mmo$dreams.dissim[1:10,1:10]
+```
+
+### Image of molecular network
+
+#### Generate Dendrogram 
+
+2) build a dendrogram and plot
+
+#write it out into itol...
 
 
-Show different trees. 
-actual based on the standards chemodev
-cosine, dreams, 
 
-#dendrogram of 
+
+```{r}
+unique(mmo$metadata$group)
+mmo_sample <- filter_mmo(mmo,group_list = "Inga alba")
+
+mmo_tree <- FeatureDendrogram(mmo_sample)
+plot(mmo_tree$phylo,type = "fan")
+
+length(mmo_tree$phylo$tip.label)
+
+```
 
 
 5) We illustrate how a feature abundance matrix and a chemical dendrogram/similarity matrix can be used to calculate:
 
-a) Structurally weighted Chemical Diversity
+a) 
+#GetAlpha w/ weighted mode and hillnumber
+
+Structurally weighted Chemical Diversity
   c) Structurally weighted Chemical Similarity between samples
   b) richness by pathway NPCstacked barplot - potentially add in pathway stacked
 
@@ -144,13 +275,7 @@ a) Structurally weighted Chemical Diversity
 
 
 
-### Would prefer to add and introduce distance below but bray is currently requiring it?
-```{r, eval = FALSE}
-# Add Dreams distance
-mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
-mmo$dreams.dissim[1:10,1:10]
-```
 Note you can change the group column at any time using: SwitchGroup()
 ```{r, eval = FALSE}
 names(mmo$metadata)
