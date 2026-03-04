@@ -97,7 +97,7 @@ sample_richness <- GetAlphaDiversity(mmo, q = 0, normalization = 'None',mode = '
 sample_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
-  richness_threshold = 0,
+  threshold = 0,
   output = "sample_level"
 )
 
@@ -121,7 +121,7 @@ This plot shows the distribution of richness, but we can also summarize the rich
 group_mean_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
-  richness_threshold = 0,
+  threshold = 0,
   output = "group_average",
   ci = 0.95   # optional; controls lwr/upr quantiles in the summary
 )
@@ -136,8 +136,9 @@ We can calculate the cumualitive richess across each group.
 group_pooled_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
-  richness_threshold = 0,
-  output = "group_cumulative"
+  threshold = 0,
+  output = "group_cumulative",
+  pool_method = "sum"
 )
 
 group_pooled_richness
@@ -157,15 +158,17 @@ Finally, we can create a compound accumulation curve per group by rarefying samp
 group_rarefied_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
-  richness_threshold = 0,
+  threshold = 0,
   output = "rarefied_sample",
   n_perm = 200,    # permutations for CI
   ci = 0.95,
-  seed = 1
+  seed = 1,
+  pool_method = "sum"
 )
 
 
-group_rarefied_richness
+group_rarefied_richness$summary
+group_rarefied_richness$raw
 ```
 
 
@@ -173,11 +176,11 @@ group_rarefied_richness
 
 
 
-p <- PlotAccumulation(group_rarefied_richness_V2)
+p <- PlotAccumulation(group_rarefied_richness$summary)
 p
 
 
-group_rarefied_richness_V2
+
 
 
 
