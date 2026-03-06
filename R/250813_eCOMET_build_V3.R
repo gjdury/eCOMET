@@ -290,24 +290,35 @@ SwitchGroup <- function(mmo, new_group_col) {
 #' )
 #'
 AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
-  structure_identifications <- readr::read_tsv(canopus_structuredir, show_col_types = FALSE)
-  structure_identifications$mappingFeatureId <- gsub(" ", "", structure_identifications$mappingFeatureId)
-  canopus_formula_summary <- readr::read_tsv(canopus_formuladir, show_col_types = FALSE)
-  canopus_formula_summary$mappingFeatureId <- gsub(" ", "", canopus_formula_summary$mappingFeatureId)
-  all_ids <- union(structure_identifications$mappingFeatureId, canopus_formula_summary$mappingFeatureId)
-  duplicated_ids <- all_ids[duplicated(all_ids)]
-  if (length(duplicated_ids) > 0) {
-    warning(paste0("Duplicated IDs found in SIRIUS files: ", paste(duplicated_ids, collapse = ", ")))
-  }
-  sirius_df <- mmo$feature_data |> dplyr::select(.data$id, .data$feature)
-  sirius_df <- sirius_df |>
-  left_join(structure_identifications, by = c("id" = "mappingFeatureId"), multiple = "last") |>
-  left_join(canopus_formula_summary, by = c("id" = "mappingFeatureId", 'formulaRank', 'molecularFormula', 'adduct', 'precursorFormula', 'ionMass',
-                                            'retentionTimeInSeconds', 'retentionTimeInMinutes', 'formulaId', 'alignedFeatureId', 'compoundId',
-                                            'overallFeatureQuality'), multiple = "last")
-  mmo$sirius_annot <- sirius_df
-  print('SIRIUS annotation added to mmo$sirius_annot')
-  return(mmo)
+    structure_identifications <- readr::read_tsv(canopus_structuredir, 
+        show_col_types = FALSE)
+    structure_identifications$mappingFeatureId <- gsub(" ", "", 
+        structure_identifications$mappingFeatureId)
+    canopus_formula_summary <- readr::read_tsv(canopus_formuladir, 
+        show_col_types = FALSE)
+    canopus_formula_summary$mappingFeatureId <- gsub(" ", "", 
+        canopus_formula_summary$mappingFeatureId)
+    all_ids <- union(structure_identifications$mappingFeatureId, 
+        canopus_formula_summary$mappingFeatureId)
+    duplicated_ids <- all_ids[duplicated(all_ids)]
+    if (length(duplicated_ids) > 0) {
+        warning(paste0("Duplicated IDs found in SIRIUS files: ", 
+            paste(duplicated_ids, collapse = ", ")))
+    }
+    sirius_df <- dplyr::select(mmo$feature_data, .data$id, .data$feature)
+    structure_identifications$id <- structure_identifications$mappingFeatureId
+    canopus_formula_summary$id <- canopus_formula_summary$mappingFeatureId
+    
+    shared_columns <- intersect(colnames(structure_identifications), colnames(canopus_formula_summary)) 
+    shared_columns <- shared_columns[!shared_columns %in% c('id')]
+
+    sirius_df <- left_join(left_join(sirius_df, structure_identifications, 
+        by = c(id = "id"), multiple = "last"), 
+        canopus_formula_summary, by = c(id = "id", shared_columns), 
+        multiple = "last")
+    mmo$sirius_annot <- sirius_df
+    print("SIRIUS annotation added to mmo$sirius_annot")
+    return(mmo)
 }
 
 #' Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold
@@ -772,10 +783,7 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
     })
   )
 
-  mmo$custom_annot <- dplyr::select(
-    .data$annotated_features,
-    .data$id, .data$feature, .data$custom_annot
-  )
+  mmo$custom_annot <- annotated_features |> dplyr::select(.data$id, .data$feature, .data$custom_annot)
 
   message("Custom annotation added to mmo$custom_annot using ", DB_file)
   mmo
@@ -3719,161 +3727,6 @@ GetRichness <- function(
   )
 }
 
-#' GetCumulativeRichness
-#'
-#' This function calculates the cumulative richness of features across groups in the metadata.
-#' Cumulative richness is defined as the total number of unique features observed as groups are added sequentially.
-#' @param mmo The mmo object containing feature data and metadata
-#' @param groups A vector specifying the order of groups to consider for cumulative richness calculation
-#' @return A data frame containing the cumulative richness for each group in the specified order, with columns for group and cumulative richness.
-#' @export
-#' @examplesIf FALSE
-#' groups <- c("Control", "Treatment1", "Treatment2")
-#' cumulative_richness <- GetCumulativeRichness(mmo, groups)
-GetCumulativeRichness <- function(mmo, groups) {
-  feature_data <- mmo$feature_data
-  metadata <- mmo$metadata
-  cumulative_richness <- numeric(length(groups))
-  selected_features <- rep(FALSE, nrow(feature_data))
-  for (i in seq_along(groups)) {
-    selected_groups <- groups[1:i]
-    selected_samples <- metadata |> filter(.data$group %in% selected_groups) |> pull(.data$sample)
-    selected_data <- feature_data |> dplyr::select(all_of(selected_samples))
-    selected_features <- selected_features | (rowSums(!is.na(selected_data)) > 0)
-    cumulative_richness[i] <- sum(selected_features)
-  }
-  data.frame(group = groups, cumulative_richness = cumulative_richness)
-}
-
-#' BootstrapCumulativeRichness
-#'
-#' This function bootstraps the cumulative richness of features across groups in the metadata by randomizing the order of groups.
-#' It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
-#' @param mmo The mmo object containing feature data and metadata
-#' @param groups A vector of group names from the metadata to consider for cumulative richness calculation
-#' @param n_boot The number of bootstrap iterations to perform (default: 1000)
-#' @param ci The confidence interval width (e.g., 0.95 for 95% CI) (default: 0.95)
-#' @return A data frame containing the mean cumulative richness and confidence intervals for each group index, with columns for group index, mean, lower CI, and upper CI.
-#' @export
-#' @examplesIf FALSE
-#' groups <- c("Control", "Treatment1", "Treatment2")
-#' bootstrapped_richness <- BootstrapCumulativeRichness(mmo, groups, n_boot = 1000, ci = 0.95)
-BootstrapCumulativeRichness <- function(mmo, groups, n_boot = 1000, ci = 0.95) {
-  # Bootstraps cumulative richness by randomizing group order within a direction
-  # ci: confidence interval width (e.g., 0.5 for 25%-75%)
-  lower_q <- (1 - ci) / 2
-  upper_q <- 1 - lower_q
-  n_groups <- length(groups)
-  boot_mat <- matrix(NA, nrow = n_boot, ncol = n_groups)
-  for (i in seq_len(n_boot)) {
-    rand_order <- sample(groups)
-    boot_mat[i, ] <- GetCumulativeRichness(mmo, rand_order)$cumulative_richness
-  }
-  # Each row is a bootstrap, each column is the cumulative richness after adding that many groups
-  boot_df <- data.frame(
-    group_index = rep(seq_len(n_groups), times = n_boot),
-    bootstrap = rep(seq_len(n_boot), each = n_groups),
-    richness = as.vector(t(boot_mat))
-  )
-  boot_summary <- boot_df |>
-    dplyr::group_by(.data$group_index) |>
-    dplyr::summarise(
-      mean = mean(.data$richness),
-      lower = stats::quantile(.data$richness, lower_q),
-      upper = stats::quantile(.data$richness, upper_q)
-    ) |>
-    dplyr::ungroup()
-  as.data.frame(boot_summary)
-}
-
-#' GetNullCumulativeRichness
-#'
-#' This function calculates the null model of cumulative richness by randomizing samples regardless of group.
-#' It performs multiple bootstrap iterations to estimate the mean and confidence intervals of cumulative richness at each step.
-#' @param mmo The mmo object containing feature data and metadata
-#' @param n_boot The number of bootstrap iterations to perform (default: 1000)
-#' @param n_groups The number of groups to simulate for cumulative richness calculation
-#' @param ci The confidence interval width (e.g., 0.95 for 95% CI) (default: 0.95)
-#' @return A data frame containing the mean cumulative richness and confidence intervals for each group index, with columns for group index, mean, lower CI, and upper CI.
-#' @export
-#' @examplesIf FALSE
-#' null_richness <- GetNullCumulativeRichness(mmo, n_boot = 1000, n_groups = 5, ci = 0.95)
-GetNullCumulativeRichness <- function(mmo, n_boot = 1000, n_groups, ci = 0.95) {
-  # Null model: randomize samples regardless of group, then add samples one by one
-  feature_data <- mmo$feature_data
-  metadata <- mmo$metadata
-  all_samples <- metadata$sample
-  n_features <- nrow(feature_data)
-  samples_per_group <- ceiling(length(all_samples) / n_groups)
-  boot_mat <- matrix(NA, nrow = n_boot, ncol = n_groups)
-  lower_q <- (1 - ci) / 2
-  upper_q <- 1 - lower_q
-  for (i in seq_len(n_boot)) {
-    rand_samples <- sample(all_samples)
-    selected_features <- rep(FALSE, n_features)
-    for (j in seq_len(n_groups)) {
-      end_idx <- min(j * samples_per_group, length(rand_samples))
-      selected_data <- feature_data |> dplyr::select(all_of(rand_samples[1:end_idx]))
-      selected_features <- selected_features | (rowSums(!is.na(selected_data)) > 0)
-      boot_mat[i, j] <- sum(selected_features)
-    }
-  }
-  boot_df <- data.frame(
-    group_index = rep(seq_len(n_groups), times = n_boot),
-    bootstrap = rep(seq_len(n_boot), each = n_groups),
-    richness = as.vector(t(boot_mat))
-  )
-  boot_summary <- boot_df |>
-    dplyr::group_by(.data$group_index) |>
-    dplyr::summarise(
-      mean = mean(.data$richness),
-      lower = stats::quantile(.data$richness, lower_q),
-      upper = stats::quantile(.data$richness, upper_q)
-    ) |>
-    dplyr::ungroup()
-  as.data.frame(boot_summary)
-}
-
-#' CalcNormalizedAUC
-#'
-#' This function calculates the normalized area under the curve (AUC) for a cumulative richness curve.
-#' The normalized AUC is computed by dividing the AUC by the maximum possible area, which is the product of the maximum group index and maximum cumulative richness.
-#' @param curve A data frame containing the cumulative richness curve with columns for group index and cumulative richness
-#' @return The normalized AUC value
-#' @export
-#' @examplesIf FALSE
-#' curve <- GetCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
-#' norm_auc <- CalcNormalizedAUC(curve)
-CalcNormalizedAUC <- function(curve) {
-  curve$group_index <- seq_len(nrow(curve))
-  x <- curve$group_index
-  y <- curve$cumulative_richness
-  auc <- sum(diff(x) * (utils::head(y, -1) + utils::tail(y, -1)) / 2)
-  norm_auc <- auc / (max(x) * max(y))
-  norm_auc
-}
-
-#' BootCumulRichnessAUC
-#'
-#' This function bootstraps the normalized area under the curve (AUC) for cumulative richness by randomizing the order of groups.
-#' It performs multiple bootstrap iterations to estimate the distribution of normalized AUC values.
-#' @param mmo The mmo object containing feature data and metadata
-#' @param groups A vector of group names from the metadata to consider for cumulative richness calculation
-#' @param n_boot The number of bootstrap iterations to perform (default: 500)
-#' @return A numeric vector containing the normalized AUC values from each bootstrap iteration
-#' @export
-#' @examplesIf FALSE
-#' groups <- c("Control", "Treatment1", "Treatment2")
-#' bootstrapped_aucs <- BootCumulRichnessAUC(mmo, groups, n_boot = 500)
-BootCumulRichnessAUC <- function(mmo, groups, n_boot = 500) {
-  aucs <- numeric(n_boot)
-  for (i in seq_len(n_boot)) {
-    rand_order <- sample(groups)
-    curve <- GetCumulativeRichness(mmo, rand_order)
-    aucs[i] <- CalcNormalizedAUC(curve)
-  }
-  aucs
-}
 
 #' GetFunctionalHillNumber
 #'
@@ -4450,6 +4303,64 @@ GetAlphaDiversity <- function(
 
   stop("Unhandled output mode.")
 }
+
+#' RarefactionAUC
+#'
+#' This function calculates the rarefaction AUC for a given rarefied richness table
+#'
+#' @param rarefied_richness The rarefied richness object containing feature data, annotations, and pairwise comparisons
+#' @param n_boot The number of bootstrap samples to use (default: 1000)
+#' @param seed The seed to use for the bootstrap samples (default: 513)
+#' @export
+#' @return A list containing the rarefaction AUC for each group in the metadata, with columns for group and AUC
+#' @examplesIf FALSE
+#' RarefactionAUC(rarefied_richness, n_boot = 1000)
+RarefactionAUC <- function(rarefied_richness, n_boot = 1000, seed = 513){
+  if(!is.null(seed)) set.seed(seed)
+  raw <- rarefied_richness$raw
+  groups <- unique(raw$group)
+  # Set AUC function
+  trapz_auc <- function(x, y){
+    sum(diff(x) * (head(y,-1) + tail(y,-1)) / 2)
+  }
+  # Set list for AUC values and summary
+  auc_boot_list <- list()
+  summary_list <- list()
+  # Bootstrapping for each group
+  for(g in groups){
+    df_g <- raw[raw$group == g, ]
+    n_samples_vec <- sort(unique(df_g$n_samples))
+    auc_boot <- numeric(n_boot)
+    for(i in seq_len(n_boot)){
+      sampled <- sapply(n_samples_vec, function(n){
+        vals <- df_g$value[df_g$n_samples == n]
+        sample(vals, 1)
+      })
+      auc_boot[i] <- trapz_auc(n_samples_vec, sampled)
+    }
+    auc_df <- data.frame(
+      group = g,
+      auc = auc_boot
+    )
+    auc_boot_list[[g]] <- auc_df
+    summary_list[[g]] <- data.frame(
+      group = g,
+      AUC_mean = mean(auc_boot),
+      AUC_lwr = unname(quantile(auc_boot,0.025)),
+      AUC_upr = unname(quantile(auc_boot,0.975))
+    )
+  }
+  auc_boot_df <- do.call(rbind, auc_boot_list)
+  summary_df <- do.call(rbind, summary_list)
+  rownames(summary_df) <- NULL
+  rownames(auc_boot_df) <- NULL
+  return(list(
+    auc_boot = auc_boot_df,
+    summary = summary_df
+  ))
+}
+
+
 
 #' GetSpecializationIndex
 #'

@@ -75,21 +75,13 @@ reference:
   - title: Chemical diversity Analysis
     contents:
       - GetAlphaDiversity
-      - GetFaithPD
-      - GetFunctionalHillNumber
-      - GetHillNumbers
-      - GetRichness
       - GetBetaDiversity
       - NMDSplot
       - PCoAplot
       - CalculateGroupBetaDistance
       - GetSpecializationIndex
       - PlotNPCStackedBar
-      - BootCumulRichnessAUC
-      - BootstrapCumulativeRichness
-      - CalcNormalizedAUC
-      - GetCumulativeRichness
-      - GetNullCumulativeRichness
+      - RarefactionAUC
 
   - title: Metadata regression analysis
     contents:
