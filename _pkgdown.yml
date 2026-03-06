@@ -112,6 +112,11 @@ reference:
       - GetNormFeature
       - filter_mmo
       - print.mmo
+      - GetFaithPD
+      - GetFunctionalHillNumber
+      - GetHillNumbers
+      - GetRichness
+      - pool_mmo_by_group
 
 articles:
   - title: "Tutorials"

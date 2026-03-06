@@ -4,28 +4,20 @@
 \alias{GetHillNumbers}
 \title{GetHillNumbers}
 \usage{
-GetHillNumbers(mmo, normalization = "None", q = 0)
+GetHillNumbers(feature, metadata, q = 0, threshold = 0)
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data and metadata}
+\item{feature}{Feature table with columns: id, feature, then sample columns}
 
-\item{normalization}{The normalization method to use for feature data.
-Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
+\item{metadata}{Metadata table with sample and group columns}
 
 \item{q}{The order of the Hill number to calculate (default: 0)}
+
+\item{threshold}{Numeric; detection threshold for presence (default: 0)}
 }
 \value{
 A data frame containing the Hill number for each group in the metadata, with columns for group and hill number.
 }
 \description{
 This function calculates the Hill numbers for a given mmo object, normalization method, and order of the Hill number without considering feature dissimilarity.
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-hill_number <- GetHillNumbers(mmo, normalization = 'Z',
-                q = 1, filter_id = FALSE)
-hill_number <- GetHillNumbers(mmo, normalization = 'Z',
-                q = 2, filter_id = TRUE,
-                 id_list = Glucosinolates)
-\dontshow{\}) # examplesIf}
 }

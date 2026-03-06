@@ -4,12 +4,16 @@
 \alias{GetFaithPD}
 \title{GetFaithPD}
 \usage{
-GetFaithPD(mmo, distance = "dreams")
+GetFaithPD(feature, metadata, distance_matrix, threshold = 0)
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data and metadata}
+\item{feature}{Feature table with columns: id, feature, then sample columns}
 
-\item{distance}{The distance metric to use for feature data. Options are 'dreams', 'jaccard', 'bray', 'unifrac', 'wunifrac' (default: 'dreams')}
+\item{metadata}{Metadata table with sample and group columns}
+
+\item{distance_matrix}{Feature distance matrix}
+
+\item{threshold}{Numeric; detection threshold for presence (default: 0)}
 }
 \value{
 A data frame containing the Faith's phylogenetic diversity for each group in the metadata, with columns for group and PD.
@@ -17,9 +21,4 @@ A data frame containing the Faith's phylogenetic diversity for each group in the
 \description{
 This function calculates the Faith's phylogenetic diversity for a given mmo object and distance metric,
 to calculate chemically-informed richness
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-faith_pd <- GetFaithPD(mmo, distance = 'dreams')
-\dontshow{\}) # examplesIf}
 }

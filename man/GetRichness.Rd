@@ -4,10 +4,12 @@
 \alias{GetRichness}
 \title{GetRichness}
 \usage{
-GetRichness(mmo, threshold = 0)
+GetRichness(feature_data, metadata, threshold = 0)
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data and metadata}
+\item{feature_data}{Feature table with columns: id, feature, then sample columns}
+
+\item{metadata}{Metadata table with sample and group columns}
 
 \item{threshold}{Numeric; detection threshold for presence (default: 0)}
 }

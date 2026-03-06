@@ -5,23 +5,24 @@
 \title{GetFunctionalHillNumber}
 \usage{
 GetFunctionalHillNumber(
-  mmo,
-  normalization = "None",
+  feature,
+  metadata,
+  distance_matrix,
   q = 1,
-  distance = "dreams"
+  threshold = 0
 )
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data and metadata}
+\item{feature}{Feature table with columns: id, feature, then sample columns}
 
-\item{normalization}{The normalization method to use for feature data.
-Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
+\item{metadata}{Metadata table with sample and group columns}
+
+\item{distance_matrix}{Feature distance matrix}
 
 \item{q}{The order of the Hill number to calculate (default: 1).
 Larger q values give more weight to evenness portion of the hill number over richness.}
 
-\item{distance}{The distance metric to use for calculating dissimilarity.
-Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')}
+\item{threshold}{Numeric; detection threshold for presence (default: 0)}
 }
 \value{
 A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
@@ -29,16 +30,4 @@ A data frame containing the functional Hill number for each group in the metadat
 \description{
 This function calculates the functional Hill number for a given mmo object, normalization method, and distance metric.
 See https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for details of the functional Hill number calculation.
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-hill_number <- GetFunctionalHillNumber(mmo,
-                                       normalization = 'Z',
-                                       q = 1, distance = 'dreams',
-                                       filter_id = FALSE)
-hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z',
-                                       q = 3, distance = 'dreams',
-                                       filter_id = TRUE,
-                                       id_list = Glucosinolates)
-\dontshow{\}) # examplesIf}
 }

@@ -3705,7 +3705,7 @@ ExportFeaturesToCSV <- function(mmo, id_list, normalization = 'None', output_dir
 #' @param feature_data Feature table with columns: id, feature, then sample columns
 #' @param metadata Metadata table with sample and group columns
 #' @param threshold Numeric; detection threshold for presence (default: 0)
-#'
+#' @export
 #' @return data.frame with columns: sample, group, richness
 GetRichness <- function(
     feature_data,
@@ -3738,6 +3738,8 @@ GetRichness <- function(
 #' @param distance_matrix Feature distance matrix
 #' @param q The order of the Hill number to calculate (default: 1).
 #'        Larger q values give more weight to evenness portion of the hill number over richness.
+#' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @export
 #' @return A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
 GetFunctionalHillNumber <- function(
     feature,
@@ -3804,6 +3806,8 @@ GetFunctionalHillNumber <- function(
 #' @param feature Feature table with columns: id, feature, then sample columns
 #' @param metadata Metadata table with sample and group columns
 #' @param q The order of the Hill number to calculate (default: 0)
+#' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @export
 #' @return A data frame containing the Hill number for each group in the metadata, with columns for group and hill number.
 GetHillNumbers <- function(
     feature,
@@ -3856,6 +3860,8 @@ GetHillNumbers <- function(
 #' @param feature Feature table with columns: id, feature, then sample columns
 #' @param metadata Metadata table with sample and group columns
 #' @param distance_matrix Feature distance matrix
+#' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @export
 #' @return A data frame containing the Faith's phylogenetic diversity for each group in the metadata, with columns for group and PD.
 GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
   .require_pkg("picante")
@@ -3876,52 +3882,6 @@ GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
 }
 
 
-
-
-#' #' GetAlphaDiversity
-#' #'
-#' #' This function calculates the alpha diversity for a given mmo object,
-#' #' Supported modes are 'weighted' for functional Hill number, 'unweighted' for chemical distance,
-#' #' 'faith' for Faith's phylogenetic diversity, 'richness' for simple feature richness (default: 'richness')
-#' #'
-#' #'
-#' #' @param mmo The mmo object containing feature data and metadata
-#' #' @param q The order of the Hill number to calculate (default: 1)
-#' #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
-#' #' @param mode The mode of diversity calculation. One of 'weighted', 'unweighted', 'faith', 'richness' (default: 'richness')
-#' #' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
-#' #' @param threshold The threshold for deciding metabolite presence (default: 0)
-#' #' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
-#' #' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
-#' #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
-#' #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
-#' #' @return A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
-#' #' @export
-#' #' @examplesIf FALSE
-#' #' functional_hill_number <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
-#' #'  mode = 'weighted', distance = 'dreams', filter_id = FALSE)
-#' #' hill_number <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
-#' #'  mode = 'unweighted', filter_id = TRUE, id_list = Glucosinolates)
-#' #' richness <- GetAlphaDiversity(mmo, mode = 'richness', filter_id = TRUE, id_list = Glucosinolates)
-#' #' faith_pd <- GetAlphaDiversity(mmo, mode = 'faith', distance = 'dreams')
-#' GetAlphaDiversity <- function(mmo, q = 1, normalization = 'None', mode = 'richness', distance = 'dreams', threshold = 0,
-#'                               filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL) {
-#'   if (filter_id||filter_group){
-#'     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
-#'   }
-#'
-#'   if (mode == 'weighted'){
-#'     GetFunctionalHillNumber(mmo, normalization = normalization, q = q, distance = distance)
-#'   } else if (mode == 'unweighted'){
-#'     GetHillNumbers(mmo, normalization = normalization, q = q)
-#'   } else if (mode == 'richness'){
-#'     GetRichness(mmo, threshold = threshold)
-#'   } else if (mode == 'faith'){
-#'     GetFaithPD(mmo, distance = distance)
-#'   } else{
-#'     print('mode should be weighted or unweighted or richness or faith')
-#'   }
-#' }
 
 
 #' GetAlphaDiversity

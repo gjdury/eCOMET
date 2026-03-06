@@ -116,7 +116,7 @@ ggplot2::ggplot(sample_richness, ggplot2::aes(x = group, y = value)) +
 ```
 This plot shows the distribution of richness, but we can also summarize the richness per group directly...
 
-```{r}
+```{r, eval = FALSE}
 
 group_mean_richness <- GetAlphaDiversity(
   mmo,
@@ -130,7 +130,7 @@ group_mean_richness
 We can calculate the cumualitive richess across each group. 
 
 
-```{r}
+```{r, eval = FALSE}
 #Should add option for mean or sum when pooling samples
 
 group_pooled_richness <- GetAlphaDiversity(
@@ -152,7 +152,7 @@ Finally, we can create a compound accumulation curve per group by rarefying samp
 
 
 
-```{r}
+```{r, eval = FALSE}
 #this is too slow because of filtering. Need to update functions so they don't require mmo..
 #update so it includes raw data of the rarefaction needs ot be conserved
 group_rarefied_richness <- GetAlphaDiversity(
@@ -172,7 +172,7 @@ group_rarefied_richness$raw
 ```
 
 
-```{r}
+```{r, eval = FALSE}
 
 
 
@@ -212,7 +212,7 @@ PlotNPCStackedBar(
 2) PCA and Bray Curtis
 
 a) PCA
-```{r}
+```{r, eval = FALSE}
 
 ## MS will add this
 mmo <- ecomet::ReplaceZero(mmo,method = "one")
@@ -222,7 +222,7 @@ PCAplot(mmo, normalization = 'None')
 ```
 
 b) HC of Bray-Curtis - Dale adds does this.
-```{r}
+```{r, eval = FALSE}
 ```
 
 
@@ -253,7 +253,7 @@ mmo$dreams.dissim[1:10,1:10]
 
 
 
-```{r}
+```{r, eval = FALSE}
 unique(mmo$metadata$group)
 mmo_sample <- filter_mmo(mmo,group_list = "Inga alba")
 

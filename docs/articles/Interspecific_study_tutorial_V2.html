@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -81,7 +81,7 @@
 <span><span class="va">demo_feature</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_2_interspecific/EcoMET_Interspecific_full_feature_table.csv"</span><span class="op">)</span></span>
 <span><span class="va">demo_metadata</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_2_interspecific/EcoMET_Interspecific_metadata_no_blank.csv"</span><span class="op">)</span></span>
 <span><span class="va">demo_sirius_formula</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_2_interspecific/canopus_formula_summary.tsv"</span><span class="op">)</span></span>
-<span><span class="va">demo_sirius_structure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_2_interspecific/canopus_structure_summary.tsv"</span><span class="op">)</span></span>
+<span><span class="va">demo_sirius_structure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_2_interspecific/structure_identifications.tsv"</span><span class="op">)</span></span>
 <span><span class="va">demo_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org/reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"tutorial/tutorial_2_interspecific/EcoMET_Interspecific_edges_dreams_dreams.csv"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Initialize eCOMET object</span></span>
@@ -108,97 +108,171 @@
 <p>Feature x Abundance matrix where the first two columns identify individual metabolites and the remaining columns represent the abundance in each sample</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span></span></code></pre></div>
-<p>If gap filling was not applied when processing mzmine the feature matrix will contain many NA values and/or zero ubundance features. These will cause issues for downstream statistics so we start the tutorial by imputing the data replacing NAs and zeros with a small non-zero constant.</p>
-<p>By adding a non-zero constant, our calculating of compound presence absence and compound richness will be over inflated… Thus, the function ReplaceZero will simultanious add both an inputed feature table and a presence absence table to the object.</p>
-<div class="section level4">
-<h4 id="update-the-replacezero-to-function-to-account-for-this-">update the replaceZero to function to account for this.<a class="anchor" aria-label="anchor" href="#update-the-replacezero-to-function-to-account-for-this-"></a>
-</h4>
-</div>
-</div>
-<div class="section level2">
-<h2 id="add-normalizations">Add normalizations<a class="anchor" aria-label="anchor" href="#add-normalizations"></a>
-</h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ReplaceZero.html">ReplaceZero</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'one'</span><span class="op">)</span> <span class="co"># Replace 0 and NA values by 1</span></span>
-<span></span>
-<span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span></span></code></pre></div>
 <p>Task 1: A) Calculate the number of features observed in each sample and each species:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#GetAlphadiv but only for richness - no compdis, q = 0)</span></span>
+<p>We can use the GetAlphaDiversity function to calculate many diversity indices from the data. This function uses the functional hill framework(CITE) for calculating diversity and thus can integrate simple diversity measures (i.e. richness) or measures that take into account relative abundance of feature AND structural relationships between features.</p>
+<p>For simple Richness, we set Q= 0, as this converts the abundance matrix to presence absence and we set mode= “unweighted” meaning we do not weight features by their structural similarity.</p>
+<p>By default we set a</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#Will update functional hill number to calculate above threshold not on NA.</span></span>
+<span><span class="va">sample_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, q <span class="op">=</span> <span class="fl">0</span>, normalization <span class="op">=</span> <span class="st">'None'</span>,mode <span class="op">=</span> <span class="st">'unweighted'</span>,richness_threshold <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="co">#must be here! return length(p when counting presence absence is just going to return the number of features?)</span></span>
+<span><span class="co"># hill_numbers &lt;- apply(feature[, -(1:2)], 2, function(x) {</span></span>
+<span><span class="co">#     p &lt;- x / sum(x)</span></span>
+<span><span class="co">#     if (q == 0) {</span></span>
+<span><span class="co">#       return(length(p))</span></span>
+<span><span class="co">#     } else if (q == 1) {</span></span>
+<span><span class="co">#       return(exp(-sum(p * log(p))))</span></span>
+<span><span class="co">#     } else {</span></span>
+<span><span class="co">#       return((sum(p^q))^(1 / (1 - q)))</span></span>
+<span><span class="co">#     }</span></span>
+<span><span class="co">#   })</span></span>
 <span></span>
-<span><span class="va">df_s</span> <span class="op">&lt;-</span> <span class="fu">CalculateRichness</span><span class="op">(</span><span class="va">mmo</span>, threshold <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span></span>
+<span><span class="va">sample_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>,</span>
+<span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
+<span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  output <span class="op">=</span> <span class="st">"sample_level"</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span></span>
-<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">df_s</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">group</span>, y <span class="op">=</span> <span class="va">richness</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">sample_richness</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">group</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></span><span class="op">(</span>outlier.shape <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_jitter.html" class="external-link">geom_jitter</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.15</span>, height <span class="op">=</span> <span class="fl">0</span>, alpha <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></code></pre></div>
-<p>We can calculate the richness per feature annotation level by adding in the sirius annotations</p>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_jitter.html" class="external-link">geom_jitter</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.15</span>, height <span class="op">=</span> <span class="fl">0</span>, alpha <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="st">"Species"</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"Feature Richness"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">90</span>, hjust <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<p>This plot shows the distribution of richness, but we can also summarize the richness per group directly…</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">group_mean_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>,</span>
+<span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
+<span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  output <span class="op">=</span> <span class="st">"group_average"</span>,</span>
+<span>  ci <span class="op">=</span> <span class="fl">0.95</span>   <span class="co"># optional; controls lwr/upr quantiles in the summary</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">group_mean_richness</span></span></code></pre></div>
+<p>We can calculate the cumualitive richess across each group.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Add SIRIUS annotation</span></span>
-<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot</a></span><span class="op">(</span><span class="va">mmo</span>, canopus_structuredir <span class="op">=</span> <span class="va">demo_sirius_structure</span>, canopus_formuladir <span class="op">=</span> <span class="va">demo_sirius_formula</span><span class="op">)</span></span>
-<span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot</span></span>
+<code class="sourceCode R"><span><span class="co">#Should add option for mean or sum when pooling samples</span></span>
 <span></span>
-<span><span class="co">#problem 1 is the duplicated....</span></span>
-<span><span class="co">#problem 2 is cbind with repeated columns...</span></span></code></pre></div>
-<p>#ok, need to make each level flexible to handle the x and y because they are duplicated. #need to add in probability threshold either in the function above or below…</p>
-<pre><code>richness
-sirius annotation
-stacked barplot - </code></pre>
+<span><span class="va">group_pooled_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>,</span>
+<span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
+<span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  output <span class="op">=</span> <span class="st">"group_cumulative"</span>,</span>
+<span>  pool_method <span class="op">=</span> <span class="st">"sum"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">group_pooled_richness</span></span></code></pre></div>
+<p>Finally, we can create a compound accumulation curve per group by rarefying samples and seeing how compound richness increases as we add samples</p>
+<p>`</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#this is too slow because of filtering. Need to update functions so they don't require mmo..</span></span>
+<span><span class="co">#update so it includes raw data of the rarefaction needs ot be conserved</span></span>
+<span><span class="va">group_rarefied_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>,</span>
+<span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
+<span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  output <span class="op">=</span> <span class="st">"rarefied_sample"</span>,</span>
+<span>  n_perm <span class="op">=</span> <span class="fl">200</span>,    <span class="co"># permutations for CI</span></span>
+<span>  ci <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  pool_method <span class="op">=</span> <span class="st">"sum"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">summary</span></span>
+<span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">raw</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">PlotAccumulation</span><span class="op">(</span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">summary</span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
+<p>#Stacked Barplot and Loading in Sirius… This is in bad shape. Need to discuss.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true"></a><span class="co">#Eventually Dale will implement addGNPS and addDREAMS hits...</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true"></a><span class="co"># Add SIRIUS annotation</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true"></a>mmo &lt;-<span class="st"> </span><span class="kw">AddSiriusAnnot</span>(mmo, <span class="dt">canopus_structuredir =</span> demo_sirius_structure, <span class="dt">canopus_formuladir =</span> demo_sirius_formula)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true"></a>mmo<span class="op">$</span>sirius_annot</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true"></a><span class="co">#MS will add this...</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true"></a><span class="co">###Next add stacked barcplot...</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true"></a><span class="kw">PlotNPCStackedBar</span>(</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true"></a><span class="co">#'  mmo, group_col = 'treatment',</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true"></a><span class="co">#'  outdir = 'NPC_stacked_bar.png', width = 6, height = 3</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true"></a><span class="co">#' )</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true"></a></span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true"></a><span class="co">#Task 2: Visualize difference between Species</span></span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>PCA and Bray Curtis</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>PCA</li>
+</ol>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## MS will add this</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu">ecomet</span><span class="fu">::</span><span class="fu"><a href="../reference/ReplaceZero.html">ReplaceZero</a></span><span class="op">(</span><span class="va">mmo</span>,method <span class="op">=</span> <span class="st">"one"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/PCAplot.html">PCAplot</a></span><span class="op">(</span><span class="va">mmo</span>, normalization <span class="op">=</span> <span class="st">'None'</span><span class="op">)</span></span></code></pre></div>
+<ol start="2" style="list-style-type: lower-alpha">
+<li>HC of Bray-Curtis - Dale adds does this.</li>
+</ol>
+<ol start="3" style="list-style-type: decimal">
+<li>We illustrate how different species of trees share a small fraction of there mz-rt features and show how this can be useful for identifying chemotypes.</li>
+</ol>
+<div class="section level4">
+<h4 id="introduce-relationship-amongst-features">introduce relationship amongst features…<a class="anchor" aria-label="anchor" href="#introduce-relationship-amongst-features"></a>
+</h4>
+<ol start="4" style="list-style-type: decimal">
+<li>We introduce feature based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.</li>
+</ol>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Add Dreams distance</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mmo</span><span class="op">$</span><span class="va">dreams.dissim</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="image-of-molecular-network">Image of molecular network<a class="anchor" aria-label="anchor" href="#image-of-molecular-network"></a>
+</h4>
 <div class="section level5">
-<h5 id="section"></h5>
-<p>richness rarefaction</p>
-<pre><code>
-#same thing but rarify across samples...
-cumualitive richness
-    
-2) PCA and Brey Curtis
-
-3) We illustrate how different species of trees share a small fraction of there mz-rt features and show how this can be usefull for identifying chemotypes. 
-
-### introduce relationship amongst features...
-
-4) We introduce feature based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
-
-
-show a feature based molecular network...
-
-
-Show different trees. 
-actual based on the standards chemodev
-cosine, dreams, 
-
-#dendrogram of 
-
-
-5) We illustrate how a feature abundance matrix and a chemical dendrogram/similarity matrix can be used to calculate:
-
-a) Structurally weighted Chemical Diversity
-  c) Structurally weighted Chemical Similarity between samples
-  b) richness by pathway NPCstacked barplot - potentially add in pathway stacked
-
-
-
-
-
-### Would prefer to add and introduce distance below but bray is currently requiring it?
-
-``` r
-# Add Dreams distance
-mmo &lt;- AddChemDist(mmo, dreams_dir = demo_dreams)
-
-mmo$dreams.dissim[1:10,1:10]</code></pre>
+<h5 id="generate-dendrogram">Generate Dendrogram<a class="anchor" aria-label="anchor" href="#generate-dendrogram"></a>
+</h5>
+<ol start="2" style="list-style-type: decimal">
+<li>build a dendrogram and plot</li>
+</ol>
+<p>#write it out into itol…</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
+<span><span class="va">mmo_sample</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_mmo.html">filter_mmo</a></span><span class="op">(</span><span class="va">mmo</span>,group_list <span class="op">=</span> <span class="st">"Inga alba"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mmo_tree</span> <span class="op">&lt;-</span> <span class="fu">FeatureDendrogram</span><span class="op">(</span><span class="va">mmo_sample</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">mmo_tree</span><span class="op">$</span><span class="va">phylo</span>,type <span class="op">=</span> <span class="st">"fan"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">mmo_tree</span><span class="op">$</span><span class="va">phylo</span><span class="op">$</span><span class="va">tip.label</span><span class="op">)</span></span></code></pre></div>
+<ol start="5" style="list-style-type: decimal">
+<li>We illustrate how a feature abundance matrix and a chemical dendrogram/similarity matrix can be used to calculate:</li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li>#GetAlpha w/ weighted mode and hillnumber</li>
+</ol>
+<p>Structurally weighted Chemical Diversity c) Structurally weighted Chemical Similarity between samples b) richness by pathway NPCstacked barplot - potentially add in pathway stacked</p>
 <p>Note you can change the group column at any time using: SwitchGroup()</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mmo_genus</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/SwitchGroup.html">SwitchGroup</a></span><span class="op">(</span><span class="va">mmo</span>, new_group_col <span class="op">=</span> <span class="st">"Genus"</span><span class="op">)</span></span>
 <span><span class="va">mmo_genus</span></span></code></pre></div>
 </div>
+</div>
 <div class="section level4">
 <h4 id="for-the-final-tutorial-i-will-create-data-that-only-includes-this-subset-but-for-now-we-can-just-filter-it">For the final tutorial I will create data that only includes this subset but for now we can just filter it…<a class="anchor" aria-label="anchor" href="#for-the-final-tutorial-i-will-create-data-that-only-includes-this-subset-but-for-now-we-can-just-filter-it"></a>
 </h4>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">samples_keep</span> <span class="op">&lt;-</span> <span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">sample</span><span class="op">[</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">Keep</span> <span class="op">!=</span> <span class="st">"No"</span><span class="op">]</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_mmo.html">filter_mmo</a></span><span class="op">(</span><span class="va">mmo</span>,sample_list  <span class="op">=</span> <span class="va">samples_keep</span>,drop_empty_feat <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Step 2: Estimate Chemical Richness in each sample and average across species.</p>
@@ -215,7 +289,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <div class="section level4">
 <h4 id="dlf-needs-to-add-a-function-for-generating-a-hclust-plot">DLF needs to add a function for generating a hclust plot<a class="anchor" aria-label="anchor" href="#dlf-needs-to-add-a-function-for-generating-a-hclust-plot"></a>
 </h4>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">beta_diversity_dreams_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'bray'</span>, </span>
 <span> normalization <span class="op">=</span> <span class="st">'Log'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span>, filter_feature <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -256,10 +330,10 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <li>Structurally weighted Chemical Diversity</li>
 <li>Structurally weighted Chemical Similarity between samples</li>
 </ol>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_info</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">feature_group</span><span class="op">)</span></span></code></pre></div>
 <p>We can add the feature x feature pairwise distance to the mmo object based on the output of MzMine. This can accept modified cosine, dreaMS and MS2Deepscore</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Add Dreams distance</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
 <span></span>
@@ -267,7 +341,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <p>Sample Metadata: In this tutorial we are comparing 5 species of hickory along side a sample of Eastern black walnut.</p>
 <p>mmo<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>m</mi><mi>e</mi><mi>t</mi><mi>a</mi><mi>d</mi><mi>a</mi><mi>t</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">metadata</annotation></semantics></math>Species</p>
 <p>There are also two types of samples “pools” and "samples. Pools represent species pools where each individual sample for each spcies was combined and run for ms/ms data analysis. Samples represent MS1 data for anindividual plant.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span></span></code></pre></div>
 <p>Note we can subset an mmo object using filter mmo to filte based on a list of samples, a list of groups or a list of features</p>
 <p>In this tutorial we will subset to only individual samples removing the pooled samples</p>
@@ -276,7 +350,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <h3 id="build-a-dendrogram-three-options">Build a dendrogram three options…<a class="anchor" aria-label="anchor" href="#build-a-dendrogram-three-options"></a>
 </h3>
 <p>We are going to randomly pick 100 feature groups in order to illustrate how to generate how to make a dendrogram</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># samples_single &lt;- mmo$metadata$sample[mmo$metadata$speciesCode == "ingalb"]</span></span>
 <span><span class="co"># mmo_single &lt;- filter_mmo(mmo,sample_list  = samples_single,drop_empty_feat = TRUE)</span></span>
 <span><span class="co"># </span></span>
@@ -334,7 +408,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <p>mmo_individual_sampled_features &lt;- filter_mmo(mmo_individual,feature_list = sampled_features,drop_empty_feat = TRUE)</p>
 <p>mmo_single_dendrogram &lt;- FeatureDendrogram(mmo=mmo_individual_sampled_features,distance = “dreams”, method = “average”, ion_identity = “none”, corr_col = “feature_group”, iin_col = “ion_identities:iin_id”, within_group_dist = 0, save_output = FALSE, outprefix = “feature_tree” )</p>
 <p>plot(mmo_single_dendrogram$phylo, type = “fan”, cex = 0.4, label.offset = 0.002,main=“Dreams_Distance”)</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">mmo_individual_sampled_features</span><span class="op">$</span><span class="va">feature_info</span><span class="op">$</span><span class="va">feature_group</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">mmo_individual_sampled_features</span><span class="op">$</span><span class="va">feature_info</span><span class="op">$</span><span class="va">`ion_identities:iin_id`</span><span class="op">)</span></span>
 <span></span>
@@ -381,7 +455,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <span>  label.offset <span class="op">=</span> <span class="fl">0.002</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Dreams distance (selected feature groups highlighted)"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo_single_dendrogram_correlation</span> <span class="op">&lt;-</span> <span class="fu">FeatureDendrogram</span><span class="op">(</span>mmo<span class="op">=</span><span class="va">mmo_individual_sampled_features</span>,distance <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"average"</span>,</span>
 <span>  ion_identity <span class="op">=</span> <span class="st">"correlation"</span>,</span>
@@ -431,7 +505,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <span>  label.offset <span class="op">=</span> <span class="fl">0.002</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Dreams_Distance + Force by Correlation Group ID"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo_single_dendrogram_ion_identity</span> <span class="op">&lt;-</span> <span class="fu">FeatureDendrogram</span><span class="op">(</span>mmo<span class="op">=</span><span class="va">mmo_individual_sampled_features</span>,distance <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"average"</span>,</span>
 <span>  ion_identity <span class="op">=</span> <span class="st">"ion_identity_network"</span>,</span>
@@ -481,13 +555,13 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <span>  label.offset <span class="op">=</span> <span class="fl">0.002</span>,</span>
 <span>  main <span class="op">=</span> <span class="st">"Dreams_Distance + Force by Ion Identity Group ID"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#samples_keep &lt;- mmo$metadata$sample[mmo$metadata$Type != "pool"]</span></span>
 <span></span>
 <span><span class="co">#samples_keep &lt;- mmo$metadata$sample[mmo$metadata$Keep_Demo == "Yes"]</span></span>
 <span><span class="va">samples_keep</span> <span class="op">&lt;-</span> <span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">sample</span><span class="op">[</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">Keep</span> <span class="op">!=</span> <span class="st">"No"</span><span class="op">]</span></span>
 <span><span class="va">mmo_individual</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_mmo.html">filter_mmo</a></span><span class="op">(</span><span class="va">mmo</span>,sample_list  <span class="op">=</span> <span class="va">samples_keep</span>,drop_empty_feat <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo_individual</span><span class="op">$</span><span class="va">metadata</span></span>
 <span></span>
 <span></span>
@@ -560,7 +634,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <div class="section level2">
 <h2 id="visualize-distance-between-samples-with-plsda">2) Visualize distance between samples with PLSDA<a class="anchor" aria-label="anchor" href="#visualize-distance-between-samples-with-plsda"></a>
 </h2>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://colorspace.R-Forge.R-project.org/" class="external-link">colorspace</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">make_pal</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="fu"><a href="https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html" class="external-link">qualitative_hcl</a></span><span class="op">(</span><span class="va">n</span>, palette <span class="op">=</span> <span class="st">"Dark 3"</span><span class="op">)</span></span>
@@ -569,7 +643,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <span><span class="va">colors</span> <span class="op">&lt;-</span> <span class="fu">make_pal</span><span class="op">(</span><span class="va">n_groups</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#PLSDAplot(mmo_individual, color = colors, outdir = "~/Downloads/PLSDA.pdf")</span></span></code></pre></div>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">beta_diversity_dreams_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo_individual</span>, method <span class="op">=</span> <span class="st">'bray'</span>, </span>
 <span> normalization <span class="op">=</span> <span class="st">'Log'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span>, filter_feature <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
@@ -617,7 +691,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html" class="external-link">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>, legend <span class="op">=</span> <span class="va">sp_levels</span>, col <span class="op">=</span> <span class="va">sp_cols</span>, pch <span class="op">=</span> <span class="fl">15</span>,</span>
 <span>       cex <span class="op">=</span> <span class="fl">0.6</span>, bty <span class="op">=</span> <span class="st">"n"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo_individual_dendrogram_correlation</span> <span class="op">&lt;-</span> <span class="fu">FeatureDendrogram</span><span class="op">(</span>mmo<span class="op">=</span><span class="va">mmo_individual</span>,distance <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  method <span class="op">=</span> <span class="st">"average"</span>,</span>
 <span>  ion_identity <span class="op">=</span> <span class="st">"correlation"</span>,</span>
@@ -643,7 +717,7 @@ mmo$dreams.dissim[1:10,1:10]</code></pre>
 <div class="section level2">
 <h2 id="calculate-beta-diversity-between-samples">3) Calculate Beta Diversity between samples<a class="anchor" aria-label="anchor" href="#calculate-beta-diversity-between-samples"></a>
 </h2>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#First we calculate dreams</span></span>
 <span><span class="va">beta_diversity_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo_individual</span>, method <span class="op">=</span> <span class="st">'CSCS'</span>, </span>
 <span> normalization <span class="op">=</span> <span class="st">'None'</span>, distance <span class="op">=</span> <span class="st">'dreams'</span>, filter_feature <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>

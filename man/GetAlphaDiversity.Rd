@@ -10,11 +10,18 @@ GetAlphaDiversity(
   normalization = "None",
   mode = "richness",
   distance = "dreams",
-  richness_threshold = 0,
+  threshold = 0,
   filter_id = FALSE,
   id_list = NULL,
   filter_group = FALSE,
-  group_list = NULL
+  group_list = NULL,
+  output = c("sample_level", "group_average", "group_cumulative", "rarefied_sample"),
+  group_col = "group",
+  sample_col = "sample",
+  pool_method = c("sum", "mean"),
+  n_perm = 200,
+  ci = 0.95,
+  seed = NULL
 )
 }
 \arguments{
@@ -28,7 +35,7 @@ GetAlphaDiversity(
 
 \item{distance}{The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')}
 
-\item{richness_threshold}{The threshold for calculating richness (default: 0)}
+\item{threshold}{Numeric threshold used to define metabolite presence (default: 0)}
 
 \item{filter_id}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
 
@@ -37,22 +44,47 @@ GetAlphaDiversity(
 \item{filter_group}{A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)}
 
 \item{group_list}{A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)}
+
+\item{output}{Output mode: 'sample_level', 'group_average', 'group_cumulative', or 'rarefied_sample'}
+
+\item{group_col}{Column in mmo$metadata that defines groups (default: 'group')}
+
+\item{sample_col}{Column in mmo$metadata that defines sample IDs (default: 'sample')}
+
+\item{pool_method}{How to pool abundances when combining samples: 'sum' or 'mean' (default: 'sum')}
+
+\item{n_perm}{Integer; maximum number of permutations per rarefaction level (default: 200)}
+
+\item{ci}{Numeric; confidence level (default: 0.95)}
+
+\item{seed}{Optional integer seed for reproducibility (default: NULL)}
 }
 \value{
-A data frame containing the alpha diversity for each group in the metadata, with columns for group and alpha diversity value.
+For output != 'rarefied_sample': a data.frame.
+For output = 'rarefied_sample': a list with:
+\itemize{
+\item summary: group-level rarefaction summary (mean, lwr, upr, n_perm_eff)
+\item raw: permutation-level values for each group and n_samples
+}
 }
 \description{
-This function calculates the alpha diversity for a given mmo object,
-Supported modes are 'weighted' for functional Hill number, 'unweighted' for chemical distance,
-'faith' for Faith's phylogenetic diversity, 'richness' for simple feature richness (default: 'richness')
+Calculate alpha diversity for an mmo object with flexible output modes.
+Supported diversity modes:
+\itemize{
+\item 'weighted'   : functional Hill number (GetFunctionalHillNumber)
+\item 'unweighted' : Hill numbers on abundances (GetHillNumbers)
+\item 'faith'      : Faith's phylogenetic diversity (GetFaithPD)
+\item 'richness'   : simple feature richness (GetRichness)
 }
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-functional_hill_number <- GetAlphaDiversity(mmo, q = 1, normalization = 'None',
- mode = 'weighted', distance = 'dreams', filter_id = FALSE)
-hill_number <- GetAlphaDiversity(mmo, q = 2, normalization = 'Z',
- mode = 'unweighted', filter_id = TRUE, id_list = Glucosinolates)
-richness <- GetAlphaDiversity(mmo, mode = 'richness', filter_id = TRUE, id_list = Glucosinolates)
-faith_pd <- GetAlphaDiversity(mmo, mode = 'faith', distance = 'dreams')
-\dontshow{\}) # examplesIf}
+}
+\details{
+Output modes control how samples are handled:
+\enumerate{
+\item 'sample_level'     : alpha per sample -> returns sample, group, value
+\item 'group_average'    : mean alpha per group (summarize sample_level) -> group, mean, sd, se, n, lwr, upr
+\item 'group_cumulative' : pooled gamma per group (pool samples within group) -> group, value
+\item 'rarefied_sample'  : sample-based rarefaction within group (subsample N samples, pool, compute) -> group, n_samples, mean, lwr, upr, n_perm
+}
+
+NOTE: For outputs 3 and 4, pooling is performed by summing feature intensities across samples.
 }
