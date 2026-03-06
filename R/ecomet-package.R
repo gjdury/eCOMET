@@ -23,4 +23,5 @@
 #' @importFrom ape pcoa as.phylo
 #' @importFrom vegan metaMDS scores
 #' @importFrom picante pd
+#' @importFrom stats quantile var
 NULL

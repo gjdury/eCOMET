@@ -4,7 +4,7 @@
 \alias{GetDAMs}
 \title{Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the mmo object}
 \usage{
-GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
+GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05, use_padj = TRUE)
 }
 \arguments{
 \item{mmo}{The mmo object with pairwise comparison matrix}
@@ -12,6 +12,8 @@ GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
 \item{fc_cutoff}{The threshold of log2 fold change to be considered significant (default: 0.5849625, which is log2(1.5))}
 
 \item{pval_cutoff}{The threshold of adjusted p-value to be considered significant (default: 0.05)}
+
+\item{use_padj}{Boolean value indicating whether to use adjusted p-value (default: TRUE)}
 }
 \value{
 A list containing two lists: DAMs_up and DAMs_down

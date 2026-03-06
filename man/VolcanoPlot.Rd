@@ -8,11 +8,13 @@ VolcanoPlot(
   mmo,
   comp,
   topk = 10,
+  log2FC_thr = 1,
   pthr = 0.05,
   outdir = "volcano.png",
   height = 5,
   width = 5,
-  save_output = TRUE
+  save_output = TRUE,
+  use_padj = TRUE
 )
 }
 \arguments{
@@ -21,6 +23,8 @@ VolcanoPlot(
 \item{comp}{The comparison to visualize, e.g., 'group1_vs_group2}
 
 \item{topk}{The number of top features to label in the plot (default: 10)}
+
+\item{log2FC_thr}{The threshold of log2 fold change to be considered significant (default: 1)}
 
 \item{pthr}{The threshold of adjusted p-value to be considered significant (default: 0.05)}
 
@@ -31,6 +35,8 @@ VolcanoPlot(
 \item{width}{The width of the output plot in inches (default: 5)}
 
 \item{save_output}{A logical value indicating whether to save the output plot (default: TRUE)}
+
+\item{use_padj}{A logical value indicating whether to use adjusted p-value (default: TRUE)}
 }
 \value{
 A list containing the volcano plot and the data used to generate it
@@ -43,7 +49,7 @@ highlighting upregulated and downregulated features based on log2 fold change an
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 VolcanoPlot(
  mmo, comp = 'Control_vs_Treatment1',
- topk = 10, pthr = 0.05,
+ topk = 10, log2FC_thr = 1, pthr = 0.05,
  outdir = 'volcano_con_tre1.png', height = 5, width = 5
 )
 \dontshow{\}) # examplesIf}

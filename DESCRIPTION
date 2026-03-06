@@ -44,7 +44,8 @@ Imports:
   ape,
   RColorBrewer,
   picante,
-  colorspace
+  colorspace,
+  cld
 Suggests:
     testthat (>= 3.0.0),
     knitr,

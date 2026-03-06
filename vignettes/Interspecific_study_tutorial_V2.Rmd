@@ -80,7 +80,7 @@ By default we set a
 ```{r, eval = FALSE}
 
 #Will update functional hill number to calculate above threshold not on NA.
-sample_richness <- GetAlphaDiversity(mmo, q = 0, normalization = 'None',mode = 'unweighted',richness_threshold = 0)
+sample_richness <- GetAlphaDiversity(mmo, q = 0, normalization = 'None',mode = 'unweighted', threshold = 0)
 #must be here! return length(p when counting presence absence is just going to return the number of features?)
 # hill_numbers <- apply(feature[, -(1:2)], 2, function(x) {
 #     p <- x / sum(x)
@@ -176,8 +176,11 @@ group_rarefied_richness$raw
 
 
 
-p <- PlotAccumulation(group_rarefied_richness$summary)
-p
+p <- RarefactionAUC(group_rarefied_richness, n_boot = 500)
+
+ggplot(p$auc_boot) +
+  geom_density(aes(x = auc, fill = group)) +
+  theme_classic()
 
 
 
@@ -199,10 +202,11 @@ mmo$sirius_annot
 #MS will add this...
 ###Next add stacked barcplot...
 
-PlotNPCStackedBar(
-#'  mmo, group_col = 'treatment',
-#'  outdir = 'NPC_stacked_bar.png', width = 6, height = 3
-#' )
+PlotNPCStackedBar(mmo, 
+    group_col = 'Species_binomial', 
+    outdir = 'NPC_stakced_bar.pdf', 
+    width = 8, height =4, 
+    save_output = FALSE)
 
 #Task 2: Visualize difference between Species
 
@@ -215,9 +219,10 @@ a) PCA
 ```{r, eval = FALSE}
 
 ## MS will add this
-mmo <- ecomet::ReplaceZero(mmo,method = "one")
+mmo <- ReplaceZero(mmo,method = "one")
 
-PCAplot(mmo, normalization = 'None')
+PCAplot(mmo, normalization = 'None', save_output = FALSE)
+
 
 ```
 

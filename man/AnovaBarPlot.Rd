@@ -13,7 +13,9 @@ AnovaBarPlot(
   group_list = NULL,
   save_output = TRUE,
   width = 6,
-  height = 6
+  height = 6,
+  colors = NULL,
+  posthoc = NULL
 )
 }
 \arguments{
@@ -34,6 +36,10 @@ AnovaBarPlot(
 \item{width}{The width of the output plot in inches (default: 6)}
 
 \item{height}{The height of the output plot in inches (default: 6)}
+
+\item{colors}{A vector of colors for the groups (default: NULL)}
+
+\item{posthoc}{A character string indicating the post-hoc test to perform (default: NULL)}
 }
 \value{
 A list containing the bar plot and the ANOVA results

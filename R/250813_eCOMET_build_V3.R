@@ -2283,9 +2283,10 @@ PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
   #Store in results
   results <- data.frame(
     log2FC= log2FC,
-    padj = padj
+    padj = padj,
+    pval = pval
   )
-  names(results) <- c(paste(group1, "vs", group2, "log2FC", sep = "_"), paste(group1, "vs", group2, "padj", sep = "_"))
+  names(results) <- c(paste(group1, "vs", group2, "log2FC", sep = "_"), paste(group1, "vs", group2, "padj", sep = "_"), paste(group1, "vs", group2, "pval", sep = "_"))
   #Add pairwise results to the mmo object
   mmo$pairwise <- cbind(mmo$pairwise, results)
   print(paste(group2, '/', group1, 'comparison was completed'))
@@ -2302,13 +2303,14 @@ PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
 #' @param mmo The mmo object with pairwise comparison matrix
 #' @param fc_cutoff The threshold of log2 fold change to be considered significant (default: 0.5849625, which is log2(1.5))
 #' @param pval_cutoff The threshold of adjusted p-value to be considered significant (default: 0.05)
+#' @param use_padj Boolean value indicating whether to use adjusted p-value (default: TRUE)
 #' @return A list containing two lists: DAMs_up and DAMs_down
 #' @export
 #' @examplesIf FALSE
 #' dams <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
 #' dams_up <- dams$DAMs_up
 #' dams_down <- dams$DAMs_down
-GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
+GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05, use_padj = TRUE) {
   # Generate the list of comparisons automatically by looking up mmo$pairwise
   comparison_columns <- colnames(mmo$pairwise)
   log2FC_columns <- grep("log2FC", comparison_columns, value = TRUE)
@@ -2320,8 +2322,13 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
   for (comp in comparisons) {
     group1 <- strsplit(comp, "_vs_")[[1]][1]
     group2 <- strsplit(comp, "_vs_")[[1]][2]
-    DAMs_up[[paste(comp, "up", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) > fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$id
-    DAMs_down[[paste(comp, "down", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) < -fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$id
+    if (use_padj) {
+      DAMs_up[[paste(comp, "up", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) > fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$id
+      DAMs_down[[paste(comp, "down", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) < -fc_cutoff & get(paste(comp, "padj", sep = "_")) < pval_cutoff)$id
+    } else {
+      DAMs_up[[paste(comp, "up", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) > fc_cutoff & get(paste(comp, "pval", sep = "_")) < pval_cutoff)$id
+      DAMs_down[[paste(comp, "down", sep = ".")]] <- filter(mmo$pairwise, get(paste(comp, "log2FC", sep = "_")) < -fc_cutoff & get(paste(comp, "pval", sep = "_")) < pval_cutoff)$id
+    }
   }
   names(DAMs_up) <- paste(comparisons, "up", sep = ".")
   names(DAMs_down) <- paste(comparisons, "down", sep = ".")
@@ -2338,53 +2345,93 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05) {
 #' @param mmo The mmo object with pairwise comparison matrix
 #' @param comp The comparison to visualize, e.g., 'group1_vs_group2
 #' @param topk The number of top features to label in the plot (default: 10)
+#' @param log2FC_thr The threshold of log2 fold change to be considered significant (default: 1)
 #' @param pthr The threshold of adjusted p-value to be considered significant (default: 0.05)
 #' @param outdir The output file path for the volcano plot (default: 'volcano.png')
 #' @param height The height of the output plot in inches (default: 5)
 #' @param width The width of the output plot in inches (default: 5)
 #' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
+#' @param use_padj A logical value indicating whether to use adjusted p-value (default: TRUE)
 #' @return A list containing the volcano plot and the data used to generate it
 #' @export
 #' @examplesIf FALSE
 #' VolcanoPlot(
 #'  mmo, comp = 'Control_vs_Treatment1',
-#'  topk = 10, pthr = 0.05,
+#'  topk = 10, log2FC_thr = 1, pthr = 0.05,
 #'  outdir = 'volcano_con_tre1.png', height = 5, width = 5
 #' )
-VolcanoPlot <- function(mmo, comp, topk = 10, pthr = 0.05, outdir = 'volcano.png', height = 5, width = 5, save_output = TRUE){
+VolcanoPlot <- function(mmo, comp, topk = 10, log2FC_thr = 1,pthr = 0.05, outdir = 'volcano.png', height = 5, width = 5, save_output = TRUE, use_padj = TRUE){
   .require_pkg("ggrepel")
-  VolData <- mmo$pairwise |> dplyr::select(.data$feature,all_of(c(paste(comp, 'log2FC', sep = '_'), paste(comp, 'padj', sep = '_'))))
-  colnames(VolData) <- c('feature', 'log2FC', 'padj')
-  VolData <- VolData |>
-    mutate(
-      Expression = dplyr::case_when(log2FC >= 1 & padj <= pthr ~ "Up-regulated",
-                            log2FC <= -1 & padj <= pthr ~ "Down-regulated",
-                            TRUE ~ "Not significant")
-      )
+  VolData <- mmo$pairwise |> dplyr::select(.data$id, all_of(c(paste(comp, 'log2FC', sep = '_'), paste(comp, 'padj', sep = '_'), paste(comp, 'pval', sep = '_'))))
+  colnames(VolData) <- c('id', 'log2FC', 'padj', 'pval')
+  if(use_padj){ ## BE: revised part (for select whether padj is used)
+    VolData <- VolData |>
+      mutate(Expression = dplyr::case_when(log2FC >= log2FC_thr & padj <= pthr ~ "Up-regulated", ## BE: revised (to use log2FC_thr and pthr)
+                              log2FC <= -log2FC_thr & padj <= pthr ~ "Down-regulated",
+                              TRUE ~ "Not significant"))
+  } else{ ## BE: when using raw pval...
+    VolData <- VolData |>
+      mutate(Expression = dplyr::case_when(log2FC >= log2FC_thr & pval <= pthr ~ "Up-regulated", ## BE: revised (to use log2FC_thr and pthr)
+                              log2FC <= -log2FC_thr & pval <= pthr ~ "Down-regulated",
+                              TRUE ~ "Not significant"))
+  }
+  VolData$Expression <- factor(VolData$Expression, levels = c("Down-regulated", "Not significant", "Up-regulated"))
+  if(use_padj){ ## BE: revised part
+    top_features <- dplyr::bind_rows(
+      VolData |>
+        filter(.data$Expression =='Up-regulated')  |>
+        arrange(dplyr::desc(abs(.data$log2FC)), .data$padj) |>
+        head(topk),
+      VolData |>
+        filter(.data$Expression == 'Down-regulated') |>
+        arrange(dplyr::desc(abs(.data$log2FC)), .data$padj) |>
+        head(topk)
+    )
+  } else{ ##BE: revised part
+    top_features <- dplyr::bind_rows(
+      VolData |>
+        filter(.data$Expression =='Up-regulated')  |>
+        arrange(dplyr::desc(abs(.data$log2FC)), .data$pval) |>
+        head(topk),
+      VolData |>
+        filter(.data$Expression == 'Down-regulated') |>
+        arrange(dplyr::desc(abs(.data$log2FC)), .data$pval) |>
+        head(topk)
+    )
+  }
 
-  top_features <- dplyr::bind_rows(
-    VolData |>
-      filter(.data$Expression =='Up-regulated')  |>
-      arrange(dplyr::desc(abs(.data$log2FC)), .data$padj) |>
-      head(topk),
-    VolData |>
-      filter(.data$Expression == 'Down-regulated') |>
-      arrange(dplyr::desc(abs(.data$log2FC)), .data$padj) |>
-      head(topk)
-  )
+  if(use_padj){ ## BE: revised part
+    ## padj ver
+    plot <- ggplot(VolData, aes(x = .data$log2FC, y = -log(.data$padj, 10))) +
+      geom_point(aes(color = .data$Expression), size = 0.4)+
+      xlab(expression("log"[2]*"FC")) + ylab(expression("-log"[10]*"FDR"))+
+      scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
+      guides(colour = guide_legend(override.aes = list(size=1.5))) +
+      theme_classic()+
+      ggrepel::geom_label_repel(data = top_features,
+                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id 
+                      size = 2)
+  } else{ ## using raw pval
+      plot <- ggplot(VolData, aes(x = .data$log2FC, y = -log(.data$pval, 10))) +
+      geom_point(aes(color = .data$Expression), size = 0.4)+
+      xlab(expression("log"[2]*"FC")) + ylab(expression("-log"[10]*"p-value"))+
+      scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
+      guides(colour = guide_legend(override.aes = list(size=1.5))) +
+      theme_classic()+
+      ggrepel::geom_label_repel(data = top_features,
+                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id 
+                      size = 2)
+  }
 
-  plot <- ggplot(VolData, aes(x = .data$log2FC, y = -log(.data$padj, 10))) +
-    geom_point(aes(color = .data$Expression), size = 0.4)+
-    xlab(expression("log"[2]*"FC")) +
-    ylab(expression("-log"[10]*"FDR"))+
-    scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
-    guides(colour = guide_legend(override.aes = list(size=1.5))) +
-    theme_classic()+
-    ggrepel::geom_label_repel(data = top_features,
-                    mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$id),
-                    size = 2)
+  ## BE edited...
+  plot <- plot + ggtitle(paste(comp, "; Up=", sum(VolData$Expression == "Up-regulated"), 
+                                        "; Down=", sum(VolData$Expression == "Down-regulated"), 
+                                        "; NS=", sum(VolData$Expression == "Not significant"), sep="")) +
+               theme(plot.title = element_text(hjust = 0.0, size=6))
 
-  plot
+  #plot
+  print(plot) ## BE: revised in case of the function call in the for-loop
+
   if (save_output){
     ggsave(outdir, height = height, width = width)
     readr::write_csv(VolData, paste0(outdir, '_volcano_data.csv'))
@@ -2440,17 +2487,23 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_id =
   # Perform PCA on normalized feature data
   feature_data_pca <- feature[, -(1:2)]
   feature_data_pca <- t(feature_data_pca) # samples as rows, features as columns
+  zero_var_cols <- apply(feature_data_pca, 2, var) == 0 # Remove zero columns
+  feature_data_pca <- feature_data_pca[, !zero_var_cols]
   pca_res <- stats::prcomp(feature_data_pca, scale. = TRUE)
   pca_df <- as.data.frame(pca_res$x)
   pca_df$group <- metadata$group[match(rownames(pca_df), metadata$sample)]
-
+  # Get PC1 and PC2 loadings
+  pca_res_summary <- summary(pca_res)
+  PC1.loading <- as.data.frame(pca_res_summary$importance)$PC1[2]
+  PC2.loading <- as.data.frame(pca_res_summary$importance)$PC2[2]
 
   if (label == TRUE){
     plot <- ggplot(pca_df, aes(x = .data$PC1, y = .data$PC2, color = .data$group, label = rownames(pca_df))) +
       geom_point(size = 3) +
       ggrepel::geom_label_repel(aes(label = rownames(pca_df)), size = 3) +
       theme_classic() +
-      labs(x = "PC1", y = "PC2") +
+      labs(x = paste("PC1 (", PC1.loading ,")", sep=""), 
+           y = paste("PC2 (", PC2.loading ,")", sep="")) +
       scale_color_manual(values = color)+
       stat_ellipse(aes(group = .data$group), level = 0.90)
   } else {
@@ -2458,7 +2511,8 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_id =
       geom_point(size = 3) +
       # geom_label_repel(aes(label = rownames(pca_df)), size = 3) +
       theme_classic() +
-      labs(x = "PC1", y = "PC2") +
+      labs(x = paste("PC1 (", PC1.loading ,")", sep=""), 
+           y = paste("PC2 (", PC2.loading ,")", sep="")) +
       scale_color_manual(values = color)+
       stat_ellipse(aes(group = .data$group), level = 0.90)
   }
@@ -3616,6 +3670,8 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #' @param save_output A logical value indicating whether to save the output plot (default: TRUE)
 #' @param width The width of the output plot in inches (default: 6)
 #' @param height The height of the output plot in inches (default: 6)
+#' @param colors A vector of colors for the groups (default: NULL)
+#' @param posthoc A character string indicating the post-hoc test to perform (default: NULL)
 #' @export
 #' @return A list containing the bar plot and the ANOVA results
 #' @examplesIf FALSE
@@ -3624,8 +3680,10 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #'  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z',
 #'  filter_group = TRUE, group_list = c("Group1", "Group2")
 #' )
-AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL, save_output = TRUE, width = 6, height = 6) {
+AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL, 
+                          save_output = TRUE, width = 6, height = 6, colors = NULL, posthoc = NULL) {
   .require_pkg("ggbeeswarm")
+  .require_pkg("cld")
   if (filter_group){
     mmo <- filter_mmo(mmo, group_list = group_list)
   }
@@ -3647,6 +3705,20 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
     # Perform ANOVA
     anova <- anova_tukey_dunnett(feature_values, 'value ~ group')
 
+    Letters <- NULL
+    if(!is.null(posthoc)){
+        if(posthoc == "Tukey"){
+          res.Letters <- multcompView::multcompLetters4(anova$aov_res, anova$tukey_res)
+          Letters <- data.frame(x = names(res.Letters$group$Letters),
+                              label = as.character(res.Letters$group$Letters))
+        } else if(posthoc == "Dunnett"){
+          temp <- cld::make_cld(anova$dunnett_res)
+          Letters <- data.frame(x = temp$group, label = temp$cld)
+        } else{
+          message("Invalid post-hoc method (labelling skipped)")
+          Letters <- NULL
+        }
+    }
 
 
     # Generate bar plot
@@ -3655,15 +3727,25 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
       geom_errorbar(stat = "summary", fun.data = "mean_se", position = position_dodge(width = 0.9), width = 0.2) +
       ggbeeswarm::geom_beeswarm() +
       theme_classic() +
-      labs(title = paste("Feature:", target_id), x = "Group", y = "Value") +
+      labs(title = paste("Feature: ", target_id, "; Post-hoc: ", posthoc, sep=""), x = "Group", y = "Value") +
       theme(legend.position = "none", axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+
+    if(!is.null(colors)){ ## BE: ! if manual color is exist
+        plot <- plot + 
+                scale_fill_manual(values = colors)
+    }
+    if(!is.null(Letters)){ ## BE: ! if post-hoc is..
+      plot <- plot +
+              geom_text(data = Letters, aes(x = .data$x, y = max(feature_values$value)*1.1, label = label), 
+              inherit.aes = FALSE, size = 3, color = "black")
+    }
     plot
     if (save_output){
       ggsave(file.path(outdir, paste0(target_id, "_barplot.pdf")), plot = plot, width = width, height = height)
       write_anova(anova, outdir = paste0(outdir,'/', target_id, '_anova.csv'), way = 'oneway')
     }
-    return(list(plot = plot, anova = anova))
   }
+  return(list(plot = plot, anova = anova))
 }
 
 #' ExportFeaturesToCSV
