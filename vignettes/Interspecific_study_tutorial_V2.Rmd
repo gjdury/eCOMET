@@ -79,21 +79,6 @@ By default we set a
 
 ```{r, eval = FALSE}
 
-#Will update functional hill number to calculate above threshold not on NA.
-sample_richness <- GetAlphaDiversity(mmo, q = 0, normalization = 'None',mode = 'unweighted', threshold = 0)
-#must be here! return length(p when counting presence absence is just going to return the number of features?)
-# hill_numbers <- apply(feature[, -(1:2)], 2, function(x) {
-#     p <- x / sum(x)
-#     if (q == 0) {
-#       return(length(p))
-#     } else if (q == 1) {
-#       return(exp(-sum(p * log(p))))
-#     } else {
-#       return((sum(p^q))^(1 / (1 - q)))
-#     }
-#   })
-
-
 sample_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
@@ -192,23 +177,22 @@ ggplot(p$auc_boot) +
 
 ```{r, eval = FALSE}
 
-
-#Eventually Dale will implement addGNPS and addDREAMS hits...
-
-# Add SIRIUS annotation
+#Add SIRIUS annotation
 mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
 mmo$sirius_annot
 
 #MS will add this...
 ###Next add stacked barcplot...
 
-PlotNPCStackedBar(mmo, 
+mmo_stacked_bar <- PlotNPCStackedBar(mmo, 
     group_col = 'Species_binomial', 
     outdir = 'NPC_stakced_bar.pdf', 
     width = 8, height =4, 
     save_output = FALSE)
 
-#Task 2: Visualize difference between Species
+
+mmo_stacked_bar$plot
+
 
 ```
 
@@ -220,20 +204,44 @@ a) PCA
 
 ## MS will add this
 mmo <- ReplaceZero(mmo,method = "one")
+mmo <- ZNormalization(mmo) # Add Zscore
 
-PCAplot(mmo, normalization = 'None', save_output = FALSE)
+zero_variance <- mmo$zscore$id[is.na(mmo$zscore[,3])]
 
+features_to_keep <- mmo$feature_data$id[!mmo$feature_data$id %in% zero_variance]
+mmo_subset <- filter_mmo(mmo,id_list = features_to_keep)
 
+mmo_pca <- PCAplot(mmo_subset, normalization = 'None', save_output = FALSE)
+
+mmo_pca$plot
 ```
 
 b) HC of Bray-Curtis - Dale adds does this.
 ```{r, eval = FALSE}
+
+beta_diversity_dreams_bray <- GetBetaDiversity(mmo, method = 'bray', 
+ normalization = 'None', distance = 'dreams',filter_id=F,filter_group=F)
+
+# Convert to 'dist' object
+d <- as.dist(beta_diversity_dreams_bray)
+
+library(ape)
+library(colorspace)
+
+# Run hierarchical clustering
+hc <- hclust(d, method = "ward.D2")   # or "ward.D2", "complete"
+plot(
+  hc,
+  hang = -1,
+  cex = 0.5,   # shrink labels
+  main = NULL,
+  xlab = "",
+  sub = "",
+  ylab = "Distance"
+)
+
+
 ```
-
-
-
-3) We illustrate how different species of trees share a small fraction of there mz-rt features and show how this can be useful for identifying chemotypes. 
-
 
 
 ### introduce relationship amongst features...
@@ -255,6 +263,68 @@ mmo$dreams.dissim[1:10,1:10]
 
 #write it out into itol...
 
+#Qemistree with a Q... sirius predicts fingerprints. Cluster into tree from fingerprints.  Problem is sirius only works on subset. 
+
+#hclust on distance matrix. #Note this is based on single similarity value (i.e. cosine) that sums all emedding vectors.
+
+ 
+
+```{r}
+mmo_single_dendrogram_correlation <- FeatureDendrogram(mmo=mmo,distance = "dreams",
+  method = "average",
+  ion_identity = "correlation",
+  corr_col = "feature_group",
+  iin_col  = "ion_identities:iin_id",
+  within_group_dist = 0,
+  save_output = FALSE,
+  outprefix = "feature_tree"
+)
+plot(mmo_single_dendrogram_correlation$phylo, type = "fan", cex = 0.4, label.offset = 0.002,main="Dreams_Distance")
+
+```
+
+
+Option 3... use each embedding bit of the dreams embeddings vector as a single variable... 
+run cladistics...
+build a phyl from quantatative traits
+#Not yet, but todo is to figure out what models can take these types of data...
+
+#Option 4:
+
+Use Molecular Communities - this will produce a refined molecular network... in graphml format. 
+
+nodes + edges. We then have to convert this into a distance matrix or tree...
+
+
+
+Options 4B
+  connect the islands based on centroid (or representative compound near centroid, subset of most connected comps) to generate a communitie x community pairwise backbone for the dendrogram.
+  
+  ### ask if this already exists? We have islands. We want to connect them by centroids.
+  
+
+
+#### To Do Items:
+1) Process Panama Data w/ updated metadata - Done
+2) Generate a molecular network - hairball or not... [Dale]
+3) Run Molecular communities - to generate graphml...[Dale]
+
+4) Visualize graphml [Guillaume will explore]
+    -color code communities 
+    -color by npclassifier labels
+    
+5) Convert Graphml to distance matrix - hopefully easy [Guillaume]
+  -compare compound pairwise distance methods
+  -should explore converting to tree... but not necesary.
+6) Use distance matrix in ecomet/for cscs
+
+7) Decide to pursue centroid of communities or not...
+    
+
+
+
+
+
 
 
 
@@ -273,6 +343,7 @@ length(mmo_tree$phylo$tip.label)
 5) We illustrate how a feature abundance matrix and a chemical dendrogram/similarity matrix can be used to calculate:
 
 a) 
+
 #GetAlpha w/ weighted mode and hillnumber
 
 Structurally weighted Chemical Diversity
@@ -331,25 +402,7 @@ Bray-Curtis
 ### Need to check what this is actually doing...
 
 ### DLF needs to add a function for generating a hclust plot
-```{r, eval = FALSE}
 
-beta_diversity_dreams_bray <- GetBetaDiversity(mmo, method = 'bray', 
- normalization = 'Log', distance = 'dreams', filter_feature = FALSE)
-
-# Convert to 'dist' object
-d <- as.dist(beta_diversity_dreams_bray)
-
-library(ape)
-library(colorspace)
-
-# Run hierarchical clustering
-hc <- hclust(d, method = "ward.D2")   # or "ward.D2", "complete"
-plot(hc)
-
-
-
-
-```
 Pvclust allows you to assess significance between groups.
 ```{r, eval = FALSE}
 

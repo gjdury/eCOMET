@@ -290,31 +290,31 @@ SwitchGroup <- function(mmo, new_group_col) {
 #' )
 #'
 AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
-    structure_identifications <- readr::read_tsv(canopus_structuredir, 
+    structure_identifications <- readr::read_tsv(canopus_structuredir,
         show_col_types = FALSE)
-    structure_identifications$mappingFeatureId <- gsub(" ", "", 
+    structure_identifications$mappingFeatureId <- gsub(" ", "",
         structure_identifications$mappingFeatureId)
-    canopus_formula_summary <- readr::read_tsv(canopus_formuladir, 
+    canopus_formula_summary <- readr::read_tsv(canopus_formuladir,
         show_col_types = FALSE)
-    canopus_formula_summary$mappingFeatureId <- gsub(" ", "", 
+    canopus_formula_summary$mappingFeatureId <- gsub(" ", "",
         canopus_formula_summary$mappingFeatureId)
-    all_ids <- union(structure_identifications$mappingFeatureId, 
+    all_ids <- union(structure_identifications$mappingFeatureId,
         canopus_formula_summary$mappingFeatureId)
     duplicated_ids <- all_ids[duplicated(all_ids)]
     if (length(duplicated_ids) > 0) {
-        warning(paste0("Duplicated IDs found in SIRIUS files: ", 
+        warning(paste0("Duplicated IDs found in SIRIUS files: ",
             paste(duplicated_ids, collapse = ", ")))
     }
     sirius_df <- dplyr::select(mmo$feature_data, .data$id, .data$feature)
     structure_identifications$id <- structure_identifications$mappingFeatureId
     canopus_formula_summary$id <- canopus_formula_summary$mappingFeatureId
-    
-    shared_columns <- intersect(colnames(structure_identifications), colnames(canopus_formula_summary)) 
+
+    shared_columns <- intersect(colnames(structure_identifications), colnames(canopus_formula_summary))
     shared_columns <- shared_columns[!shared_columns %in% c('id')]
 
-    sirius_df <- left_join(left_join(sirius_df, structure_identifications, 
-        by = c(id = "id"), multiple = "last"), 
-        canopus_formula_summary, by = c(id = "id", shared_columns), 
+    sirius_df <- left_join(left_join(sirius_df, structure_identifications,
+        by = c(id = "id"), multiple = "last"),
+        canopus_formula_summary, by = c(id = "id", shared_columns),
         multiple = "last")
     mmo$sirius_annot <- sirius_df
     print("SIRIUS annotation added to mmo$sirius_annot")
@@ -1899,7 +1899,7 @@ pool_mmo_by_group <- function(mmo, group_col = "group") {
 #' This function retrieves the feature data from the mmo object based on the specified normalization method.
 #'
 #' @param mmo The mmo object
-#' @param normalization The normalization method to use. Options are 'None', 'Log', 'Meancentered', 'Z', or 'Imputed'
+#' @param normalization The normalization method to use. Options are 'None','PA', 'Log', 'Meancentered', 'Z', or 'Imputed'
 #' @return The feature data corresponding to the specified normalization method
 #' @export
 #' @examplesIf FALSE
@@ -1907,6 +1907,8 @@ pool_mmo_by_group <- function(mmo, group_col = "group") {
 GetNormFeature <- function(mmo, normalization){
   if (normalization == 'None'){
     feature <- mmo$feature_data
+  } else if (normalization == 'PA'){
+    feature <- mmo$feature_presence
   } else if (normalization == 'Log'){
     feature <- mmo$log
   } else if (normalization == 'Meancentered'){
@@ -2409,7 +2411,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, log2FC_thr = 1,pthr = 0.05, outdir
       guides(colour = guide_legend(override.aes = list(size=1.5))) +
       theme_classic()+
       ggrepel::geom_label_repel(data = top_features,
-                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id 
+                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id
                       size = 2)
   } else{ ## using raw pval
       plot <- ggplot(VolData, aes(x = .data$log2FC, y = -log(.data$pval, 10))) +
@@ -2419,13 +2421,13 @@ VolcanoPlot <- function(mmo, comp, topk = 10, log2FC_thr = 1,pthr = 0.05, outdir
       guides(colour = guide_legend(override.aes = list(size=1.5))) +
       theme_classic()+
       ggrepel::geom_label_repel(data = top_features,
-                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id 
+                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id
                       size = 2)
   }
 
   ## BE edited...
-  plot <- plot + ggtitle(paste(comp, "; Up=", sum(VolData$Expression == "Up-regulated"), 
-                                        "; Down=", sum(VolData$Expression == "Down-regulated"), 
+  plot <- plot + ggtitle(paste(comp, "; Up=", sum(VolData$Expression == "Up-regulated"),
+                                        "; Down=", sum(VolData$Expression == "Down-regulated"),
                                         "; NS=", sum(VolData$Expression == "Not significant"), sep="")) +
                theme(plot.title = element_text(hjust = 0.0, size=6))
 
@@ -2502,7 +2504,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_id =
       geom_point(size = 3) +
       ggrepel::geom_label_repel(aes(label = rownames(pca_df)), size = 3) +
       theme_classic() +
-      labs(x = paste("PC1 (", PC1.loading ,")", sep=""), 
+      labs(x = paste("PC1 (", PC1.loading ,")", sep=""),
            y = paste("PC2 (", PC2.loading ,")", sep="")) +
       scale_color_manual(values = color)+
       stat_ellipse(aes(group = .data$group), level = 0.90)
@@ -2511,7 +2513,7 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_id =
       geom_point(size = 3) +
       # geom_label_repel(aes(label = rownames(pca_df)), size = 3) +
       theme_classic() +
-      labs(x = paste("PC1 (", PC1.loading ,")", sep=""), 
+      labs(x = paste("PC1 (", PC1.loading ,")", sep=""),
            y = paste("PC2 (", PC2.loading ,")", sep="")) +
       scale_color_manual(values = color)+
       stat_ellipse(aes(group = .data$group), level = 0.90)
@@ -3680,7 +3682,7 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #'  mmo, ID_list = c("ID_1", "ID_2"), outdir = "output_directory", normalization = 'Z',
 #'  filter_group = TRUE, group_list = c("Group1", "Group2")
 #' )
-AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL, 
+AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_group = FALSE, group_list = NULL,
                           save_output = TRUE, width = 6, height = 6, colors = NULL, posthoc = NULL) {
   .require_pkg("ggbeeswarm")
   .require_pkg("cld")
@@ -3731,12 +3733,12 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
       theme(legend.position = "none", axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
 
     if(!is.null(colors)){ ## BE: ! if manual color is exist
-        plot <- plot + 
+        plot <- plot +
                 scale_fill_manual(values = colors)
     }
     if(!is.null(Letters)){ ## BE: ! if post-hoc is..
       plot <- plot +
-              geom_text(data = Letters, aes(x = .data$x, y = max(feature_values$value)*1.1, label = label), 
+              geom_text(data = Letters, aes(x = .data$x, y = max(feature_values$value)*1.1, label = label),
               inherit.aes = FALSE, size = 3, color = "black")
     }
     plot
@@ -4304,7 +4306,7 @@ GetAlphaDiversity <- function(
             by_group = FALSE,
             pool_method = pool_method
           )
-          df_pool <- metric_engine(pooled_obj$feature, pooled_obj$metadata, distance_matrix_all)
+          df_pool <- metric_engine(feature_local = pooled_obj$feature, metadata_local = pooled_obj$metadata, distance_local = distance_matrix_all)
           sgv_pool <- to_sample_group_value(df_pool, mmo)
           vals_k[p] <- sgv_pool$value[1]
         }
@@ -4491,7 +4493,8 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   }
   # Get compound distance and build tree for UniFrac
   scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
-  compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))
+  if (method == 'Gen.Uni') {
+  compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))}
 
   # Get feature matrix of relative proportion
   metadata <- mmo$metadata
@@ -4499,6 +4502,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity)) # remove features without distance
   relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
   rownames(relative_proportions) <- feature$id
+
   relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), ] #reorder
   relative_proportions <- t(relative_proportions)
   # Calculate Generalized UniFrac
@@ -4508,12 +4512,25 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   } else if (method == 'bray') {
     beta_div <- as.matrix(vegan::vegdist(relative_proportions, method = 'bray'))
   } else if (method == 'jaccard') {
-    beta_div <- as.matrix(vegan::vegdist(relative_proportions, method = 'jaccard'))
+    feature <- GetNormFeature(mmo, normalization = 'PA')
+    feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity)) # remove features without distance
+    beta_div <- as.matrix(vegan::vegdist(t(feature[, -(1:2)]), method = 'jaccard'))
   } else if (method == 'CSCS') {
     CSS <- 1-GetDistanceMat(mmo, distance = distance)
-    diag(CSS)
+    if(!all(diag(CSS) == 1)) print("Warning Diag not equal to 1")
+
     q.feature <- GetNormFeature(mmo, normalization = normalization) |> filter(.data$id %in% colnames(CSS))
-    relative_proportions <- apply(q.feature[, -(1:2)], 2, function(x) x / sum(x))
+    q.feature <- q.feature[match(colnames(CSS), q.feature$id), ]
+    q.mat <- as.matrix(q.feature[, -(1:2), drop = FALSE])
+    rownames(q.mat) <- q.feature$id
+    relative_proportions <- sweep(q.mat, 2, colSums(q.mat), "/")
+    if (!identical(rownames(relative_proportions), rownames(CSS))) {
+      stop("Feature alignment failed: rownames(relative_proportions) != rownames(CSS)")
+    }
+
+    if (!identical(rownames(relative_proportions), colnames(CSS))) {
+      stop("Feature alignment failed: rownames(relative_proportions) != colnames(CSS)")
+    }
     CSCS_all <- t(relative_proportions) %*% CSS %*% relative_proportions
 
     sample_names <- colnames(relative_proportions)
