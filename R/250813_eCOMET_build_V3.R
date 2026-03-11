@@ -1918,7 +1918,7 @@ GetNormFeature <- function(mmo, normalization){
   } else if (normalization == 'Imputed'){
     feature <- mmo$imputed_feature_data
   } else {
-    print('The normalization should be None, Log, Meancentered, Z, or Imputed')
+    print('The normalization should be None, PA, Log, Meancentered, Z, or Imputed')
   }
   return(feature)
 }
@@ -4500,6 +4500,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
   feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity)) # remove features without distance
+
   relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
   rownames(relative_proportions) <- feature$id
 

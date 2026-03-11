@@ -135,8 +135,6 @@ Finally, we can create a compound accumulation curve per group by rarefying samp
 
 
 
-
-
 ```{r, eval = FALSE}
 #this is too slow because of filtering. Need to update functions so they don't require mmo..
 #update so it includes raw data of the rarefaction needs ot be conserved
@@ -155,6 +153,12 @@ group_rarefied_richness <- GetAlphaDiversity(
 group_rarefied_richness$summary
 group_rarefied_richness$raw
 ```
+### Need to add back the rarefaction curve
+
+```{r}
+
+```
+
 
 
 ```{r, eval = FALSE}
@@ -211,7 +215,12 @@ zero_variance <- mmo$zscore$id[is.na(mmo$zscore[,3])]
 features_to_keep <- mmo$feature_data$id[!mmo$feature_data$id %in% zero_variance]
 mmo_subset <- filter_mmo(mmo,id_list = features_to_keep)
 
-mmo_pca <- PCAplot(mmo_subset, normalization = 'None', save_output = FALSE)
+groups <- unique(mmo$metadata$group)
+custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+
+
+mmo_pca <- PCAplot(mmo_subset,color = custom_colors, normalization = 'None',label = F, save_output = FALSE)
+
 
 mmo_pca$plot
 ```
@@ -357,9 +366,23 @@ plot(
 We can use these distance matricies directly in our ordination 
 ```{r}
 
-NMDS <- NMDSplot(mmo, betadiv = beta_diversity_dreams_CSCS, outdir = 'output/NMDS', width = 6, height = 6)
+groups <- unique(mmo$metadata$group)
+custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
 
+NMDS <- NMDSplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS, outdir = 'output/NMDS', width = 6, height = 6)
+
+NMDS$plot
 ```
+```{r}
+
+groups <- unique(mmo$metadata$group)
+custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+
+PCOA_example <- PCoAplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS, outdir = 'output/NMDS', width = 6, height = 6)
+
+PCOA_example$plot
+```
+
 Finally, we can re-calculate chemical diversity but taking into account the structural relatedness of compounds in a group.
 
 ```{R}
@@ -442,9 +465,11 @@ rarefied_functionalhill$raw
 ```
 Next set of todos:
 
-1) plotting functions are still not working well in R. We need a unified plan for how to actually save outputs and or return the plots.
-2) Some issues with the assumptions of getbetadiversity and need to unifiy how relative abundance is calculated... this was reordering in the cscs calculation
 3) Dale needs to create the code for generating a dendrogram.
+  output tree file for itol or figtree
+  color by NPCpathway
+  barplot of abundance (stacked....)
+  
 4) We need to annotate the output of the tutorial and add citationes etc. 
 
 
