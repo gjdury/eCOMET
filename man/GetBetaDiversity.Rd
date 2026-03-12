@@ -8,11 +8,12 @@ GetBetaDiversity(
   mmo,
   method = "Gen.Uni",
   normalization = "None",
-  distance = "dreams",
+  distance = NULL,
   filter_id = FALSE,
   id_list = NULL,
   filter_group = FALSE,
-  group_list = NULL
+  group_list = NULL,
+  scale_dissim = TRUE
 )
 }
 \arguments{
@@ -22,7 +23,7 @@ GetBetaDiversity(
 
 \item{normalization}{The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
 
-\item{distance}{The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')}
+\item{distance}{The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'NULL')}
 
 \item{filter_id}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
 
@@ -31,6 +32,8 @@ GetBetaDiversity(
 \item{filter_group}{A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)}
 
 \item{group_list}{A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)}
+
+\item{scale_dissim}{Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)}
 }
 \value{
 A distance matrix of beta diversity values between samples.

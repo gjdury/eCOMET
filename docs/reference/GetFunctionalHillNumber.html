@@ -48,7 +48,8 @@ See https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for details o
 <span>  <span class="va">metadata</span>,</span>
 <span>  <span class="va">distance_matrix</span>,</span>
 <span>  q <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  threshold <span class="op">=</span> <span class="fl">0</span></span>
+<span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  scale_dissim <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -75,6 +76,10 @@ Larger q values give more weight to evenness portion of the hill number over ric
 
 <dt id="arg-threshold">threshold<a class="anchor" aria-label="anchor" href="#arg-threshold"></a></dt>
 <dd><p>Numeric; detection threshold for presence (default: 0)</p></dd>
+
+
+<dt id="arg-scale-dissim">scale_dissim<a class="anchor" aria-label="anchor" href="#arg-scale-dissim"></a></dt>
+<dd><p>Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)</p></dd>
 
 </dl></div>
     <div class="section level2">

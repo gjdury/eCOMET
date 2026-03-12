@@ -6,7 +6,7 @@
 \usage{
 PCAplot(
   mmo,
-  color,
+  color = NULL,
   outdir = "PCA",
   normalization = "Z",
   filter_id = FALSE,

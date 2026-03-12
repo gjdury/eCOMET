@@ -34,12 +34,14 @@ if (!exists(".require_pkg", mode = "function")) {
 #' area column names (default 5). Lower this for stricter matching.
 #' @param feature_info_cols Character vector of feature-level columns to retain in \code{mmo$feature_info}.
 #' Columns not present in the MZmine table are skipped with a warning.
+#' @param pa_threshold Minimum peak area threshold for a feature to be considered present in a sample.
 #' @return A mmo object
 #' @export
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
                              drop_missing_samples = FALSE,
                              mz_col = NULL, rt_col = NULL,
                              max_distance = 5,
+                             pa_threshold = 1,
                              feature_info_cols = c(
                                "id",
                                "rt", "rt_range:min", "rt_range:max",
@@ -241,9 +243,13 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 
   class(mmo) <- "mmo"
 
+  # Generate presence/absence table using set threshold
+  mmo <- FeaturePresence(mmo, threshold = pa_threshold)
+
   message("MMO object created.")
   message(paste0("Feature number: ", nrow(mmo$feature_data)))
   message(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
+  message(paste0("Presence/absence table generated with threshold: ", pa_threshold, " (PA)"))
 
   return(mmo)
 }
@@ -317,6 +323,7 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
         canopus_formula_summary, by = c(id = "id", shared_columns),
         multiple = "last")
     mmo$sirius_annot <- sirius_df
+    print("SIRIUS ver6 is anticipated. Import may not be complete in lower versions.")
     print("SIRIUS annotation added to mmo$sirius_annot")
     return(mmo)
 }
@@ -2477,7 +2484,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, log2FC_thr = 1,pthr = 0.05, outdir
 #'  filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1"), label = TRUE
 #' )
-PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE, save_output = TRUE){
+PCAplot <- function(mmo, color = NULL, outdir = 'PCA', normalization = 'Z', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, label = TRUE, save_output = TRUE){
   .require_pkg("ggrepel")
   .require_pkg("stats")
   if (filter_id||filter_group){
@@ -2485,7 +2492,11 @@ PCAplot <- function(mmo, color, outdir = 'PCA', normalization = 'Z', filter_id =
   }
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
-
+  # If color is NULL, set default colors
+  if (is.null(color)) {
+    groups <- unique(metadata$group)
+    colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+  }
   # Perform PCA on normalized feature data
   feature_data_pca <- feature[, -(1:2)]
   feature_data_pca <- t(feature_data_pca) # samples as rows, features as columns
@@ -3823,6 +3834,7 @@ GetRichness <- function(
 #' @param q The order of the Hill number to calculate (default: 1).
 #'        Larger q values give more weight to evenness portion of the hill number over richness.
 #' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @param scale_dissim Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)
 #' @export
 #' @return A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
 GetFunctionalHillNumber <- function(
@@ -3830,7 +3842,8 @@ GetFunctionalHillNumber <- function(
     metadata,
     distance_matrix,
     q = 1,
-    threshold = 0
+    threshold = 0,
+    scale_dissim = TRUE
 ){
   # Treat values <= threshold (or NA) as absent
   feature_thr <- feature
@@ -3839,7 +3852,11 @@ GetFunctionalHillNumber <- function(
   feature_thr[, -(1:2)] <- x_thr
 
   # Scale the  distance matrix to be between 0 and 1
-  scaled_dissimilarity <- distance_matrix / max(distance_matrix)
+  if(scale_dissim){
+    scaled_dissimilarity <- distance_matrix / max(distance_matrix)
+  } else {
+    scaled_dissimilarity <- distance_matrix
+  }
   # Calculate the relative proportions of each feature and reorder them to match the order of the distance matrix
   q.feature <- feature_thr |> filter(.data$id %in% colnames(scaled_dissimilarity))
   relative_proportions <- apply(q.feature[, -(1:2)], 2, function(x) {
@@ -4474,11 +4491,12 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @param mmo The mmo object containing feature data and metadata
 #' @param method The method of beta diversity calculation. Options are 'Gen.Uni' for Generalized UniFrac, 'bray' for Bray-Curtis, 'jaccard' for Jaccard, or 'CSCS' for Compound Similarity and Chemical structural and compositional similarity (default: 'Gen.Uni')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
-#' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
+#' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'NULL')
 #' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
 #' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
 #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
+#' @param scale_dissim Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)
 #' @return A distance matrix of beta diversity values between samples.
 #' @export
 #' @examplesIf FALSE
@@ -4487,12 +4505,22 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
 #'  normalization = 'Z', filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
-GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = 'dreams', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL){
+GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE){
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
+  # Make sure scaled_dissimilarity exists
+  if(is.null(distance)){
+    n <- nrow(mmo$feature_data)
+    scaled_dissimilarity <- matrix(1, nrow = n, ncol = n)
+  }
+    
   # Get compound distance and build tree for UniFrac
-  scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
+  if(scale_dissim){
+    scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
+  } else {
+    scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance)
+  }
   if (method == 'Gen.Uni') {
   compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))}
 
@@ -4573,12 +4601,17 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 #' # Use method = 'bray' or 'jaccard' if you want to use just feature abundance
 #' # without considering feature spectral dissimilarity
 #' NMDSplot(mmo, betadiv = beta_diversity, outdir = 'output/NMDS', width = 6, height = 6)
-NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_output = TRUE){
+NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, save_output = TRUE){
   .require_pkg("vegan")
   .require_pkg("ggrepel")
   metadata <- mmo$metadata
   nmds <- vegan::metaMDS(betadiv, k = 2, try = 50, trymax = 100)
-
+  
+  # If color is NULL, set default colors
+  if (is.null(color)) {
+    groups <- unique(metadata$group)
+    colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+  }
   # Extract NMDS coordinates
   nmds_coords <- as.data.frame(vegan::scores(nmds, display = "sites"))
   groups <- c()
@@ -4627,14 +4660,19 @@ NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_ou
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_id = FALSE)
 #' PCoAplot(mmo, betadiv = beta_diversity, outdir = 'output/PCoA', width = 6, height = 6)
-PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color, save_output = TRUE){
+PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, save_output = TRUE){
   .require_pkg('ape')
   metadata <- mmo$metadata
   pcoa_res <- ape::pcoa(betadiv)
   pcoa_coords <- as.data.frame(pcoa_res$vectors[, 1:2])
   colnames(pcoa_coords) <- c("PCoA1", "PCoA2")
   pcoa_coords$group <- metadata$group[match(rownames(pcoa_coords), metadata$sample)]
-
+  
+  # If color is NULL, set default colors
+  if (is.null(color)) {
+    groups <- unique(metadata$group)
+    colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+  }
   plot <- ggplot(pcoa_coords, aes(x = .data$PCoA1, y = .data$PCoA2, color = .data$group)) +
     geom_point(size = 3) +
     stat_ellipse(level = 0.90) +

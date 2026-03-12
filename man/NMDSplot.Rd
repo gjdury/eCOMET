@@ -10,7 +10,7 @@ NMDSplot(
   outdir,
   width = 6,
   height = 6,
-  color,
+  color = NULL,
   save_output = TRUE
 )
 }

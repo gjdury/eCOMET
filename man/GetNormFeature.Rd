@@ -9,7 +9,7 @@ GetNormFeature(mmo, normalization)
 \arguments{
 \item{mmo}{The mmo object}
 
-\item{normalization}{The normalization method to use. Options are 'None', 'Log', 'Meancentered', 'Z', or 'Imputed'}
+\item{normalization}{The normalization method to use. Options are 'None','PA', 'Log', 'Meancentered', 'Z', or 'Imputed'}
 }
 \value{
 The feature data corresponding to the specified normalization method

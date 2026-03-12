@@ -9,7 +9,8 @@ GetFunctionalHillNumber(
   metadata,
   distance_matrix,
   q = 1,
-  threshold = 0
+  threshold = 0,
+  scale_dissim = TRUE
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ GetFunctionalHillNumber(
 Larger q values give more weight to evenness portion of the hill number over richness.}
 
 \item{threshold}{Numeric; detection threshold for presence (default: 0)}
+
+\item{scale_dissim}{Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)}
 }
 \value{
 A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
