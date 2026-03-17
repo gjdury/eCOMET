@@ -317,11 +317,11 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
 
     shared_columns <- intersect(colnames(structure_identifications), colnames(canopus_formula_summary))
     shared_columns <- shared_columns[!shared_columns %in% c('id')]
+    canopus_formula_summary <- canopus_formula_summary %>% select(-all_of(shared_columns)) 
 
-    sirius_df <- left_join(left_join(sirius_df, structure_identifications,
-        by = c(id = "id"), multiple = "last"),
-        canopus_formula_summary, by = c(id = "id", shared_columns),
-        multiple = "last")
+    sirius_df <- left_join(left_join(sirius_df, structure_identifications, 
+        by = c(id = "id"), multiple = "last"), canopus_formula_summary, 
+        by = 'id', multiple = "last")
     mmo$sirius_annot <- sirius_df
     print("SIRIUS ver6 is anticipated. Import may not be complete in lower versions.")
     print("SIRIUS annotation added to mmo$sirius_annot")
