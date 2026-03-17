@@ -2695,7 +2695,7 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
                                 filter_group = FALSE, group_list = NULL,
                                 summarize = 'mean', control_group = 'ctrl',
-                                normalization = 'None', distance = 'dreams') {
+                                normalization = 'None', distance = NULL) {
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
@@ -2710,15 +2710,21 @@ GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
   }
   # 12.1.2. Filter features
   # Determine distance metric
-  distance_matrix <- GetDistanceMat(mmo, distance = distance)
-  heatmap_data <- heatmap_data |> filter(.data$id %in% rownames(distance_matrix)) # remove features not in distance matrix
+  if (!is.null(distance)){
+    distance_matrix <- GetDistanceMat(mmo, distance = distance)
+    heatmap_data <- heatmap_data |> filter(.data$id %in% rownames(distance_matrix)) # remove features not in distance matrix
+  }
 
   # make matrix for heatmap
   FC_matrix <- as.matrix(heatmap_data[,-1])
   rownames(FC_matrix) <- heatmap_data$id
-  # Reorder the rows of distance_matrix to match the order of FC_matrix_
-  distance_matrix <- distance_matrix[rownames(FC_matrix), rownames(FC_matrix)]
-  dist_matrix <- as.dist(distance_matrix)
+  if (!is.null(distance)){
+    # Reorder the rows of distance_matrix to match the order of FC_matrix_
+    distance_matrix <- distance_matrix[rownames(FC_matrix), rownames(FC_matrix)]
+    dist_matrix <- as.dist(distance_matrix)
+  } else{
+    dist_matrix <- NULL
+  }
 
   row_label <- rownames(FC_matrix)
   return(list(FC_matrix = FC_matrix, dist_matrix = dist_matrix, row_label = row_label, heatmap_data = heatmap_data))
