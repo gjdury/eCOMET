@@ -1,0 +1,483 @@
+---
+title: "Interspecific Ecometabolomics Tutorial"
+output: html_notebook
+---
+
+This Relative Paths will work if you open the .Rjroject.
+
+```{r, eval = FALSE}
+#pak::pak("phytoecia/eCOMET", upgrade = TRUE)
+
+
+
+library(here)
+here()
+
+library(ecomet)
+library(dplyr)
+library(ggplot2)
+
+```
+# Background
+
+In this tutorial, we will demonstrate how to use the eCOMET package for analyzing multiple species of trees that co-occur accross a network of forest plots. We start by comparing chemical richness and diversity across samples. We then compare the composition of samples using dimensional reduction (hierarchical clustering, PCAs, NMDS) to display how samples within groups compare to one another. Up until this point, we have assumed that all MZ-RT features are (statistically) independent. However,this assumption is often wrong when analyzing untargeted metabolomic datasets because multiple features are detected for each compound (i.e. adducts, isotopes and in-source fragments). To address this in the second half of the tutorial we take measures to account for associations between features, first by grouping features from to the same metabolite, and then by accounting for structural similarity between features.
+
+
+Unlike in a treatment based study, where the expectation is that many compounds will be shared between treatment groups, and the goal is to identify differential expressed metabolites. In studies comparing across species, we are often presented with a case where the vast majority of compounds are not shared between groups (i.e species of plants). In these cases, metrics of chemical similarity can become relatively meaningless if we rely completely on shared MZ-RT features. To address this, chemical ecologists have integrated tools that account for relationships between detected features - feature based and ion identity molecular networking and structurally weighted scores of chemical similarity. These tools take into account for the fact that although two samples do not contain the same mz-rt feature, they both are producing compounds from the same biosynthetic origin and thus, should be considered more chemically similar than another sample that produces compounds from a different class/pathway. 
+
+Step 1: Load input data and generate the MMO object
+
+```{r, eval = FALSE}
+here()
+
+demo_feature <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_full_feature_table.csv")
+demo_metadata <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_metadata_no_blank.csv")
+demo_sirius_formula <- here("tutorial/tutorial_2_interspecific/canopus_formula_summary.tsv")
+demo_sirius_structure <- here("tutorial/tutorial_2_interspecific/structure_identifications.tsv")
+demo_dreams <- here("tutorial/tutorial_2_interspecific/EcoMET_Interspecific_edges_dreams_dreams.csv")
+
+# Initialize eCOMET object
+here()
+
+mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'Species_binomial',sample_col = "filename")
+
+mmo
+
+```
+Building the MMO object creates three objects:
+
+1) Sample Metadata:
+
+We are working with a dataset containing 10 species of tropical trees with 5-8 replicate samples for each species.
+
+
+```{r, eval = FALSE}
+
+mmo$metadata
+```
+
+2) Feature info...
+```{r, eval = FALSE}
+mmo$feature_info
+```
+
+
+3) Feature data...
+
+Feature x Abundance matrix where the first two columns identify individual metabolites and the remaining columns represent the abundance in each sample
+
+```{r, eval = FALSE}
+mmo$feature_data
+```
+
+Task 1: 
+A) Calculate the number of features observed in each sample and each species:
+
+We can use the GetAlphaDiversity function to calculate many diversity indices from the data. This function uses the functional hill framework(CITE) for calculating diversity and thus can integrate simple diversity measures (i.e. richness) or measures that take into account relative abundance of feature AND structural relationships between features. 
+
+For simple Richness, we set Q= 0, as this converts the abundance matrix to presence absence and we set mode= "unweighted" meaning we do not weight features by their structural similarity. 
+
+By default we set a 
+
+```{r, eval = FALSE}
+
+sample_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  threshold = 0,
+  output = "sample_level"
+)
+
+Sample_Richness <- ggplot2::ggplot(sample_richness, ggplot2::aes(x = group, y = value)) +
+  ggplot2::geom_boxplot(outlier.shape = NA) +
+  ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6) +
+  ggplot2::labs(
+    x = "Species",
+    y = "Feature Richness"
+  ) +
+  ggplot2::theme_classic() +
+  ggplot2::theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.5)
+  )
+Sample_Richness
+```
+This plot shows the distribution of richness, but we can also summarize the richness per group directly...
+
+```{r, eval = FALSE}
+
+group_mean_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  threshold = 0,
+  output = "group_average",
+  ci = 0.95   # optional; controls lwr/upr quantiles in the summary
+)
+group_mean_richness
+```
+We can calculate the cumualitive richess across each group. 
+
+
+```{r, eval = FALSE}
+#Should add option for mean or sum when pooling samples
+
+group_pooled_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  threshold = 0,
+  output = "group_cumulative",
+  pool_method = "sum"
+)
+
+group_pooled_richness
+```
+
+Finally, we can create a compound accumulation curve per group by rarefying samples and seeing how compound richness increases as we add samples
+
+`
+
+
+
+```{r, eval = FALSE}
+#this is too slow because of filtering. Need to update functions so they don't require mmo..
+#update so it includes raw data of the rarefaction needs ot be conserved
+group_rarefied_richness <- GetAlphaDiversity(
+  mmo,
+  mode = "richness",
+  threshold = 0,
+  output = "rarefied_sample",
+  n_perm = 200,    # permutations for CI
+  ci = 0.95,
+  seed = 1,
+  pool_method = "sum"
+)
+
+
+group_rarefied_richness$summary
+group_rarefied_richness$raw
+```
+### Need to add back the rarefaction curve
+
+```{r}
+
+```
+
+
+
+```{r, eval = FALSE}
+
+
+
+p <- RarefactionAUC(group_rarefied_richness, n_boot = 500)
+
+ggplot(p$auc_boot) +
+  geom_density(aes(x = auc, fill = group)) +
+  theme_classic()
+
+
+
+
+
+
+```
+#Stacked Barplot and Loading in Sirius... This is in bad shape. Need to discuss.
+
+```{r, eval = FALSE}
+
+#Add SIRIUS annotation
+mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
+mmo$sirius_annot
+
+#MS will add this...
+###Next add stacked barcplot...
+
+mmo_stacked_bar <- PlotNPCStackedBar(mmo, 
+    group_col = 'Species_binomial', 
+    outdir = 'NPC_stakced_bar.pdf', 
+    width = 8, height =4, 
+    save_output = FALSE)
+
+
+mmo_stacked_bar$plot
+
+
+```
+
+
+2) PCA and Bray Curtis
+
+a) PCA
+```{r, eval = FALSE}
+
+## MS will add this
+mmo <- ReplaceZero(mmo,method = "one")
+mmo <- ZNormalization(mmo) # Add Zscore
+
+zero_variance <- mmo$zscore$id[is.na(mmo$zscore[,3])]
+
+features_to_keep <- mmo$feature_data$id[!mmo$feature_data$id %in% zero_variance]
+mmo_subset <- filter_mmo(mmo,id_list = features_to_keep)
+
+groups <- unique(mmo$metadata$group)
+custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+
+
+mmo_pca <- PCAplot(mmo_subset,color = custom_colors, normalization = 'None',label = F, save_output = FALSE)
+
+
+mmo_pca$plot
+```
+
+b) HC of Bray-Curtis - Dale adds does this.
+
+
+Alright, problems with betadiverstity...
+
+
+1) why are we scaling by max distance?
+
+# Get compound distance and build tree for UniFrac
+  scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
+  
+2) if you don't supply a distance it's erroring out because but when we calculate by 'bray' there is no distance.
+
+feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity)) # remove features without distance
+
+Also, I don't like the assumption to remove things without a distance. There are potentially compounds that are shared between samples that do not have a distance. This will depend on if you filter compound w/ and w/o ms2 in mzmine...
+
+
+
+```{r, eval = FALSE}
+source("~/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/R/250813_eCOMET_build_V3.R")
+
+
+beta_diversity_dreams_bray <- GetBetaDiversity(mmo, method = 'bray', 
+ normalization = 'None')
+
+# Convert to 'dist' object
+d <- as.dist(beta_diversity_dreams_bray)
+
+library(ape)
+library(colorspace)
+
+# Run hierarchical clustering
+hc <- hclust(d, method = "ward.D2")   # or "ward.D2", "complete"
+plot(
+  hc,
+  hang = -1,
+  cex = 0.5,   # shrink labels
+  main = NULL,
+  xlab = "",
+  sub = "",
+  ylab = "Distance"
+)
+
+
+```
+You can see that BrayCurtis distance is grouping species into their own clusters well. This is because most species do not share features and thus form unique clusters.
+
+
+### introduce relationship amongst features...
+
+4) We introduce feature based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
+
+```{r, eval = FALSE}
+# Add Dreams distance
+mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+
+mmo$dreams.dissim[1:10,1:10]
+```
+### Image of molecular network
+
+#### Generate Dendrogram 
+
+2) build a dendrogram and plot
+
+#write it out into itol...
+
+#Qemistree with a Q... sirius predicts fingerprints. Cluster into tree from fingerprints.  Problem is sirius only works on subset. 
+
+#hclust on distance matrix. #Note this is based on single similarity value (i.e. cosine) that sums all emedding vectors.
+
+ 
+
+```{r}
+mmo_single_dendrogram_correlation <- FeatureDendrogram(mmo=mmo,distance = "dreams",
+  method = "average",
+  ion_identity = "correlation",
+  corr_col = "feature_group",
+  iin_col  = "ion_identities:iin_id",
+  within_group_dist = 0,
+  save_output = FALSE,
+  outprefix = "feature_tree"
+)
+plot(mmo_single_dendrogram_correlation$phylo, type = "fan", cex = 0.4, label.offset = 0.002,main="Dreams_Distance")
+
+```
+
+Given that we have the distance matrix we can recalculate similarity taking into account chemical distance of unshared features.
+
+We present two methods for this:
+
+CSCS
+and
+beta_diversity_dreams_Gen.Uni
+```{r}
+
+beta_diversity_dreams_CSCS <- GetBetaDiversity(mmo, method = 'CSCS', 
+ normalization = 'None',distance = "dreams")
+
+
+d_cscs <- as.dist(beta_diversity_dreams_CSCS)
+hc_cscs <- hclust(d_cscs, method = "ward.D2")   # or "ward.D2", "complete"
+plot(
+  hc_cscs,
+  hang = -1,
+  cex = 0.5,   # shrink labels
+  main = NULL,
+  xlab = "",
+  sub = "",
+  ylab = "Distance"
+)
+
+```
+
+
+### It's strange that it runs all the alphas and then it's hard to extract them directly....
+```{r}
+
+beta_diversity_dreams_Gen.Uni <- GetBetaDiversity(mmo, method = 'Gen.Uni', 
+ normalization = 'None',distance = "dreams")
+
+dimnames(beta_diversity_dreams_Gen.Uni)[[3]]
+
+d_Gen.Uni <- as.dist(beta_diversity_dreams_Gen.Uni[,,"d_0.5"])
+hc_Gen.Uni <- hclust(d_Gen.Uni, method = "ward.D2")   # or "ward.D2", "complete"
+plot(
+  hc_Gen.Uni,
+  hang = -1,
+  cex = 0.5,   # shrink labels
+  main = NULL,
+  xlab = "",
+  sub = "",
+  ylab = "Distance"
+)
+```
+
+
+
+We can use these distance matricies directly in our ordination 
+```{r}
+
+groups <- unique(mmo$metadata$group)
+custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+
+NMDS <- NMDSplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS, outdir = 'output/NMDS', width = 6, height = 6)
+
+NMDS$plot
+```
+```{r}
+
+groups <- unique(mmo$metadata$group)
+custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+
+PCOA_example <- PCoAplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS, outdir = 'output/NMDS', width = 6, height = 6)
+
+PCOA_example$plot
+```
+
+Finally, we can re-calculate chemical diversity but taking into account the structural relatedness of compounds in a group.
+
+```{R}
+
+group_mean_functionalhill <- GetAlphaDiversity(
+  mmo,
+  normalization = "None",
+  distance = "dreams",
+  mode = "weighted",
+  threshold = 0,
+  output = "sample_level",
+  ci = 0.95   # optional; controls lwr/upr quantiles in the summary
+)
+group_mean_functionalhill
+
+
+
+sample_hill_number <- ggplot2::ggplot(group_mean_functionalhill, ggplot2::aes(x = group, y = value)) +
+  ggplot2::geom_boxplot(outlier.shape = NA) +
+  ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6) +
+  ggplot2::labs(
+    x = "Species",
+    y = "Functional Hill Number"
+  ) +
+  ggplot2::theme_classic() +
+  ggplot2::theme(
+    axis.text.x = element_text(angle = 90, hjust = 0.5) 
+  )+
+    scale_y_log10() 
+
+library(cowplot)
+p1 <- Sample_Richness +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x  = element_blank(),
+    axis.ticks.x = element_blank(),
+    plot.margin = margin(t = 5.5, r = 5.5, b = 0, l = 5.5)
+  )
+
+p2 <- sample_hill_number +
+  theme(
+    plot.margin = margin(t = 0, r = 5.5, b = 5.5, l = 5.5)
+  )
+
+combined_plot <- plot_grid(
+  p1,
+  p2,
+  ncol = 1,
+  align = "v",
+  axis = "lr",
+  rel_heights = c(1, 2.5)
+)
+
+combined_plot
+
+
+```
+This isn't working likely because of the same problem that I had before with the CSCS calculations...
+also the syntax is strange that its asking for weighted by picking the type of distance?
+
+```{r}
+rarefied_functionalhill <- GetAlphaDiversity(
+  mmo,
+  normalization = "None",
+  distance = "dreams",
+  mode = "weighted",
+  threshold = 0,
+  output = "rarefied_sample",
+  ci = 0.95,   # optional; controls lwr/upr quantiles in the summary
+  n_perm = 200,
+  seed = 1,
+  pool_method = "sum"
+)
+
+
+rarefied_functionalhill$summary
+rarefied_functionalhill$raw
+  
+
+```
+Next set of todos:
+
+3) Dale needs to create the code for generating a dendrogram.
+  output tree file for itol or figtree
+  color by NPCpathway
+  barplot of abundance (stacked....)
+  
+4) We need to annotate the output of the tutorial and add citationes etc. 
+
+
+#Dale will update to add GNPS both for creating an chem dist and add annotations. 
+
+
+
+
+
