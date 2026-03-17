@@ -317,7 +317,7 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
 
     shared_columns <- intersect(colnames(structure_identifications), colnames(canopus_formula_summary))
     shared_columns <- shared_columns[!shared_columns %in% c('id')]
-    canopus_formula_summary <- canopus_formula_summary %>% select(-all_of(shared_columns)) 
+    canopus_formula_summary <- canopus_formula_summary |> select(-all_of(shared_columns)) 
 
     sirius_df <- left_join(left_join(sirius_df, structure_identifications, 
         by = c(id = "id"), multiple = "last"), canopus_formula_summary, 
