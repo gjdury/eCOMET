@@ -2423,7 +2423,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, log2FC_thr = 1,pthr = 0.05, outdir
       guides(colour = guide_legend(override.aes = list(size=1.5))) +
       theme_classic()+
       ggrepel::geom_label_repel(data = top_features,
-                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id
+                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$id), #previous: label = .data$id
                       size = 2)
   } else{ ## using raw pval
       plot <- ggplot(VolData, aes(x = .data$log2FC, y = -log(.data$pval, 10))) +
@@ -2433,7 +2433,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, log2FC_thr = 1,pthr = 0.05, outdir
       guides(colour = guide_legend(override.aes = list(size=1.5))) +
       theme_classic()+
       ggrepel::geom_label_repel(data = top_features,
-                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$feature), #previous: label = .data$id
+                      mapping = aes(.data$log2FC, -log(.data$padj,10), label = .data$id), #previous: label = .data$id
                       size = 2)
   }
 
