@@ -4,7 +4,13 @@
 \alias{AddSiriusAnnot}
 \title{Adding annotation from SIRIUS to the mmo object}
 \usage{
-AddSiriusAnnot(mmo, canopus_structuredir, canopus_formuladir)
+AddSiriusAnnot(
+  mmo,
+  canopus_structuredir,
+  canopus_formuladir,
+  filter_annot = FALSE,
+  filter_threshold = 0.5
+)
 }
 \arguments{
 \item{mmo}{The mmo object}
@@ -12,6 +18,10 @@ AddSiriusAnnot(mmo, canopus_structuredir, canopus_formuladir)
 \item{canopus_structuredir}{Path to the SIRIUS structure_identification.tsv file}
 
 \item{canopus_formuladir}{Path to the SIRIUS canopus_formula_summary.tsv file}
+
+\item{filter_annot}{Logical. If TRUE, filter the annotations by probability threshold in CANOPUS.}
+
+\item{filter_threshold}{Numeric between 0 and 1. The probability threshold for filtering annotations.}
 }
 \value{
 The mmo object with SIRIUS annotations added

@@ -287,6 +287,8 @@ SwitchGroup <- function(mmo, new_group_col) {
 #' @param mmo The mmo object
 #' @param canopus_structuredir Path to the SIRIUS structure_identification.tsv file
 #' @param canopus_formuladir Path to the SIRIUS canopus_formula_summary.tsv file
+#' @param filter_annot Logical. If TRUE, filter the annotations by probability threshold in CANOPUS.
+#' @param filter_threshold Numeric between 0 and 1. The probability threshold for filtering annotations.
 #' @return The mmo object with SIRIUS annotations added
 #' @export
 #' @examplesIf FALSE
@@ -295,7 +297,7 @@ SwitchGroup <- function(mmo, new_group_col) {
 #'  canopus_formuladir = "path/to/canopus_formula_summary.tsv"
 #' )
 #'
-AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
+AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir, filter_annot = FALSE, filter_threshold = 0.5){
     structure_identifications <- readr::read_tsv(canopus_structuredir,
         show_col_types = FALSE)
     structure_identifications$mappingFeatureId <- gsub(" ", "",
@@ -325,6 +327,9 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir){
     mmo$sirius_annot <- sirius_df
     print("SIRIUS ver6 is anticipated. Import may not be complete in lower versions.")
     print("SIRIUS annotation added to mmo$sirius_annot")
+    if (filter_annot == TRUE){
+      mmo <- filter_canopus_annotations(mmo, input = "sirius_annot", pathway_level = 'All', threshold = filter_threshold, na_prob = TRUE, overwrite = TRUE)
+    }
     return(mmo)
 }
 
