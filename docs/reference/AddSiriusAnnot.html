@@ -43,7 +43,13 @@ and adds the annotations to the mmo object.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">AddSiriusAnnot</span><span class="op">(</span><span class="va">mmo</span>, <span class="va">canopus_structuredir</span>, <span class="va">canopus_formuladir</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">AddSiriusAnnot</span><span class="op">(</span></span>
+<span>  <span class="va">mmo</span>,</span>
+<span>  <span class="va">canopus_structuredir</span>,</span>
+<span>  <span class="va">canopus_formuladir</span>,</span>
+<span>  filter_annot <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  filter_threshold <span class="op">=</span> <span class="fl">0.5</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -60,6 +66,14 @@ and adds the annotations to the mmo object.</p>
 
 <dt id="arg-canopus-formuladir">canopus_formuladir<a class="anchor" aria-label="anchor" href="#arg-canopus-formuladir"></a></dt>
 <dd><p>Path to the SIRIUS canopus_formula_summary.tsv file</p></dd>
+
+
+<dt id="arg-filter-annot">filter_annot<a class="anchor" aria-label="anchor" href="#arg-filter-annot"></a></dt>
+<dd><p>Logical. If TRUE, filter the annotations by probability threshold in CANOPUS.</p></dd>
+
+
+<dt id="arg-filter-threshold">filter_threshold<a class="anchor" aria-label="anchor" href="#arg-filter-threshold"></a></dt>
+<dd><p>Numeric between 0 and 1. The probability threshold for filtering annotations.</p></dd>
 
 </dl></div>
     <div class="section level2">

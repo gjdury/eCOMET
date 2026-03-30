@@ -13,7 +13,7 @@ GenerateHeatmapInputs(
   summarize = "mean",
   control_group = "ctrl",
   normalization = "None",
-  distance = "dreams"
+  distance = NULL
 )
 }
 \arguments{

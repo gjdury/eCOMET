@@ -8,8 +8,9 @@ articles:
   Interspecific_study_tutorial: Interspecific_study_tutorial.html
   Intro: Intro.html
   match_structure_to_features: match_structure_to_features.html
+  Treatment-based_study_tutorial_V2: Treatment-based_study_tutorial_V2.html
   Treatment-based_study_tutorial: Treatment-based_study_tutorial.html
-last_built: 2026-03-12T12:30Z
+last_built: 2026-03-30T10:02Z
 urls:
   reference: https://phytoecia.github.io/eCOMET/reference
   article: https://phytoecia.github.io/eCOMET/articles
