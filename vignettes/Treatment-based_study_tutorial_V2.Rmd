@@ -40,15 +40,15 @@ In this tutorial, we demonstrate how to use the **eCOMET** package for analyzing
 
 The example data represent metabolomics analysis of *Arabidopsis thaliana* (Col-0) leaves attacked by two different herbivores:
 
-| Group | Description | Replicates |
-|-------|-------------|------------|
-| `ctrl` | Undamaged control | 8 |
-| `sl1` | *Spodoptera litura* (chewing herbivore) | 8 |
-| `le1` | *Lipaphis erysimi* (aphid, piercing-sucking) | 8 |
+| Group  | Description                                  | Replicates |
+|--------|----------------------------------------------|------------|
+| `ctrl` | Undamaged control                            | 8          |
+| `sl1`  | *Spodoptera litura* (chewing herbivore)      | 8          |
+| `le1`  | *Lipaphis erysimi* (aphid, piercing-sucking) | 8          |
 
 These files are shipped with the eCOMET package and can be accessed via `system.file()`.
 
----
+------------------------------------------------------------------------
 
 # Step 1: Locate tutorial data
 
@@ -71,7 +71,7 @@ demo_dreams           <- file.path(data_dir, "dreams_sim_demo.csv")
 gls_db                <- file.path(data_dir, "custom_DB_glucosinolates.csv")
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 2: Create an `mmo` object
 
@@ -121,7 +121,7 @@ mmo$feature_info
 mmo$metadata
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 3: Preprocessing and normalization
 
@@ -153,7 +153,7 @@ mmo$feature_data
 eCOMET offers several normalization methods. Each adds a new element to the `mmo` object:
 
 | Function | Result stored in | Description |
-|----------|-----------------|-------------|
+|----|----|----|
 | `LogNormalization()` | `mmo$log` | log2(x + 1) transformation — stabilizes variance |
 | `MeancenterNormalization()` | `mmo$meancentered` | Row-wise mean subtraction — centers features around zero |
 | `ZNormalization()` | `mmo$zscore` | Row-wise z-score — standardizes to mean=0, sd=1 |
@@ -172,7 +172,7 @@ You can also convert the feature abundance matrix to a binary presence/absence m
 mmo <- FeaturePresence(mmo, threshold = 1)
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 4: Add annotations
 
@@ -288,7 +288,7 @@ mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 mmo$dreams.dissim[1:10, 1:10]
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 5: Dimensionality reduction plots
 
@@ -356,7 +356,7 @@ PLSDAplot(mmo, color = colors, outdir = '260320_demo/plot/PLSDA/PLSDA_meancenter
           normalization = 'Meancentered', save_output = TRUE)
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 6: Identify differentially accumulated metabolites (DAMs)
 
@@ -391,7 +391,7 @@ DAMs_down <- DAMs$DAMs_down  # Features downregulated in treatment
 head(DAMs_up)
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 7: Visualization of DAMs
 
@@ -438,7 +438,7 @@ upset(fromList(VennInput), nsets = 10, nintersects = 20,
 dev.off()
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 8: Heatmap
 
@@ -447,7 +447,7 @@ Heatmaps visualize the relative abundance of features across samples or groups. 
 **Key options for `GenerateHeatmapInputs()`:**
 
 | Parameter | Options | Description |
-|-----------|---------|-------------|
+|----|----|----|
 | `summarize` | `"fold_change"`, `"mean"` | What values to display |
 | `control_group` | group name | Reference for fold-change calculation |
 | `normalization` | `"None"`, `"Log"`, `"Z"`, `"Meancentered"` | Which normalization to use |
@@ -548,7 +548,7 @@ pheatmap(
 )
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 9: CANOPUS class enrichment analysis
 
@@ -583,15 +583,15 @@ When comparing enrichment across multiple DAM lists (e.g., up in sl1 vs. up in l
 
 **Available classification levels:**
 
-| Level | Description |
-|-------|-------------|
-| `NPC_pathway` | NPC biosynthetic pathway |
-| `NPC_superclass` | NPC superclass |
-| `NPC_class` | NPC class |
-| `ClassyFire_superclass` | ClassyFire superclass |
-| `ClassyFire_class` | ClassyFire class |
-| `ClassyFire_subclass` | ClassyFire subclass |
-| `ClassyFire_level5` | ClassyFire level 5 |
+| Level                      | Description                    |
+|----------------------------|--------------------------------|
+| `NPC_pathway`              | NPC biosynthetic pathway       |
+| `NPC_superclass`           | NPC superclass                 |
+| `NPC_class`                | NPC class                      |
+| `ClassyFire_superclass`    | ClassyFire superclass          |
+| `ClassyFire_class`         | ClassyFire class               |
+| `ClassyFire_subclass`      | ClassyFire subclass            |
+| `ClassyFire_level5`        | ClassyFire level 5             |
 | `ClassyFire_most_specific` | ClassyFire most specific class |
 
 ```{r, eval=FALSE}
@@ -622,7 +622,7 @@ CanopusAllLevelEnrichmentPlot(
 )
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 10: Correlation analysis
 
@@ -641,7 +641,7 @@ sl_cor <- ScreenFeaturePhenotypeCorrelation(
 head(sl_cor)
 ```
 
----
+------------------------------------------------------------------------
 
 # Step 11: Save and share the mmo object
 
@@ -655,14 +655,14 @@ SaveMMO(mmo, '260320_demo/output/mmo.RData')
 # mmo <- LoadMMO('260320_demo/output/mmo.RData')
 ```
 
----
+------------------------------------------------------------------------
 
 # Summary
 
 This tutorial covered the complete eCOMET workflow for treatment-based metabolomics studies:
 
 | Step | Function(s) | Purpose |
-|------|-------------|---------|
+|----|----|----|
 | 1 | `system.file()` | Locate tutorial data |
 | 2 | `GetMZmineFeature()` | Create mmo object |
 | 3 | `ReplaceZero()`, `*Normalization()` | Preprocessing |

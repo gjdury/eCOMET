@@ -121,14 +121,10 @@ reference:
 articles:
   - title: "Tutorials"
     contents:
-      - Intro
       - eCOMET-intro
-      - Treatment-based_study_tutorial
       - Treatment-based_study_tutorial_V2
-      - Interspecific_study_tutorial
-      - Interspecific_study_tutorial_V2
       - Interspecific_study_tutorial_V3
-      - match_structure_to_features
+      - Generate_Compound_Dendrogram_and_Molecular_Networks
 
 news:
   one_page: true

@@ -319,10 +319,10 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir, filter
 
     shared_columns <- intersect(colnames(structure_identifications), colnames(canopus_formula_summary))
     shared_columns <- shared_columns[!shared_columns %in% c('id')]
-    canopus_formula_summary <- canopus_formula_summary |> select(-all_of(shared_columns)) 
+    canopus_formula_summary <- canopus_formula_summary |> select(-all_of(shared_columns))
 
-    sirius_df <- left_join(left_join(sirius_df, structure_identifications, 
-        by = c(id = "id"), multiple = "last"), canopus_formula_summary, 
+    sirius_df <- left_join(left_join(sirius_df, structure_identifications,
+        by = c(id = "id"), multiple = "last"), canopus_formula_summary,
         by = 'id', multiple = "last")
     mmo$sirius_annot <- sirius_df
     print("SIRIUS ver6 is anticipated. Import may not be complete in lower versions.")
@@ -1127,6 +1127,78 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
     stop("Please provide at least one valid directory.")
   }
 
+  return(mmo)
+}
+
+
+#' Add a custom feature distance matrix to the mmo object
+#'
+#' Stores any user-supplied pairwise feature distance matrix in the mmo object
+#' so it can be used by \code{GetBetaDiversity()}, \code{GetAlphaDiversity()},
+#' and \code{HeatmapPlot()} via the \code{distance} argument.
+#'
+#' @details
+#' \strong{Required matrix format:}
+#' \itemize{
+#'   \item A square numeric matrix with equal row and column names.
+#'   \item Row and column names must be feature IDs matching the \code{id} column
+#'         in \code{mmo$feature_data} (e.g. \code{"1234.56_2.34"} or whatever
+#'         identifier MZmine assigned).
+#'   \item Values must be \strong{dissimilarities} in the range \code{[0, 1]},
+#'         where 0 means identical and 1 means maximally different. If your
+#'         source data are similarities (e.g. Tanimoto coefficients, cosine
+#'         scores), convert first with \code{dist_matrix <- 1 - sim_matrix}.
+#'   \item The diagonal should be 0 (a feature is identical to itself).
+#'   \item The matrix should be symmetric (\code{dist[i,j] == dist[j,i]}).
+#'         Non-symmetric matrices are accepted but may produce unexpected results
+#'         in downstream ordination and Hill number calculations.
+#'   \item Features not present in \code{mmo$feature_data} are retained in the
+#'         matrix but will be silently ignored during analysis. Features in
+#'         \code{mmo$feature_data} that are absent from the matrix will be
+#'         excluded from structure-aware calculations.
+#' }
+#'
+#' @param mmo The mmo object
+#' @param dist_matrix A square numeric matrix of pairwise feature dissimilarities
+#'   (see Details for format requirements).
+#' @param name A short string used to identify this distance in downstream
+#'   functions (e.g. \code{"tanimoto"}, \code{"npc"}). The matrix is stored as
+#'   \code{mmo$<name>.dissim} and referenced by passing \code{distance = "<name>"}
+#'   to \code{GetBetaDiversity()}, \code{GetAlphaDiversity()}, etc.
+#'   Must not conflict with existing names: \code{"dreams"}, \code{"cosine"},
+#'   \code{"m2ds"}.
+#' @return The mmo object with the new distance matrix stored in
+#'   \code{mmo$<name>.dissim}.
+#' @export
+#' @examplesIf FALSE
+#' # Example: add a Tanimoto-based structural distance
+#' # tanimoto_sim is a feature x feature similarity matrix from an external tool
+#' tanimoto_dist <- 1 - tanimoto_sim
+#' mmo <- AddCustomDist(mmo, dist_matrix = tanimoto_dist, name = "tanimoto")
+#' # Now use it anywhere a distance argument is accepted:
+#' beta <- GetBetaDiversity(mmo, method = "CSCS", distance = "tanimoto")
+#' alpha <- GetAlphaDiversity(mmo, mode = "weighted", distance = "tanimoto")
+AddCustomDist <- function(mmo, dist_matrix, name) {
+  if (!is.matrix(dist_matrix) || !is.numeric(dist_matrix)) {
+    stop("dist_matrix must be a numeric matrix.", call. = FALSE)
+  }
+  if (nrow(dist_matrix) != ncol(dist_matrix)) {
+    stop("dist_matrix must be square (nrow == ncol).", call. = FALSE)
+  }
+  if (is.null(rownames(dist_matrix)) || is.null(colnames(dist_matrix))) {
+    stop("dist_matrix must have row and column names matching feature IDs in mmo$feature_data$id.", call. = FALSE)
+  }
+  if (!identical(rownames(dist_matrix), colnames(dist_matrix))) {
+    stop("dist_matrix row names and column names must be identical (same features, same order).", call. = FALSE)
+  }
+  reserved <- c("dreams", "cosine", "m2ds")
+  if (name %in% reserved) {
+    warning("'", name, "' is a reserved distance name used by AddChemDist(). ",
+            "This will overwrite the existing matrix.", call. = FALSE)
+  }
+  slot_name <- paste0(name, ".dissim")
+  mmo[[slot_name]] <- dist_matrix
+  message(slot_name, " added to mmo (", nrow(dist_matrix), " x ", ncol(dist_matrix), " features)")
   return(mmo)
 }
 
@@ -1938,21 +2010,30 @@ GetNormFeature <- function(mmo, normalization){
 
 #' Get the distance matrix from the mmo object based on the specified distance metric
 #'
-#' This function retrieves the distance matrix from the mmo object based on the specified distance metric.
+#' Retrieve a feature distance matrix from the mmo object
+#'
+#' Looks up a dissimilarity matrix stored in the mmo object by name. Works with
+#' the three built-in matrices added by \code{AddChemDist()} as well as any
+#' custom matrix added via \code{AddCustomDist()}.
 #'
 #' @param mmo The mmo object
-#' @param distance The distance metric to use. Options are 'dreams', 'cosine', or 'm2ds'
-#' @return The distance matrix corresponding to the specified distance metric
+#' @param distance Name of the distance matrix to retrieve. Built-in options are
+#'   \code{'dreams'}, \code{'cosine'}, and \code{'m2ds'}. Any name passed to
+#'   \code{AddCustomDist(mmo, name = ...)} is also valid.
+#' @return The distance matrix (numeric matrix with feature ID row/col names).
 #' @export
 #' @examplesIf FALSE
 #' distance_matrix <- GetDistanceMat(mmo, distance = 'dreams')
+#' distance_matrix <- GetDistanceMat(mmo, distance = 'tanimoto')  # custom
 GetDistanceMat <- function(mmo, distance = 'dreams'){
-  if (distance == 'dreams'){
-    distance_matrix <- mmo$dreams.dissim
-  } else if (distance == 'cosine'){
-    distance_matrix <- mmo$cos.dissim
-  } else if (distance == 'm2ds'){
-    distance_matrix <- mmo$m2ds.dissim
+  slot_name <- paste0(distance, ".dissim")
+  distance_matrix <- mmo[[slot_name]]
+  if (is.null(distance_matrix)) {
+    stop(
+      "No distance matrix found for '", distance, "' (looked for mmo$", slot_name, "). ",
+      "Use AddChemDist() for built-in types or AddCustomDist() for custom matrices.",
+      call. = FALSE
+    )
   }
   return(distance_matrix)
 }
@@ -3844,6 +3925,7 @@ GetRichness <- function(
 #' @param distance_matrix Feature distance matrix
 #' @param q The order of the Hill number to calculate (default: 1).
 #'        Larger q values give more weight to evenness portion of the hill number over richness.
+#'        q = 0 treats abundance matrix as a presence absence matrix
 #' @param threshold Numeric; detection threshold for presence (default: 0)
 #' @param scale_dissim Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)
 #' @export
@@ -3878,8 +3960,15 @@ GetFunctionalHillNumber <- function(
       x / s
     }
   })
+  # apply() drops dimensions when there is only 1 column (e.g. pooled rarefaction);
+  # restore as a named matrix so colnames() is never NULL downstream.
+  if (is.null(dim(relative_proportions))) {
+    nm <- colnames(q.feature[, -(1:2), drop = FALSE])
+    relative_proportions <- matrix(relative_proportions, ncol = 1,
+                                   dimnames = list(names(relative_proportions), nm))
+  }
   rownames(relative_proportions) <- q.feature$id
-  relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), ]
+  relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), , drop = FALSE]
   scaled_dissimilarity <- as.matrix(scaled_dissimilarity)
   raoQ <- colSums(relative_proportions * (scaled_dissimilarity %*% relative_proportions))
   # Calculate Hill
@@ -4014,10 +4103,21 @@ GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
 #' NOTE: For outputs 3 and 4, pooling is performed by summing feature intensities across samples.
 #'
 #' @param mmo The mmo object containing feature data and metadata
-#' @param q The order of the Hill number to calculate (default: 1)
-#' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
-#' @param mode The mode of diversity calculation. One of 'weighted', 'unweighted', 'faith', 'richness' (default: 'richness')
-#' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')
+#' @param q The Hill number order controlling abundance sensitivity (default: 1).
+#'   Only applies to \code{mode = "weighted"} and \code{mode = "unweighted"};
+#'   ignored for \code{"richness"} and \code{"faith"}.
+#'   \itemize{
+#'     \item \code{q = 0} -- richness: all detected features count equally regardless of abundance.
+#'     \item \code{q = 1} -- Shannon-type: features weighted proportionally to their relative abundance.
+#'     \item \code{q = 2} -- Simpson-type: dominant (high-abundance) features weighted more strongly.
+#'   }
+#' @param normalization Abundance table to use. Options: 'None', 'Log', 'Meancentered', 'Z', 'PA'
+#'   (default: 'None'). Using \code{'PA'} forces presence/absence regardless of \code{mode} or \code{q},
+#'   effectively making every detected feature equally abundant before the Hill calculation.
+#' @param mode The diversity metric to calculate. One of 'weighted', 'unweighted', 'faith', 'richness'
+#'   (default: 'richness'). Use \code{q} to control abundance sensitivity for 'weighted' and 'unweighted'.
+#' @param distance Feature dissimilarity metric: 'dreams', 'm2ds', or 'cosine' (default: 'dreams').
+#'   Required for \code{mode = "weighted"} and \code{mode = "faith"}; ignored otherwise.
 #' @param threshold Numeric threshold used to define metabolite presence (default: 0)
 #' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
 #' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
@@ -4494,25 +4594,65 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 
 #' GetBetaDiversity
 #'
-#' This function calculates the beta diversity for a given mmo object, method (Generalized Unifrac, bray, jaccard, or CSCS), normalization method, distance metric, and optional feature filtering.
-#' Then it returns a distance matrix of beta diversity values.
-#' The Generalized UniFrac and CSCS method requires a distance matrix of feature dissimilarity, which is calculated using the specified distance metric.
-#' Bray-Curtis and Jaccard methods are calculated using the vegan package, not considering feature dissimilarity.
+#' Calculate beta diversity (sample-to-sample dissimilarity) for an mmo object.
+#' Four methods are supported, differing in how they handle feature abundance and
+#' structural relationships among compounds:
+#'
+#' - 'bray'    : Bray-Curtis dissimilarity. Feature-overlap only; no compound
+#'               distance matrix required. Abundance sensitivity is controlled
+#'               via \code{normalization}: use \code{'None'} for raw abundances,
+#'               \code{'Log'} to compress dynamic range, or \code{'PA'} to reduce
+#'               to presence/absence.
+#'
+#' - 'jaccard' : Jaccard dissimilarity. Presence/absence only by definition.
+#'               The \code{normalization} argument is ignored; PA data are always
+#'               used internally. A warning is issued if a non-PA normalization
+#'               is supplied.
+#'
+#' - 'CSCS'    : Chemical Structural and Compositional Similarity. Incorporates
+#'               pairwise compound distances so that samples sharing structurally
+#'               related (but not identical) features can still be considered
+#'               similar. Requires \code{distance}. Abundance sensitivity is
+#'               controlled via \code{normalization} (same options as bray).
+#'
+#' - 'Gen.Uni' : Generalized UniFrac. Partitions beta diversity across branches
+#'               of a compound dendrogram. Requires \code{distance}. Returns a
+#'               named list of three distance matrices, one per abundance-weighting
+#'               level (\code{d_0}, \code{d_0.5}, \code{d_1}). Choose the one
+#'               appropriate for your analysis (see Details).
+#'
+#' @details
+#' \strong{Choosing an abundance-weighting level for Gen.Uni:}
+#' \itemize{
+#'   \item \code{d_0}   -- presence/absence only; equivalent to unweighted UniFrac.
+#'                         Use when detection (not intensity) is the signal of interest.
+#'   \item \code{d_0.5} -- balanced weighting (recommended default). Moderates the
+#'                         influence of highly abundant features without ignoring abundance.
+#'   \item \code{d_1}   -- fully abundance-weighted. Dominant features drive the distance.
+#'                         Use when peak intensity is a reliable biological signal.
+#' }
+#' Access a specific matrix with e.g. \code{result[["d_0.5"]]}.
 #'
 #' @param mmo The mmo object containing feature data and metadata
-#' @param method The method of beta diversity calculation. Options are 'Gen.Uni' for Generalized UniFrac, 'bray' for Bray-Curtis, 'jaccard' for Jaccard, or 'CSCS' for Compound Similarity and Chemical structural and compositional similarity (default: 'Gen.Uni')
-#' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
-#' @param distance The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'NULL')
+#' @param method Beta diversity method: 'Gen.Uni', 'bray', 'jaccard', or 'CSCS' (default: 'Gen.Uni')
+#' @param normalization Abundance table to use. Options: 'None', 'Log', 'Meancentered', 'Z', 'PA'
+#'   (default: 'None'). Ignored for 'jaccard', which always uses PA.
+#'   For 'bray' and 'CSCS', this is the primary lever for controlling abundance sensitivity.
+#' @param distance Feature dissimilarity metric: 'dreams', 'm2ds', or 'cosine'.
+#'   Required for 'Gen.Uni' and 'CSCS'; ignored for 'bray' and 'jaccard'.
 #' @param filter_id A boolean indicating whether to filter the feature data by a specific list (default: FALSE)
 #' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
 #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
-#' @param scale_dissim Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)
-#' @return A distance matrix of beta diversity values between samples.
+#' @param scale_dissim Boolean; whether to scale the feature distance matrix to [0, 1] (default: TRUE)
+#' @return For 'bray', 'jaccard', 'CSCS': a symmetric sample-by-sample distance matrix (matrix).
+#'   For 'Gen.Uni': a named list of three distance matrices: \code{d_0}, \code{d_0.5}, \code{d_1}.
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
 #'  normalization = 'None', distance = 'dreams', filter_id = FALSE)
+#' # Access a specific weighting level:
+#' d_balanced <- beta_diversity[["d_0.5"]]
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
 #'  normalization = 'Z', filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
@@ -4520,45 +4660,64 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
-  # Make sure scaled_dissimilarity exists
-  if(is.null(distance)){
-    n <- nrow(mmo$feature_data)
-    scaled_dissimilarity <- matrix(1, nrow = n, ncol = n)
-  }
-    
-  # Get compound distance and build tree for UniFrac
-  if(scale_dissim){
-    scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance) / max(GetDistanceMat(mmo, distance = distance))
-  } else {
-    scaled_dissimilarity <- GetDistanceMat(mmo, distance = distance)
-  }
-  if (method == 'Gen.Uni') {
-  compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))}
 
-  # Get feature matrix of relative proportion
+  # Methods that require a compound distance matrix
+  distance_methods <- c('Gen.Uni', 'CSCS')
+
+  if (method %in% distance_methods) {
+    if (is.null(distance)) stop(paste("method =", method, "requires a 'distance' argument."))
+    dist_mat <- GetDistanceMat(mmo, distance = distance)
+    scaled_dissimilarity <- if (scale_dissim) dist_mat / max(dist_mat) else dist_mat
+  }
+
+  # Build tree only for Gen.Uni
+  if (method == 'Gen.Uni') {
+    compound_tree <- ape::as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))
+  }
+
+  # Get feature matrix
   metadata <- mmo$metadata
   feature <- GetNormFeature(mmo, normalization)
-  feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity)) # remove features without distance
 
-  relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
-  rownames(relative_proportions) <- feature$id
+  if (method %in% distance_methods) {
+    feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity))
+    relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
+    rownames(relative_proportions) <- feature$id
+    relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), ]
+    relative_proportions <- t(relative_proportions)
+  }
 
-  relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), ] #reorder
-  relative_proportions <- t(relative_proportions)
-  # Calculate Generalized UniFrac
   if (method == 'Gen.Uni') {
     guni <- GUniFrac::GUniFrac(relative_proportions, compound_tree, alpha = c(0, 0.5, 1), verbose = TRUE)
-    beta_div <- guni$unifracs
+    beta_div <- list(
+      d_0   = guni$unifracs[, , "d_0"],
+      d_0.5 = guni$unifracs[, , "d_0.5"],
+      d_1   = guni$unifracs[, , "d_1"]
+    )
+    message(
+      "Gen.Uni returned three distance matrices with different abundance-weighting levels:\n",
+      "  d_0   : presence/absence only (unweighted)\n",
+      "  d_0.5 : balanced weighting (recommended)\n",
+      "  d_1   : fully abundance-weighted\n",
+      "Access one with e.g. result[[\"d_0.5\"]] before passing to NMDSplot() or PCoAplot()."
+    )
   } else if (method == 'bray') {
-    beta_div <- as.matrix(vegan::vegdist(relative_proportions, method = 'bray'))
+    relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
+    beta_div <- as.matrix(vegan::vegdist(t(relative_proportions), method = 'bray'))
   } else if (method == 'jaccard') {
+    if (normalization != 'PA') {
+      warning(
+        "Jaccard dissimilarity requires presence/absence data. ",
+        "The 'normalization' argument ('", normalization, "') is ignored; ",
+        "'PA' is always used. To silence this warning, pass normalization = 'PA'.",
+        call. = FALSE
+      )
+    }
     feature <- GetNormFeature(mmo, normalization = 'PA')
-    feature <- feature |> filter(.data$id %in% colnames(scaled_dissimilarity)) # remove features without distance
     beta_div <- as.matrix(vegan::vegdist(t(feature[, -(1:2)]), method = 'jaccard'))
   } else if (method == 'CSCS') {
-    CSS <- 1-GetDistanceMat(mmo, distance = distance)
+    CSS <- 1 - scaled_dissimilarity  # already computed above
     if(!all(diag(CSS) == 1)) print("Warning Diag not equal to 1")
-
     q.feature <- GetNormFeature(mmo, normalization = normalization) |> filter(.data$id %in% colnames(CSS))
     q.feature <- q.feature[match(colnames(CSS), q.feature$id), ]
     q.mat <- as.matrix(q.feature[, -(1:2), drop = FALSE])
@@ -4567,12 +4726,10 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
     if (!identical(rownames(relative_proportions), rownames(CSS))) {
       stop("Feature alignment failed: rownames(relative_proportions) != rownames(CSS)")
     }
-
     if (!identical(rownames(relative_proportions), colnames(CSS))) {
       stop("Feature alignment failed: rownames(relative_proportions) != colnames(CSS)")
     }
     CSCS_all <- t(relative_proportions) %*% CSS %*% relative_proportions
-
     sample_names <- colnames(relative_proportions)
     n_samples <- length(sample_names)
     CSCS_matrix <- matrix(NA, nrow = n_samples, ncol = n_samples)
@@ -4583,11 +4740,10 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
         CSCS_matrix[i,j] <- CSCS_all[i, j] / max(CSCS_all[i, i], CSCS_all[j, j])
       }
     }
-    beta_div <- 1-CSCS_matrix
+    beta_div <- 1 - CSCS_matrix
   } else {
-    stop("Invalid method. Please use 'Gen.Uni', 'bray' or 'jaccard'")
+    stop("Invalid method. Please use 'Gen.Uni', 'bray', 'jaccard', or 'CSCS'")
   }
-
 
   return(beta_div)
 }
@@ -4617,7 +4773,7 @@ NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, 
   .require_pkg("ggrepel")
   metadata <- mmo$metadata
   nmds <- vegan::metaMDS(betadiv, k = 2, try = 50, trymax = 100)
-  
+
   # If color is NULL, set default colors
   if (is.null(color)) {
     groups <- unique(metadata$group)
@@ -4678,7 +4834,7 @@ PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, 
   pcoa_coords <- as.data.frame(pcoa_res$vectors[, 1:2])
   colnames(pcoa_coords) <- c("PCoA1", "PCoA2")
   pcoa_coords$group <- metadata$group[match(rownames(pcoa_coords), metadata$sample)]
-  
+
   # If color is NULL, set default colors
   if (is.null(color)) {
     groups <- unique(metadata$group)
@@ -4928,4 +5084,756 @@ HCplot <- function(
   )
 
   return(list(hc = hc, phy = tr, tip_df = tip_df, colors = grp_cols))
+}
+
+
+#' FeatureDendrogram
+#'
+#' Build a feature-to-feature dendrogram from a dissimilarity matrix stored in
+#' the mmo object. Optionally collapses within-group distances for ion identity
+#' or correlation groups so that adducts/isotopes of the same compound cluster
+#' together before chemical distance drives the higher-level topology.
+#'
+#' @details
+#' \strong{Ion identity options:}
+#' \itemize{
+#'   \item \code{"none"} -- use the raw dissimilarity matrix as-is.
+#'   \item \code{"correlation"} -- features sharing the same MZmine correlation
+#'     group (typically co-eluting features likely derived from the same
+#'     compound) are assigned \code{within_group_dist} before clustering.
+#'   \item \code{"ion_identity_network"} -- features linked by MZmine ion
+#'     identity networking (confirmed adducts / isotopes) are assigned
+#'     \code{within_group_dist} before clustering.
+#' }
+#' In both grouped modes the constraint is applied symmetrically and the
+#' diagonal is forced to 0 after the assignment.
+#'
+#' @param mmo mmo object. Must contain the requested dissimilarity matrix
+#'   (added via \code{AddChemDist()} or \code{AddCustomDist()}) and, for
+#'   ion identity modes, \code{mmo$feature_info}.
+#' @param distance Name of the dissimilarity matrix to use (default: \code{"dreams"}).
+#'   Passed to \code{GetDistanceMat()}; supports built-in and custom names.
+#' @param features Optional character vector of feature IDs to include.
+#'   \code{NULL} (default) uses all features in the distance matrix.
+#' @param method hclust linkage method (default: \code{"average"}).
+#'   Other sensible choices: \code{"complete"}, \code{"ward.D2"}.
+#' @param ion_identity One of \code{"none"}, \code{"correlation"},
+#'   \code{"ion_identity_network"} (default: \code{"none"}).
+#' @param corr_col Column in \code{mmo$feature_info} containing MZmine
+#'   correlation group IDs (default: \code{"feature_group"}).
+#'   Used when \code{ion_identity = "correlation"}.
+#' @param iin_col Column in \code{mmo$feature_info} containing MZmine IIN IDs
+#'   (default: \code{"ion_identities:iin_id"}).
+#'   Used when \code{ion_identity = "ion_identity_network"}.
+#' @param within_group_dist Distance assigned to pairs within the same ion
+#'   identity group (default: \code{0.01}). A small positive value rather than
+#'   0 avoids degenerate zero-height clusters in the tree while still pulling
+#'   grouped features together. Must be in \code{[0, 1]}.
+#' @param save_newick Logical; if \code{TRUE} writes a Newick file
+#'   (\code{<outprefix>.nwk}) of the tree (default: \code{FALSE}).
+#' @param outprefix File prefix used when \code{save_newick = TRUE}
+#'   (default: \code{"feature_tree"}).
+#' @return A named list with:
+#'   \itemize{
+#'     \item \code{hclust}    -- the \code{hclust} object
+#'     \item \code{dendrogram} -- the \code{dendrogram} object
+#'     \item \code{phylo}     -- the \code{phylo} object (for ape/iTOL)
+#'     \item \code{dist_used} -- the (possibly modified) distance matrix used
+#'     \item \code{tip_map}   -- data.frame of feature ID → group assignment
+#'                               (\code{NULL} when \code{ion_identity = "none"})
+#'   }
+#' @export
+#' @examplesIf FALSE
+#' tree <- FeatureDendrogram(mmo, distance = "dreams")
+#' tree_iin <- FeatureDendrogram(mmo, distance = "dreams",
+#'                               ion_identity = "ion_identity_network")
+FeatureDendrogram <- function(
+    mmo,
+    distance          = "dreams",
+    features          = NULL,
+    method            = "average",
+    ion_identity      = c("none", "correlation", "ion_identity_network"),
+    corr_col          = "feature_group",
+    iin_col           = "ion_identities:iin_id",
+    within_group_dist = 0.01,
+    save_newick       = FALSE,
+    outprefix         = "feature_tree"
+) {
+  .require_pkg("ape")
+  ion_identity <- match.arg(ion_identity)
+
+  # ------------------------------------------------------------------
+  # 1. Retrieve and validate the distance matrix
+  # ------------------------------------------------------------------
+  mat <- GetDistanceMat(mmo, distance)
+
+  if (!is.matrix(mat))
+    stop("Distance matrix '", distance, "' must be a matrix.", call. = FALSE)
+  if (is.null(rownames(mat)) || is.null(colnames(mat)))
+    stop("Distance matrix must have row and column names (feature IDs).", call. = FALSE)
+  if (!identical(rownames(mat), colnames(mat)))
+    stop("Distance matrix row names and column names must be identical and in the same order.", call. = FALSE)
+  if (any(mat < 0 | mat > 1, na.rm = TRUE))
+    stop("Distance matrix contains values outside [0, 1]. ",
+         "Ensure dissimilarities are in [0, 1] (e.g. 1 - similarity).", call. = FALSE)
+
+  # ------------------------------------------------------------------
+  # 2. Optional feature subsetting
+  # ------------------------------------------------------------------
+  if (!is.null(features)) {
+    keep <- intersect(as.character(features), rownames(mat))
+    if (length(keep) < 2)
+      stop("Fewer than 2 features remain after subsetting. Check your 'features' vector.", call. = FALSE)
+    mat <- mat[keep, keep, drop = FALSE]
+  }
+
+  diag(mat) <- 0
+
+  # ------------------------------------------------------------------
+  # 3. Ion identity / correlation constraints
+  # ------------------------------------------------------------------
+  tip_ids <- rownames(mat)
+  tip_map <- NULL
+
+  if (ion_identity != "none") {
+    if (is.null(mmo$feature_info) || !is.data.frame(mmo$feature_info))
+      stop("mmo$feature_info is required when ion_identity != 'none'.", call. = FALSE)
+    if (!"id" %in% names(mmo$feature_info))
+      stop("mmo$feature_info must contain an 'id' column.", call. = FALSE)
+
+    fi  <- mmo$feature_info
+    fi$id <- as.character(fi$id)
+    idx <- match(tip_ids, fi$id)
+
+    if (anyNA(idx)) {
+      bad <- tip_ids[is.na(idx)]
+      stop("Some feature IDs in the distance matrix are missing from mmo$feature_info$id:\n",
+           paste(head(bad, 10), collapse = "\n"), call. = FALSE)
+    }
+
+    if (ion_identity == "correlation") {
+      if (!corr_col %in% names(fi))
+        stop("mmo$feature_info is missing column '", corr_col, "' (corr_col).", call. = FALSE)
+      grp      <- as.character(fi[[corr_col]][idx])
+      grp_type <- "correlation"
+    } else {
+      if (!iin_col %in% names(fi))
+        stop("mmo$feature_info is missing column '", iin_col, "' (iin_col).", call. = FALSE)
+      grp      <- as.character(fi[[iin_col]][idx])
+      grp_type <- "ion_identity_network"
+    }
+
+    grp[is.na(grp) | grp == "" | grp == "NA"] <- NA
+    tip_map <- data.frame(id = tip_ids, group_type = grp_type, group_id = grp,
+                          stringsAsFactors = FALSE)
+
+    groups <- sort(unique(grp[!is.na(grp)]))
+    n_constrained <- 0L
+    for (g in groups) {
+      ii <- which(grp == g)
+      if (length(ii) >= 2) {
+        mat[ii, ii] <- within_group_dist
+        n_constrained <- n_constrained + length(ii)
+      }
+    }
+    diag(mat) <- 0
+    message(sprintf("Ion identity constraint applied: %d groups, %d features affected.",
+                    length(groups), n_constrained))
+  }
+
+  # ------------------------------------------------------------------
+  # 4. Build the tree
+  # ------------------------------------------------------------------
+  hc   <- stats::hclust(stats::as.dist(mat), method = method)
+  dend <- stats::as.dendrogram(hc)
+  phy  <- ape::as.phylo(hc)
+
+  if (isTRUE(save_newick)) {
+    ape::write.tree(phy, file = paste0(outprefix, ".nwk"))
+    message("Newick tree written to ", outprefix, ".nwk")
+  }
+
+  return(list(
+    hclust     = hc,
+    dendrogram = dend,
+    phylo      = phy,
+    dist_used  = mat,
+    tip_map    = tip_map
+  ))
+}
+
+
+#' PlotFeatureDendrogram
+#'
+#' Plot a feature dendrogram produced by \code{FeatureDendrogram()}, with
+#' optional tip coloring by NPC compound class and branch highlighting for
+#' ion identity or correlation groups.
+#'
+#' @details
+#' \strong{Tip coloring (\code{color_by}):}
+#' When \code{color_by} is supplied, tip labels are colored by the NPC
+#' pathway (or any character column) in \code{mmo$sirius_annot}. Features
+#' without an annotation are colored \code{na_color}.
+#'
+#' \strong{IIN branch highlighting (\code{highlight_groups}):}
+#' When \code{TRUE} and the \code{FeatureDendrogram} result contains a
+#' \code{tip_map}, each ion identity / correlation group is drawn with a
+#' colored rectangle behind the tip cluster, making adduct/isotope groups
+#' visually distinct from the chemical-distance topology.
+#'
+#' @param tree Output list from \code{FeatureDendrogram()}.
+#' @param mmo mmo object. Used for \code{mmo$sirius_annot} when
+#'   \code{color_by} is not \code{NULL}.
+#' @param color_by Column name in \code{mmo$sirius_annot} to use for tip
+#'   colors (default: \code{"NPC#pathway"}). Set to \code{NULL} to skip
+#'   tip coloring.
+#' @param highlight_groups Logical; whether to draw colored rectangles around
+#'   ion identity / correlation groups in the tree (default: \code{TRUE}).
+#'   Only has an effect when \code{tree$tip_map} is not \code{NULL}.
+#' @param palette Qualitative palette name for
+#'   \code{colorspace::qualitative_hcl} (default: \code{"Dark 3"}).
+#' @param na_color Color for tips with no annotation (default: \code{"grey70"}).
+#' @param cex Tip label size (default: \code{0.5}).
+#' @param show_tip_labels Logical; show feature ID tip labels (default:
+#'   \code{FALSE}). Useful for large trees where labels overlap.
+#' @param main Plot title. \code{NULL} generates an automatic title.
+#' @param save_output Logical; save the plot to a PDF file (default:
+#'   \code{FALSE}).
+#' @param outprefix File prefix for the PDF (default: \code{"feature_dendro"}).
+#' @param width PDF width in inches (default: \code{10}).
+#' @param height PDF height in inches (default: \code{8}).
+#' @return Invisibly returns a data.frame mapping tip IDs to their color and
+#'   annotation value, useful for downstream legend building.
+#' @export
+#' @examplesIf FALSE
+#' tree <- FeatureDendrogram(mmo, distance = "dreams")
+#' PlotFeatureDendrogram(tree, mmo, color_by = "NPC#pathway")
+#'
+#' # IIN-constrained tree with group highlighting
+#' tree_iin <- FeatureDendrogram(mmo, distance = "dreams",
+#'                               ion_identity = "ion_identity_network")
+#' PlotFeatureDendrogram(tree_iin, mmo, color_by = "NPC#pathway",
+#'                       highlight_groups = TRUE)
+PlotFeatureDendrogram <- function(
+    tree,
+    mmo,
+    color_by         = "NPC#pathway",
+    highlight_groups = TRUE,
+    palette          = "Dark 3",
+    na_color         = "grey70",
+    cex              = 0.5,
+    show_tip_labels  = FALSE,
+    main             = NULL,
+    save_output      = FALSE,
+    outprefix        = "feature_dendro",
+    width            = 10,
+    height           = 8
+) {
+  .require_pkg("ape")
+  .require_pkg("colorspace")
+
+  if (!all(c("hclust", "dendrogram", "phylo", "dist_used") %in% names(tree)))
+    stop("'tree' must be the list returned by FeatureDendrogram().", call. = FALSE)
+
+  phy     <- tree$phylo
+  tip_ids <- phy$tip.label
+  n_tips  <- length(tip_ids)
+
+  # ------------------------------------------------------------------
+  # 1. Build tip color vector from annotation
+  # ------------------------------------------------------------------
+  tip_df <- data.frame(id = tip_ids, annot_value = NA_character_,
+                       color = na_color, stringsAsFactors = FALSE)
+
+  if (!is.null(color_by)) {
+    if (is.null(mmo$sirius_annot) || !is.data.frame(mmo$sirius_annot))
+      stop("mmo$sirius_annot not found. Run AddSiriusAnnot() first, or set color_by = NULL.", call. = FALSE)
+    if (!"id" %in% names(mmo$sirius_annot))
+      stop("mmo$sirius_annot must contain an 'id' column.", call. = FALSE)
+    if (!color_by %in% names(mmo$sirius_annot))
+      stop("Column '", color_by, "' not found in mmo$sirius_annot.", call. = FALSE)
+
+    annot      <- mmo$sirius_annot
+    annot$id   <- as.character(annot$id)
+    idx        <- match(tip_ids, annot$id)
+    raw_vals   <- ifelse(is.na(idx), NA_character_, as.character(annot[[color_by]][idx]))
+
+    # collapse NAs / blanks to a single label for the legend
+    raw_vals[is.na(raw_vals) | raw_vals == "" | raw_vals == "NA"] <- NA_character_
+    levels_present <- sort(unique(raw_vals[!is.na(raw_vals)]))
+
+    pal <- stats::setNames(
+      colorspace::qualitative_hcl(length(levels_present), palette = palette),
+      levels_present
+    )
+    tip_cols <- ifelse(is.na(raw_vals), na_color, unname(pal[raw_vals]))
+
+    tip_df$annot_value <- raw_vals
+    tip_df$color       <- tip_cols
+  } else {
+    pal            <- character(0)
+    levels_present <- character(0)
+    tip_cols       <- rep(na_color, n_tips)
+  }
+
+  # ------------------------------------------------------------------
+  # 2. Open device
+  # ------------------------------------------------------------------
+  color_label <- if (!is.null(color_by)) color_by else "no coloring"
+  group_label <- if (!is.null(tree$tip_map)) paste0("; ", tree$tip_map$group_type[1]) else ""
+  auto_title  <- paste0("Feature dendrogram (", color_label, group_label, ")")
+
+  if (isTRUE(save_output))
+    grDevices::pdf(paste0(outprefix, ".pdf"), width = width, height = height)
+
+  op <- graphics::par(no.readonly = TRUE)
+  on.exit({ graphics::par(op); if (save_output) grDevices::dev.off() }, add = TRUE)
+
+  graphics::par(mar = c(2, 1, 3, max(8, max(nchar(tip_ids)) * 0.35)))
+
+  # ------------------------------------------------------------------
+  # 3. Base tree plot
+  # ------------------------------------------------------------------
+  plot(
+    phy,
+    type       = "phylogram",
+    cex        = cex,
+    tip.color  = tip_cols,
+    show.tip.label = show_tip_labels,
+    main       = if (!is.null(main)) main else auto_title
+  )
+
+  # ------------------------------------------------------------------
+  # 4. Highlight IIN / correlation groups
+  # ------------------------------------------------------------------
+  if (isTRUE(highlight_groups) && !is.null(tree$tip_map)) {
+    tm      <- tree$tip_map
+    tm$id   <- as.character(tm$id)
+    grp_ids <- sort(unique(tm$group_id[!is.na(tm$group_id)]))
+
+    if (length(grp_ids) > 0) {
+      grp_pal <- stats::setNames(
+        colorspace::qualitative_hcl(length(grp_ids), palette = "Set 2", alpha = 0.25),
+        grp_ids
+      )
+      lastPP  <- get("last_plot.phylo", envir = ape::.PlotPhyloEnv)
+      tip_pos <- data.frame(id = lastPP$tip.label, y = seq_len(n_tips))
+
+      for (g in grp_ids) {
+        members <- tm$id[!is.na(tm$group_id) & tm$group_id == g]
+        if (length(members) < 2) next
+        ys <- tip_pos$y[tip_pos$id %in% members]
+        if (length(ys) < 2) next
+        graphics::rect(
+          xleft   = 0,
+          xright  = max(lastPP$xx),
+          ybottom = min(ys) - 0.4,
+          ytop    = max(ys) + 0.4,
+          col     = grp_pal[g],
+          border  = NA
+        )
+      }
+    }
+  }
+
+  # ------------------------------------------------------------------
+  # 5. Legend
+  # ------------------------------------------------------------------
+  if (length(levels_present) > 0) {
+    legend_cols   <- c(unname(pal), na_color)
+    legend_labels <- c(levels_present, "No annotation")
+    graphics::legend(
+      "topleft",
+      legend = legend_labels,
+      col    = legend_cols,
+      pch    = 15,
+      cex    = 0.55,
+      bty    = "n",
+      title  = color_by
+    )
+  }
+
+  invisible(tip_df)
+}
+
+
+#' ExportITOL
+#'
+#' Export a feature dendrogram and companion annotation files for visualisation
+#' in iTOL (Interactive Tree of Life). Produces three files:
+#' \enumerate{
+#'   \item A Newick tree (\code{<outprefix>.nwk})
+#'   \item A colour-strip annotation coloured by NPC pathway (or any
+#'         \code{mmo$sirius_annot} column) (\code{<outprefix>_colorstrip.txt})
+#'   \item A bar-chart annotation showing per-feature prevalence across samples
+#'         (\code{<outprefix>_barplot.txt})
+#' }
+#'
+#' @details
+#' \strong{How to load in iTOL:}
+#' Upload the Newick file at \url{https://itol.embl.de/upload.cgi}, then drag
+#' and drop the two annotation files onto the displayed tree. Select
+#' "Circular" layout and enable "Display" for each dataset in the
+#' Datasets panel.
+#'
+#' \strong{Prevalence calculation:}
+#' Feature prevalence is the proportion of samples in which a feature is
+#' detected (abundance > 0). Features absent from the PA table are assigned
+#' prevalence 0. This value drives the bar-chart length in iTOL.
+#'
+#' \strong{Colour-strip annotation:}
+#' Each tip is assigned the colour of its NPC pathway (or other chosen column)
+#' from \code{mmo$sirius_annot}. Features with no annotation are coloured
+#' \code{na_color}. The legend is written into the file header so iTOL renders
+#' it automatically.
+#'
+#' @param tree Output list from \code{FeatureDendrogram()}.
+#' @param mmo mmo object. Must contain \code{mmo$sirius_annot} (for colour
+#'   strip) and \code{mmo$feature_presence} or \code{mmo$feature_data} (for
+#'   prevalence bar chart).
+#' @param outprefix File path prefix for output files (default:
+#'   \code{"itol_export"}). Directories in the path must exist.
+#' @param color_by Column name in \code{mmo$sirius_annot} used for the colour
+#'   strip (default: \code{"NPC#pathway"}).
+#' @param palette Qualitative palette name for
+#'   \code{colorspace::qualitative_hcl} (default: \code{"Dark 3"}).
+#' @param na_color Hex colour for features with no annotation
+#'   (default: \code{"#CCCCCC"}).
+#' @return Invisibly returns a named character vector of written file paths.
+#' @export
+#' @examplesIf FALSE
+#' tree <- FeatureDendrogram(mmo, distance = "dreams")
+#' ExportITOL(tree, mmo, outprefix = "output/itol_dreams")
+#' # Upload output/itol_dreams.nwk to iTOL, then drag and drop the two .txt files
+ExportITOL <- function(
+    tree,
+    mmo,
+    outprefix = "itol_export",
+    color_by  = "NPC#pathway",
+    palette   = "Dark 3",
+    na_color  = "#CCCCCC"
+) {
+  .require_pkg("ape")
+  .require_pkg("colorspace")
+
+  if (!all(c("phylo", "dist_used") %in% names(tree)))
+    stop("'tree' must be the list returned by FeatureDendrogram().", call. = FALSE)
+
+  phy     <- tree$phylo
+  tip_ids <- phy$tip.label
+
+  # ------------------------------------------------------------------
+  # 1. Newick file
+  # ------------------------------------------------------------------
+  nwk_path <- paste0(outprefix, ".nwk")
+  ape::write.tree(phy, file = nwk_path)
+  message("Tree written to: ", nwk_path)
+
+  # ------------------------------------------------------------------
+  # 2. Colour-strip annotation (DATASET_COLORSTRIP)
+  # ------------------------------------------------------------------
+  if (is.null(mmo$sirius_annot) || !is.data.frame(mmo$sirius_annot))
+    stop("mmo$sirius_annot not found. Run AddSiriusAnnot() first.", call. = FALSE)
+  if (!color_by %in% names(mmo$sirius_annot))
+    stop("Column '", color_by, "' not found in mmo$sirius_annot.", call. = FALSE)
+
+  annot      <- mmo$sirius_annot
+  annot$id   <- as.character(annot$id)
+  idx        <- match(tip_ids, annot$id)
+  raw_vals   <- ifelse(is.na(idx), NA_character_, as.character(annot[[color_by]][idx]))
+  raw_vals[is.na(raw_vals) | raw_vals == "" | raw_vals == "NA"] <- NA_character_
+
+  levels_present <- sort(unique(raw_vals[!is.na(raw_vals)]))
+  if (length(levels_present) == 0)
+    warning("No features had a non-missing value for '", color_by,
+            "'. All tips will be coloured na_color.", call. = FALSE)
+
+  pal <- if (length(levels_present) > 0) {
+    stats::setNames(
+      colorspace::qualitative_hcl(length(levels_present), palette = palette),
+      levels_present
+    )
+  } else {
+    character(0)
+  }
+  header_color  <- if (length(pal) > 0) pal[[1L]] else na_color
+  tip_colors    <- ifelse(is.na(raw_vals), na_color, unname(pal[raw_vals]))
+  tip_labels    <- ifelse(is.na(raw_vals), "No annotation", raw_vals)
+
+  legend_colors <- paste(c(unname(pal), na_color), collapse = "\t")
+  legend_labels <- paste(c(levels_present, "No annotation"), collapse = "\t")
+  legend_shapes <- paste(rep("1", length(levels_present) + 1L), collapse = "\t")
+
+  strip_path <- paste0(outprefix, "_colorstrip.txt")
+  strip_lines <- c(
+    "DATASET_COLORSTRIP",
+    "SEPARATOR TAB",
+    paste0("DATASET_LABEL\t", color_by),
+    paste0("COLOR\t", header_color),
+    "STRIP_WIDTH\t30",
+    "SHOW_STRIP_LABELS\t0",
+    paste0("LEGEND_TITLE\t", color_by),
+    paste0("LEGEND_SHAPES\t", legend_shapes),
+    paste0("LEGEND_COLORS\t", legend_colors),
+    paste0("LEGEND_LABELS\t", legend_labels),
+    "DATA",
+    paste(tip_ids, tip_colors, tip_labels, sep = "\t")
+  )
+  writeLines(strip_lines, strip_path)
+  message("Colour-strip annotation written to: ", strip_path)
+
+  # ------------------------------------------------------------------
+  # 3. Prevalence bar chart (DATASET_SIMPLEBAR)
+  # ------------------------------------------------------------------
+  if (!is.null(mmo$feature_presence) && is.data.frame(mmo$feature_presence)) {
+    pa <- mmo$feature_presence
+  } else if (!is.null(mmo$feature_data) && is.data.frame(mmo$feature_data)) {
+    pa <- mmo$feature_data
+  } else {
+    stop("mmo must contain feature_presence or feature_data to compute prevalence.", call. = FALSE)
+  }
+
+  pa_ids   <- as.character(pa$id)
+  samp_mat <- as.matrix(pa[, -c(1, 2), drop = FALSE])
+  n_samp   <- ncol(samp_mat)
+  detected <- rowSums(samp_mat > 0, na.rm = TRUE)
+  prev_map <- stats::setNames(detected / n_samp, pa_ids)
+
+  prevalence <- ifelse(tip_ids %in% names(prev_map), prev_map[tip_ids], 0)
+  prevalence <- round(as.numeric(prevalence), 4)
+
+  bar_path <- paste0(outprefix, "_barplot.txt")
+  bar_lines <- c(
+    "DATASET_SIMPLEBAR",
+    "SEPARATOR TAB",
+    "DATASET_LABEL\tPrevalence",
+    "COLOR\t#444444",
+    "FIELD_LABELS\tPrevalence (prop. samples detected)",
+    "DATA",
+    paste(tip_ids, prevalence, sep = "\t")
+  )
+  writeLines(bar_lines, bar_path)
+  message("Bar-chart annotation written to: ", bar_path)
+
+  invisible(c(tree = nwk_path, colorstrip = strip_path, barplot = bar_path))
+}
+
+
+#' ExportCytoscape
+#'
+#' Export an mmo object as a node table and edge table for visualisation in
+#' Cytoscape. Edges are derived from a stored feature dissimilarity matrix.
+#' Nodes carry abundance statistics and any annotation columns present in
+#' \code{mmo$sirius_annot} and \code{mmo$feature_info}.
+#'
+#' @details
+#' \strong{Edge filtering:}
+#' Two complementary filters control which edges are retained. Both are
+#' applied together (a pair must pass both to be included):
+#' \itemize{
+#'   \item \code{sim_threshold} — drop all edges with similarity below this
+#'     value. Higher values produce sparser, higher-confidence networks.
+#'   \item \code{top_k} — for each node, retain only its \code{top_k} most
+#'     similar neighbours (by similarity). \code{NULL} keeps all edges that
+#'     pass the threshold. This is useful for preventing highly-connected hub
+#'     nodes from dominating the layout.
+#' }
+#' A warning is issued when the retained edge count exceeds 50 000, as large
+#' networks can be slow to render in Cytoscape.
+#'
+#' \strong{Node table columns:}
+#' The node table always includes \code{id}, \code{prevalence} (proportion of
+#' samples with detected abundance), and one \code{mean_<group>} column per
+#' group. Any columns present in \code{mmo$feature_info} and
+#' \code{mmo$sirius_annot} are appended automatically — the function does not
+#' assume specific column names. Column names are sanitised to replace
+#' characters that cause problems in Cytoscape (spaces, \code{#}, \code{:}).
+#'
+#' \strong{Loading in Cytoscape:}
+#' \enumerate{
+#'   \item File → Import → Network from File → select \code{_edges.csv}.
+#'     Map \code{source} as Source Node, \code{target} as Target Node,
+#'     \code{similarity} as Edge Attribute.
+#'   \item File → Import → Table from File → select \code{_nodes.csv}.
+#'     Map \code{id} as the Key column matching node names.
+#'   \item In the Style panel, map \code{Fill Color} to any annotation column
+#'     (e.g. \code{NPC_pathway}) to color nodes by compound class.
+#' }
+#'
+#' @param mmo mmo object. Must contain \code{mmo$feature_data} and
+#'   \code{mmo$metadata}. \code{mmo$feature_info} and
+#'   \code{mmo$sirius_annot} are used when present.
+#' @param distance Name of the dissimilarity matrix to use for edges
+#'   (default: \code{"dreams"}). Passed to \code{GetDistanceMat()}.
+#' @param outprefix File path prefix for output CSVs
+#'   (default: \code{"cytoscape_export"}).
+#' @param sim_threshold Minimum pairwise similarity (= 1 - dissimilarity) for
+#'   an edge to be retained (default: \code{0.7}). Set to \code{0} to disable.
+#' @param top_k Integer or \code{NULL}. If not \code{NULL}, each node retains
+#'   only its \code{top_k} most similar neighbours after threshold filtering
+#'   (default: \code{NULL} = no k limit).
+#' @param group_col Metadata column defining groups for per-group mean
+#'   abundance columns (default: \code{"group"}).
+#' @param sample_col Metadata column matching sample IDs to feature columns
+#'   (default: \code{"sample"}).
+#' @return Invisibly returns a named list:
+#'   \code{nodes} (data.frame), \code{edges} (data.frame),
+#'   \code{nodes_path}, \code{edges_path} (file paths).
+#' @export
+#' @examplesIf FALSE
+#' # Default: similarity >= 0.7
+#' ExportCytoscape(mmo, distance = "dreams",
+#'                 outprefix = "output/network")
+#'
+#' # Sparser network: top 5 neighbours per node, similarity >= 0.6
+#' ExportCytoscape(mmo, distance = "dreams",
+#'                 outprefix = "output/network_k5",
+#'                 sim_threshold = 0.6, top_k = 5)
+ExportCytoscape <- function(
+    mmo,
+    distance      = "dreams",
+    outprefix     = "cytoscape_export",
+    sim_threshold = 0.7,
+    top_k         = NULL,
+    group_col     = "group",
+    sample_col    = "sample"
+) {
+  if (is.null(mmo$feature_data) || !is.data.frame(mmo$feature_data))
+    stop("mmo$feature_data is required.", call. = FALSE)
+  if (is.null(mmo$metadata) || !is.data.frame(mmo$metadata))
+    stop("mmo$metadata is required.", call. = FALSE)
+
+  feat_ids <- as.character(mmo$feature_data$id)
+
+  # ------------------------------------------------------------------
+  # 1. Edge table
+  # ------------------------------------------------------------------
+  dist_mat  <- GetDistanceMat(mmo, distance)
+  keep      <- intersect(feat_ids, rownames(dist_mat))
+  dist_mat  <- dist_mat[keep, keep, drop = FALSE]
+  n         <- nrow(dist_mat)
+
+  # upper triangle — all pairs, no self-loops
+  ut        <- which(upper.tri(dist_mat), arr.ind = TRUE)
+  sim_vals  <- 1 - dist_mat[ut]
+
+  # filter 1: similarity threshold
+  pass      <- sim_vals >= sim_threshold
+  src       <- rownames(dist_mat)[ut[, 1]]
+  tgt       <- rownames(dist_mat)[ut[, 2]]
+  sim_pass  <- sim_vals[pass]
+  src_pass  <- src[pass]
+  tgt_pass  <- tgt[pass]
+
+  # filter 2: top-k per node (keep top_k neighbours per node by similarity)
+  if (!is.null(top_k)) {
+    top_k <- as.integer(top_k)
+    if (top_k < 1L) stop("top_k must be >= 1.", call. = FALSE)
+    # for each node, rank its edges by similarity descending
+    # an edge is kept if it is in the top_k for either endpoint
+    rank_src <- ave(-sim_pass, src_pass, FUN = function(x) rank(x, ties.method = "first"))
+    rank_tgt <- ave(-sim_pass, tgt_pass, FUN = function(x) rank(x, ties.method = "first"))
+    in_topk  <- (rank_src <= top_k) | (rank_tgt <= top_k)
+    sim_pass <- sim_pass[in_topk]
+    src_pass <- src_pass[in_topk]
+    tgt_pass <- tgt_pass[in_topk]
+  }
+
+  n_edges <- length(sim_pass)
+  if (n_edges > 50000L)
+    warning(sprintf(
+      "Edge table contains %d edges. Networks this large can be slow in Cytoscape. ",
+      "Consider raising sim_threshold or lowering top_k.", n_edges
+    ), call. = FALSE)
+
+  message(sprintf(
+    "Edge table: %d edges retained (sim >= %.2f%s, from %d feature pairs).",
+    n_edges, sim_threshold,
+    if (!is.null(top_k)) paste0(", top_k = ", top_k) else "",
+    n * (n - 1L) / 2L
+  ))
+
+  edges <- data.frame(
+    source          = src_pass,
+    target          = tgt_pass,
+    similarity      = round(sim_pass, 4),
+    distance_method = distance,
+    stringsAsFactors = FALSE
+  )
+
+  # ------------------------------------------------------------------
+  # 2. Node table
+  # ------------------------------------------------------------------
+  .sanitise_colname <- function(x) {
+    x <- gsub("[#: ]+", "_", x)
+    x <- gsub("_+$", "", x)
+    x
+  }
+
+  nodes <- data.frame(id = feat_ids, stringsAsFactors = FALSE)
+
+  # feature_info — append all columns except id, sanitise names
+  if (!is.null(mmo$feature_info) && is.data.frame(mmo$feature_info)) {
+    fi      <- mmo$feature_info
+    fi$id   <- as.character(fi$id)
+    fi_sub  <- fi[match(feat_ids, fi$id), , drop = FALSE]
+    fi_sub  <- fi_sub[, setdiff(names(fi_sub), "id"), drop = FALSE]
+    names(fi_sub) <- .sanitise_colname(names(fi_sub))
+    # drop columns already in nodes to avoid duplicates
+    fi_sub  <- fi_sub[, setdiff(names(fi_sub), names(nodes)), drop = FALSE]
+    nodes   <- cbind(nodes, fi_sub)
+  }
+
+  # prevalence from feature_data
+  samp_mat <- as.matrix(mmo$feature_data[, -c(1, 2), drop = FALSE])
+  rownames(samp_mat) <- feat_ids
+  n_samp   <- ncol(samp_mat)
+  nodes$prevalence <- round(rowSums(samp_mat > 0, na.rm = TRUE) / n_samp, 4)
+
+  # per-group mean abundance
+  md     <- mmo$metadata
+  groups <- sort(unique(as.character(md[[group_col]])))
+  for (g in groups) {
+    samps_g  <- as.character(md[[sample_col]][md[[group_col]] == g])
+    samps_g  <- intersect(samps_g, colnames(samp_mat))
+    col_name <- paste0("mean_", .sanitise_colname(g))
+    nodes[[col_name]] <- if (length(samps_g) > 0)
+      round(rowMeans(samp_mat[, samps_g, drop = FALSE], na.rm = TRUE), 2)
+    else
+      NA_real_
+  }
+
+  # sirius_annot — append all columns except id, sanitise names
+  if (!is.null(mmo$sirius_annot) && is.data.frame(mmo$sirius_annot)) {
+    annot      <- mmo$sirius_annot
+    annot$id   <- as.character(annot$id)
+    idx        <- match(feat_ids, annot$id)
+    annot_sub  <- annot[idx, , drop = FALSE]
+    annot_sub  <- annot_sub[, setdiff(names(annot_sub), "id"), drop = FALSE]
+    names(annot_sub) <- .sanitise_colname(names(annot_sub))
+    annot_sub  <- annot_sub[, setdiff(names(annot_sub), names(nodes)), drop = FALSE]
+    # blank → NA
+    for (col in names(annot_sub)) {
+      v <- as.character(annot_sub[[col]])
+      v[v == "" | v == "NA"] <- NA_character_
+      annot_sub[[col]] <- v
+    }
+    nodes <- cbind(nodes, annot_sub)
+  }
+
+  # ------------------------------------------------------------------
+  # 3. Write files
+  # ------------------------------------------------------------------
+  nodes_path <- paste0(outprefix, "_nodes.csv")
+  edges_path <- paste0(outprefix, "_edges.csv")
+
+  utils::write.csv(nodes, nodes_path, row.names = FALSE, na = "")
+  message("Node table: ", nrow(nodes), " nodes, ", ncol(nodes),
+          " columns → ", nodes_path)
+
+  utils::write.csv(edges, edges_path, row.names = FALSE, na = "")
+  message("Edge table: ", nrow(edges), " edges → ", edges_path)
+
+  invisible(list(nodes      = nodes,      edges      = edges,
+                 nodes_path = nodes_path, edges_path = edges_path))
 }
