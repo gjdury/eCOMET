@@ -1051,6 +1051,7 @@ ZNormalization <- function(mmo, imputed_data = FALSE) {
   }))
 
   zscore_df <- cbind(feature_ids, zscore_mat)
+  colnames(zscore_df) <- colnames(mmo$feature_data)
   mmo$zscore <- zscore_df
 
   return(mmo)
