@@ -5,3 +5,8 @@
 inst/doc
 /doc/
 /Meta/
+
+tutorial/tutorial_2_interspecific/EcoMET_Interspecific_full_feature_table.csv
+tutorial/tutorial_2_interspecific/EcoMET_Interspecific_edges_dreams_dreams.csv
+vignettes/*.nb.html
+.DS_Store

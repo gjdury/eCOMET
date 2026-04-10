@@ -11,6 +11,7 @@ navbar:
       - home
       - reference
       - tutorials
+      - contributing
       - news
     right:
       - github
@@ -22,26 +23,31 @@ navbar:
     tutorials:
       text: Tutorials
       href: articles/index.html
+    contributing:
+      text: Contributing
+      href: articles/contributing.html
 
 
 reference:
   - title: "Core dataset processing"
+    desc: "Build and populate the mmo object from MZmine outputs and annotation tools."
     contents:
       - GetMZmineFeature
       - AddSiriusAnnot
       - AddChemDist
+      - AddCustomDist
       - AddCustomAnnot
-      - LogNormalization
+      - ReplaceZero
       - MassNormalization
+      - LogNormalization
       - MeancenterNormalization
       - ZNormalization
-      - ReplaceZero
       - ReorderGroups
       - SwitchGroup
       - FeaturePresence
 
-
-  - title: "Filterng MMO and associated MGF"
+  - title: "Filtering"
+    desc: "Subset the mmo object by samples, groups, or features, and keep associated MGF spectral files in sync."
     contents:
       - filter_mmo
       - filter_mgf_to_mmo
@@ -49,41 +55,60 @@ reference:
       - filter_canopus_annotations
       - filter_cosmic_structure
 
-
-  - title: "Basic statistics and visualization"
+  - title: "Differential analysis & visualization"
+    desc: "Identify and visualize differentially accumulated metabolites between groups."
     contents:
       - PairwiseComp
+      - GetDAMs
+      - GetLog2FoldChange
+      - GetGroupMeans
       - VolcanoPlot
-      - PCAplot
-      - PLSDAplot
       - AnovaBarPlot
       - GenerateHeatmapInputs
-      - GetDAMs
-      - GetGroupMeans
-      - GetLog2FoldChange
+
+  - title: "Ordination & clustering"
+    desc: "Multivariate methods for comparing samples and groups."
+    contents:
+      - PCAplot
+      - PLSDAplot
+      - NMDSplot
+      - PCoAplot
       - HCplot
 
+  - title: "Chemical diversity"
+    desc: "Alpha and beta diversity metrics incorporating feature abundance and chemical distances."
+    contents:
+      - GetAlphaDiversity
+      - GetBetaDiversity
+      - GetRichness
+      - GetHillNumbers
+      - GetFunctionalHillNumber
+      - GetFaithPD
+      - RarefactionAUC
+      - CalculateGroupBetaDistance
+      - GetSpecializationIndex
+
   - title: "Chemical class analysis"
+    desc: "Enrichment and visualization of compound classes using SIRIUS/CANOPUS annotations."
     contents:
       - CanopusLevelEnrichmentAnal
       - CanopusListEnrichmentPlot
       - CanopusListEnrichmentPlot_2
       - CanopusLevelEnrichmentPlot
       - CanopusAllLevelEnrichmentPlot
+      - PlotNPCStackedBar
       - MSEA
 
-  - title: Chemical diversity Analysis
+  - title: "Compound networks & dendrograms"
+    desc: "Build chemical similarity trees and export to iTOL or Cytoscape."
     contents:
-      - GetAlphaDiversity
-      - GetBetaDiversity
-      - NMDSplot
-      - PCoAplot
-      - CalculateGroupBetaDistance
-      - GetSpecializationIndex
-      - PlotNPCStackedBar
-      - RarefactionAUC
+      - FeatureDendrogram
+      - PlotFeatureDendrogram
+      - ExportITOL
+      - ExportCytoscape
 
-  - title: Metadata regression analysis
+  - title: "Phenotype association"
+    desc: "Correlate individual features or metabolite sets with continuous ecological variables."
     contents:
       - FeaturePhenotypeCorrelation
       - ScreenFeaturePhenotypeCorrelation
@@ -94,37 +119,36 @@ reference:
       - PlotFoldchangeResistanceRegression
       - PlotFoldchangeResistanceRegression_t
 
-  - title: Output
+  - title: "Save & export"
+    desc: "Save mmo objects and export results."
     contents:
-      - ExportFeaturesToCSV
       - SaveMMO
       - LoadMMO
+      - ExportFeaturesToCSV
+      - pool_mmo_by_group
 
-  - title: misc
+  - title: "Utilities"
+    desc: "Helper functions for data access, formatting, and internal calculations."
     contents:
+      - GetDistanceMat
+      - GetNormFeature
       - FeatureToID
       - IDToFeature
-      - filter_canopus_annotations
+      - print.mmo
       - anova_tukey_dunnett
       - write_anova
       - permanova_stat
-      - GetDistanceMat
-      - GetNormFeature
-      - filter_mmo
-      - print.mmo
-      - GetFaithPD
-      - GetFunctionalHillNumber
-      - GetHillNumbers
-      - GetRichness
-      - pool_mmo_by_group
 
 articles:
   - title: "Tutorials"
     contents:
       - eCOMET-intro
-      - Treatment-based_study_tutorial_V2
-      - Interspecific_study_tutorial_V3
-      - Generate_Compound_Dendrogram_and_Molecular_Networks
+      - Tutorial_1_Treatment-based_study
+      - Tutorial_2_Interspecific_Comparisons
+      - Tutorial_3_Dendrogram_and_Molecular_Networks
+  - title: "Contributing"
+    contents:
+      - contributing
 
 news:
   one_page: true

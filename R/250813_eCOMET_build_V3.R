@@ -5266,72 +5266,99 @@ FeatureDendrogram <- function(
 
 #' PlotFeatureDendrogram
 #'
-#' Plot a feature dendrogram produced by \code{FeatureDendrogram()}, with
-#' optional tip coloring by NPC compound class and branch highlighting for
-#' ion identity or correlation groups.
+#' Plot a feature dendrogram produced by \code{FeatureDendrogram()} using
+#' \pkg{ggtree}, returning a \code{ggplot}/\code{ggtree} object that can be
+#' further customised with additional \code{ggplot2} or \code{ggtree} layers.
 #'
 #' @details
-#' \strong{Tip coloring (\code{color_by}):}
-#' When \code{color_by} is supplied, tip labels are colored by the NPC
-#' pathway (or any character column) in \code{mmo$sirius_annot}. Features
-#' without an annotation are colored \code{na_color}.
+#' \strong{Design philosophy:}
+#' The function returns a \code{ggtree} object so you can keep layering
+#' modifications after the call:
+#' \preformatted{
+#'   p <- PlotFeatureDendrogram(tree, mmo)
+#'   p + ggtree::geom_tiplab(size = 1.5) +
+#'       ggplot2::theme(legend.position = "bottom")
+#' }
 #'
-#' \strong{IIN branch highlighting (\code{highlight_groups}):}
-#' When \code{TRUE} and the \code{FeatureDendrogram} result contains a
-#' \code{tip_map}, each ion identity / correlation group is drawn with a
-#' colored rectangle behind the tip cluster, making adduct/isotope groups
-#' visually distinct from the chemical-distance topology.
+#' \strong{Tip point coloring (\code{color_by}):}
+#' Because most metabolomics trees have hundreds or thousands of tips,
+#' text labels are rarely readable. Instead, tiny colored points are drawn at
+#' each tip using \code{ggtree::geom_tippoint()} to indicate compound class.
+#' Use \code{show_tip_labels = TRUE} to additionally draw feature ID text (not
+#' recommended for large trees).
+#'
+#' \strong{IIN / correlation group highlighting (\code{highlight_groups}):}
+#' When \code{tree$tip_map} is present, each ion identity / correlation group
+#' is highlighted using \code{ggtree::geom_hilight()}, which shades the MRCA
+#' clade of all members of that group.
 #'
 #' @param tree Output list from \code{FeatureDendrogram()}.
 #' @param mmo mmo object. Used for \code{mmo$sirius_annot} when
 #'   \code{color_by} is not \code{NULL}.
-#' @param color_by Column name in \code{mmo$sirius_annot} to use for tip
+#' @param color_by Column name in \code{mmo$sirius_annot} to use for tip point
 #'   colors (default: \code{"NPC#pathway"}). Set to \code{NULL} to skip
 #'   tip coloring.
-#' @param highlight_groups Logical; whether to draw colored rectangles around
-#'   ion identity / correlation groups in the tree (default: \code{TRUE}).
-#'   Only has an effect when \code{tree$tip_map} is not \code{NULL}.
+#' @param layout Tree layout passed to \code{ggtree::ggtree()}. One of
+#'   \code{"circular"} (default), \code{"rectangular"}, \code{"fan"},
+#'   \code{"slanted"}, \code{"radial"}, or any other layout supported by
+#'   \pkg{ggtree}.
+#' @param color_branches Logical; whether to color the tree branches
+#'   themselves by the annotation in \code{color_by}, in addition to the tip
+#'   points (default: \code{FALSE}). Branch color is determined by a
+#'   majority-vote of the tip annotations descending from each node, so
+#'   mixed-class clades are colored by whichever class is most abundant.
+#'   Unannotated or mixed branches fall back to \code{na_color}.
+#' @param highlight_groups Logical; whether to highlight ion identity /
+#'   correlation groups using \code{ggtree::geom_hilight()} (default:
+#'   \code{TRUE}). Only has an effect when \code{tree$tip_map} is not
+#'   \code{NULL}.
 #' @param palette Qualitative palette name for
 #'   \code{colorspace::qualitative_hcl} (default: \code{"Dark 3"}).
-#' @param na_color Color for tips with no annotation (default: \code{"grey70"}).
-#' @param cex Tip label size (default: \code{0.5}).
-#' @param show_tip_labels Logical; show feature ID tip labels (default:
-#'   \code{FALSE}). Useful for large trees where labels overlap.
-#' @param main Plot title. \code{NULL} generates an automatic title.
-#' @param save_output Logical; save the plot to a PDF file (default:
-#'   \code{FALSE}).
-#' @param outprefix File prefix for the PDF (default: \code{"feature_dendro"}).
-#' @param width PDF width in inches (default: \code{10}).
-#' @param height PDF height in inches (default: \code{8}).
-#' @return Invisibly returns a data.frame mapping tip IDs to their color and
-#'   annotation value, useful for downstream legend building.
+#' @param na_color Color for tips/branches with no annotation (default:
+#'   \code{"grey70"}).
+#' @param tip_size Point size for tip points (default: \code{1}).
+#' @param branch_size Line width for tree branches (default: \code{0.5}).
+#'   Increase for small trees; decrease for large ones.
+#' @param show_tip_labels Logical; draw feature ID text at tips (default:
+#'   \code{FALSE}). Only useful for small trees.
+#' @param open_angle For \code{layout = "fan"}, the opening angle in degrees
+#'   (default: \code{10}).
+#' @return A \code{ggtree}/\code{ggplot} object. Add further layers with
+#'   \code{+}.
 #' @export
 #' @examplesIf FALSE
 #' tree <- FeatureDendrogram(mmo, distance = "dreams")
-#' PlotFeatureDendrogram(tree, mmo, color_by = "NPC#pathway")
 #'
-#' # IIN-constrained tree with group highlighting
-#' tree_iin <- FeatureDendrogram(mmo, distance = "dreams",
-#'                               ion_identity = "ion_identity_network")
-#' PlotFeatureDendrogram(tree_iin, mmo, color_by = "NPC#pathway",
-#'                       highlight_groups = TRUE)
+#' # Basic circular tree coloured by NPC pathway (tip points only)
+#' PlotFeatureDendrogram(tree, mmo)
+#'
+#' # Color branches too, thicker lines for a small tree
+#' PlotFeatureDendrogram(tree, mmo, color_branches = TRUE, branch_size = 1.2)
+#'
+#' # Rectangular layout, no coloring
+#' PlotFeatureDendrogram(tree, mmo, layout = "rectangular", color_by = NULL)
+#'
+#' # Returned object is a ggplot — keep layering
+#' p <- PlotFeatureDendrogram(tree, mmo)
+#' p + ggtree::geom_tiplab(size = 1, align = TRUE)
 PlotFeatureDendrogram <- function(
     tree,
     mmo,
     color_by         = "NPC#pathway",
+    layout           = "circular",
+    color_branches   = FALSE,
     highlight_groups = TRUE,
     palette          = "Dark 3",
     na_color         = "grey70",
-    cex              = 0.5,
+    tip_size         = 1,
+    branch_size      = 0.5,
     show_tip_labels  = FALSE,
-    main             = NULL,
-    save_output      = FALSE,
-    outprefix        = "feature_dendro",
-    width            = 10,
-    height           = 8
+    open_angle       = 10
 ) {
-  .require_pkg("ape")
+  .require_pkg("ggtree")
+  .require_pkg("ggplot2")
   .require_pkg("colorspace")
+  .require_pkg("ape")
 
   if (!all(c("hclust", "dendrogram", "phylo", "dist_used") %in% names(tree)))
     stop("'tree' must be the list returned by FeatureDendrogram().", call. = FALSE)
@@ -5341,10 +5368,15 @@ PlotFeatureDendrogram <- function(
   n_tips  <- length(tip_ids)
 
   # ------------------------------------------------------------------
-  # 1. Build tip color vector from annotation
+  # 1. Build tip annotation data.frame joined to phylo
   # ------------------------------------------------------------------
-  tip_df <- data.frame(id = tip_ids, annot_value = NA_character_,
-                       color = na_color, stringsAsFactors = FALSE)
+  tip_df <- data.frame(
+    label       = tip_ids,
+    annot_value = NA_character_,
+    stringsAsFactors = FALSE
+  )
+
+  levels_present <- character(0)
 
   if (!is.null(color_by)) {
     if (is.null(mmo$sirius_annot) || !is.data.frame(mmo$sirius_annot))
@@ -5354,58 +5386,138 @@ PlotFeatureDendrogram <- function(
     if (!color_by %in% names(mmo$sirius_annot))
       stop("Column '", color_by, "' not found in mmo$sirius_annot.", call. = FALSE)
 
-    annot      <- mmo$sirius_annot
-    annot$id   <- as.character(annot$id)
-    idx        <- match(tip_ids, annot$id)
-    raw_vals   <- ifelse(is.na(idx), NA_character_, as.character(annot[[color_by]][idx]))
-
-    # collapse NAs / blanks to a single label for the legend
+    annot    <- mmo$sirius_annot
+    annot$id <- as.character(annot$id)
+    idx      <- match(tip_ids, annot$id)
+    raw_vals <- ifelse(is.na(idx), NA_character_,
+                       as.character(annot[[color_by]][idx]))
     raw_vals[is.na(raw_vals) | raw_vals == "" | raw_vals == "NA"] <- NA_character_
-    levels_present <- sort(unique(raw_vals[!is.na(raw_vals)]))
 
-    pal <- stats::setNames(
-      colorspace::qualitative_hcl(length(levels_present), palette = palette),
-      levels_present
-    )
-    tip_cols <- ifelse(is.na(raw_vals), na_color, unname(pal[raw_vals]))
-
-    tip_df$annot_value <- raw_vals
-    tip_df$color       <- tip_cols
-  } else {
-    pal            <- character(0)
-    levels_present <- character(0)
-    tip_cols       <- rep(na_color, n_tips)
+    tip_df$annot_value  <- raw_vals
+    levels_present      <- sort(unique(raw_vals[!is.na(raw_vals)]))
   }
 
   # ------------------------------------------------------------------
-  # 2. Open device
+  # 2. Build color scale
   # ------------------------------------------------------------------
-  color_label <- if (!is.null(color_by)) color_by else "no coloring"
-  group_label <- if (!is.null(tree$tip_map)) paste0("; ", tree$tip_map$group_type[1]) else ""
-  auto_title  <- paste0("Feature dendrogram (", color_label, group_label, ")")
+  n_levels <- length(levels_present)
 
-  if (isTRUE(save_output))
-    grDevices::pdf(paste0(outprefix, ".pdf"), width = width, height = height)
-
-  op <- graphics::par(no.readonly = TRUE)
-  on.exit({ graphics::par(op); if (save_output) grDevices::dev.off() }, add = TRUE)
-
-  graphics::par(mar = c(2, 1, 3, max(8, max(nchar(tip_ids)) * 0.35)))
-
-  # ------------------------------------------------------------------
-  # 3. Base tree plot
-  # ------------------------------------------------------------------
-  plot(
-    phy,
-    type       = "phylogram",
-    cex        = cex,
-    tip.color  = tip_cols,
-    show.tip.label = show_tip_labels,
-    main       = if (!is.null(main)) main else auto_title
-  )
+  if (n_levels > 0) {
+    hcl_cols <- colorspace::qualitative_hcl(n_levels, palette = palette)
+    col_vals <- c(stats::setNames(hcl_cols, levels_present), "NA" = na_color)
+    # replace NA with a sentinel string for ggplot discrete scale
+    tip_df$annot_value[is.na(tip_df$annot_value)] <- "No annotation"
+    col_vals["No annotation"] <- na_color
+    col_vals <- col_vals[names(col_vals) != "NA"]
+  }
 
   # ------------------------------------------------------------------
-  # 4. Highlight IIN / correlation groups
+  # 3. Build node-level annotation for branch coloring (majority vote)
+  # ------------------------------------------------------------------
+  node_annot_df <- NULL
+
+  if (!is.null(color_by) && n_levels > 0 && isTRUE(color_branches)) {
+    n_nodes  <- phy$Nnode
+    n_total  <- n_tips + n_nodes
+    node_class <- rep(NA_character_, n_total)
+
+    # seed with tip values (tips are 1:n_tips in ape ordering)
+    tip_order <- match(phy$tip.label, tip_df$label)
+    node_class[seq_len(n_tips)] <- tip_df$annot_value[tip_order]
+
+    # majority-vote propagation bottom-up through edge matrix
+    # ape edge matrix: col1 = parent, col2 = child
+    edge_mat <- phy$edge
+    # process in reverse edge order (leaves first)
+    for (i in rev(seq_len(nrow(edge_mat)))) {
+      parent <- edge_mat[i, 1]
+      child  <- edge_mat[i, 2]
+      if (is.na(node_class[parent])) {
+        # look at all children of this parent
+        children <- edge_mat[edge_mat[, 1] == parent, 2]
+        child_vals <- node_class[children]
+        child_vals <- child_vals[!is.na(child_vals) & child_vals != "No annotation"]
+        if (length(child_vals) > 0) {
+          tbl <- table(child_vals)
+          node_class[parent] <- names(tbl)[which.max(tbl)]
+        }
+      }
+    }
+
+    # replace remaining NA with sentinel
+    node_class[is.na(node_class)] <- "No annotation"
+
+    node_annot_df <- data.frame(
+      node        = seq_len(n_total),
+      branch_class = node_class,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  # ------------------------------------------------------------------
+  # 4. Base ggtree
+  # ------------------------------------------------------------------
+  if (layout == "fan") {
+    p <- ggtree::ggtree(phy, layout = "fan", open.angle = open_angle,
+                        size = branch_size)
+  } else {
+    p <- ggtree::ggtree(phy, layout = layout, size = branch_size)
+  }
+
+  # ------------------------------------------------------------------
+  # 5. Branch coloring (attach node annotation and map to color aes)
+  # ------------------------------------------------------------------
+  if (!is.null(color_by) && n_levels > 0 && isTRUE(color_branches) &&
+      !is.null(node_annot_df)) {
+    p <- p %<+% node_annot_df +
+      ggplot2::aes(color = branch_class) +
+      ggplot2::scale_color_manual(
+        name     = color_by,
+        values   = col_vals,
+        na.value = na_color
+      )
+  }
+
+  # ------------------------------------------------------------------
+  # 6. Attach tip annotation and add tip points
+  # ------------------------------------------------------------------
+  if (!is.null(color_by) && n_levels > 0) {
+    if (isTRUE(color_branches)) {
+      # color scale already set; just add tip points using same aesthetic
+      p <- p %<+% tip_df +
+        ggtree::geom_tippoint(
+          ggplot2::aes(color = annot_value),
+          size  = tip_size,
+          na.rm = TRUE
+        )
+    } else {
+      # tip points only — set color scale here
+      p <- p %<+% tip_df +
+        ggtree::geom_tippoint(
+          ggplot2::aes(color = annot_value),
+          size  = tip_size,
+          na.rm = TRUE
+        ) +
+        ggplot2::scale_color_manual(
+          name     = color_by,
+          values   = col_vals,
+          na.value = na_color
+        )
+    }
+  } else {
+    p <- p +
+      ggtree::geom_tippoint(size = tip_size, color = na_color)
+  }
+
+  # ------------------------------------------------------------------
+  # 7. Tip labels (optional)
+  # ------------------------------------------------------------------
+  if (isTRUE(show_tip_labels)) {
+    p <- p + ggtree::geom_tiplab(size = 1.5, align = FALSE)
+  }
+
+  # ------------------------------------------------------------------
+  # 8. IIN / correlation group highlighting via geom_hilight
   # ------------------------------------------------------------------
   if (isTRUE(highlight_groups) && !is.null(tree$tip_map)) {
     tm      <- tree$tip_map
@@ -5414,47 +5526,37 @@ PlotFeatureDendrogram <- function(
 
     if (length(grp_ids) > 0) {
       grp_pal <- stats::setNames(
-        colorspace::qualitative_hcl(length(grp_ids), palette = "Set 2", alpha = 0.25),
+        colorspace::qualitative_hcl(length(grp_ids), palette = "Set 2"),
         grp_ids
       )
-      lastPP  <- get("last_plot.phylo", envir = ape::.PlotPhyloEnv)
-      tip_pos <- data.frame(id = lastPP$tip.label, y = seq_len(n_tips))
 
       for (g in grp_ids) {
         members <- tm$id[!is.na(tm$group_id) & tm$group_id == g]
         if (length(members) < 2) next
-        ys <- tip_pos$y[tip_pos$id %in% members]
-        if (length(ys) < 2) next
-        graphics::rect(
-          xleft   = 0,
-          xright  = max(lastPP$xx),
-          ybottom = min(ys) - 0.4,
-          ytop    = max(ys) + 0.4,
-          col     = grp_pal[g],
-          border  = NA
+        # find MRCA node in the phylo object
+        node_ids <- which(phy$tip.label %in% members)
+        if (length(node_ids) < 2) next
+        mrca_node <- ape::getMRCA(phy, node_ids)
+        if (is.null(mrca_node)) next
+        p <- p + ggtree::geom_hilight(
+          node  = mrca_node,
+          fill  = grp_pal[[g]],
+          alpha = 0.25
         )
       }
     }
   }
 
   # ------------------------------------------------------------------
-  # 5. Legend
+  # 9. Theme
   # ------------------------------------------------------------------
-  if (length(levels_present) > 0) {
-    legend_cols   <- c(unname(pal), na_color)
-    legend_labels <- c(levels_present, "No annotation")
-    graphics::legend(
-      "topleft",
-      legend = legend_labels,
-      col    = legend_cols,
-      pch    = 15,
-      cex    = 0.55,
-      bty    = "n",
-      title  = color_by
-    )
-  }
+  p <- p + ggplot2::theme(
+    legend.position = "right",
+    legend.key.size = ggplot2::unit(0.4, "cm"),
+    legend.text     = ggplot2::element_text(size = 7)
+  )
 
-  invisible(tip_df)
+  p
 }
 
 
