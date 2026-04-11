@@ -63,7 +63,7 @@ data_dir <- system.file(
  package = "ecomet"
 )
 stopifnot(nzchar(data_dir))  # fail loudly if package data is missing
-#data_dir <- "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/inst/extdata/tutorials/interspecific"
+
 
 demo_feature          <- file.path(data_dir, "Ecomet_Interspecific_Demo_full_feature_table.csv")
 demo_metadata         <- file.path(data_dir, "EcoMET_Interspecific_Demo_metadata_no_blank.csv")
@@ -183,7 +183,7 @@ Sample_Richness
 ```
 
 ```{r, eval=FALSE, echo=FALSE}
-ggsave("plots_for_publication/Fig4a_sample_richness.png", Sample_Richness,
+ggsave("/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/vignettes/plots_for_publication/Fig4a_sample_richness.png", Sample_Richness,
        width = 8, height = 5, dpi = 400)
 ggsave("plot/T2_sample_richness.png", Sample_Richness, width = 7, height = 5, dpi = 100)
 ```
@@ -288,7 +288,7 @@ compound_accumlation_curve
 ```
 
 ```{r, eval=FALSE, echo=FALSE}
-ggsave("plots_for_publication/Fig4b_accumulation_curve.png", compound_accumlation_curve,
+ggsave("/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/vignettes/plots_for_publication/Fig4b_accumulation_curve.png", compound_accumlation_curve,
        width = 8, height = 5, dpi = 400)
 ggsave("plot/T2_accumulation_curve.png", compound_accumlation_curve, width = 8, height = 5, dpi = 100)
 ```
@@ -492,7 +492,7 @@ p_stacked
 ```
 
 ```{r, eval=FALSE, echo=FALSE}
-ggsave("plots_for_publication/Fig4c_npc_stacked_bar.png", p_stacked,
+ggsave("/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/vignettes/plots_for_publication/Fig4c_npc_stacked_bar.png", p_stacked,
        width = 10, height = 6, dpi = 400)
 ggsave("plot/T2_npc_stacked_bar.png", p_stacked, width = 8, height = 5, dpi = 100)
 ```
@@ -598,7 +598,7 @@ hc_bray_plot
 ```
 
 ```{r, eval=FALSE, echo=FALSE}
-ggsave("plots_for_publication/Fig4d_hc_bray.png",
+ggsave("/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/vignettes/plots_for_publication/Fig4d_hc_bray.png",
   plot = hc_bray_plot, width = 10, height = 7, dpi = 300)
 ggsave("plot/T2_hc_bray.png", hc_bray_plot, width = 8, height = 6, dpi = 100)
 ```
@@ -742,15 +742,12 @@ knitr::include_graphics("plot/T2_nmds.png")
 In an NMDS plot, points that are closer together represent samples with more similar chemical profiles under the chosen distance metric. If samples from the same species cluster tightly and species separate from one another, that suggests consistent species-level differences in chemistry. Overlap among species indicates greater similarity or weaker taxonomic structure.
 
 
-We can also control the beta diversity metrix in a PCOA plot. Here we use the Gen.Uni
+We can also visualize beta diversity in a PCoA plot. Here we use Generalized UniFrac (d_1) to show a structure-aware ordination.
+
 ```{r, eval = FALSE}
-
-groups <- unique(mmo$metadata$group)
-custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
-
-PCOA_example <- PCoAplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_Gen.Uni[["d_1"]], outdir = 'output/PCOA', width = 6, height = 6)
+PCOA_example <- PCoAplot(mmo, color = custom_colors,
+  betadiv = beta_diversity_dreams_Gen.Uni[["d_1"]], outdir = "output/PCOA", width = 6, height = 6)
 ```
-
 
 ```{r, eval = FALSE}
 PCOA_example$plot
@@ -764,9 +761,9 @@ ggsave("plot/T2_pcoa.png", PCOA_example$plot, width = 7, height = 6, dpi = 100)
 knitr::include_graphics("plot/T2_pcoa.png")
 ```
 
-PCoA can be interpreted similarly, although the axes are derived differently. The main point is that ordinations based on CSCS or Generalized UniFrac summarize chemistry after incorporating relationships among compounds, not just exact shared features.
+PCoA axes are derived from the distance matrix directly, so the axes reflect the chosen beta diversity metric. Ordinations based on structure-aware distances summarize chemistry after incorporating relationships among compounds, not just exact shared features.
 
-To compare how clusters differ when we incorporate structurally weighted beta distances, we place Bray-Curtis and Generalized UniFrac (d_1) PCoAs side by side. Because the two distance matrices are on different scales, each panel has free axes — interpret only the relative grouping of points across panels, not the axis values.
+To compare how clusters differ when we incorporate structurally weighted beta distances, we place Bray-Curtis and CSCS PCoAs side by side. CSCS is the more informative contrast with Bray-Curtis because it uses the same abundance framework but adds chemical structure — so any shift in clustering reflects structural weighting rather than a change in diversity metric. Because the two distance matrices are on different scales, each panel has free axes — interpret only the relative grouping of points across panels, not the axis values.
 
 ```{r, eval = FALSE}
 PCOA_example_bray <- PCoAplot(
@@ -777,16 +774,24 @@ PCOA_example_bray <- PCoAplot(
   save_output = FALSE
 )
 
+PCOA_example_cscs <- PCoAplot(
+  mmo,
+  color       = custom_colors,
+  betadiv     = beta_diversity_dreams_CSCS,
+  outdir      = "output/PCOA_cscs",
+  save_output = FALSE
+)
+
 # Combine data frames and label by method
 pcoa_bray_df        <- PCOA_example_bray$df
 pcoa_bray_df$method <- "Bray-Curtis"
 
-pcoa_genuni_df        <- PCOA_example$df
-pcoa_genuni_df$method <- "Generalized UniFrac (d_1)"
+pcoa_cscs_df        <- PCOA_example_cscs$df
+pcoa_cscs_df$method <- "CSCS\n(structurally weighted)"
 
-pcoa_combined <- rbind(pcoa_bray_df, pcoa_genuni_df)
+pcoa_combined <- rbind(pcoa_bray_df, pcoa_cscs_df)
 pcoa_combined$method <- factor(pcoa_combined$method,
-  levels = c("Bray-Curtis", "Generalized UniFrac (d_1)"))
+  levels = c("Bray-Curtis", "CSCS\n(structurally weighted)"))
 
 # Faceted comparison — publication figure
 pcoa_comparison <- ggplot2::ggplot(
@@ -814,7 +819,7 @@ pcoa_comparison
 ```
 
 ```{r, eval=FALSE, echo=FALSE}
-ggsave("plots_for_publication/Figure4e_pcoa_comparison.png",
+ggsave("/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/vignettes/plots_for_publication/Figure4e_pcoa_comparison.png",
   plot = pcoa_comparison, width = 14, height = 6, dpi = 300)
 ggsave("plot/T2_pcoa_comparison.png", pcoa_comparison, width = 12, height = 5, dpi = 100)
 ```

@@ -5428,7 +5428,7 @@ PlotFeatureDendrogram <- function(
   # ------------------------------------------------------------------
   if (!is.null(color_by) && n_levels > 0 && isTRUE(color_branches) &&
       !is.null(node_annot_df)) {
-    p <- p %<+% node_annot_df +
+    p <- ggtree::`%<+%`(p, node_annot_df) +
       ggplot2::aes(color = .data$branch_class) +
       ggplot2::scale_color_manual(
         name     = color_by,
@@ -5443,7 +5443,7 @@ PlotFeatureDendrogram <- function(
   if (!is.null(color_by) && n_levels > 0) {
     if (isTRUE(color_branches)) {
       # color scale already set; just add tip points using same aesthetic
-      p <- p %<+% tip_df +
+      p <- ggtree::`%<+%`(p, tip_df) +
         ggtree::geom_tippoint(
           ggplot2::aes(color = .data$annot_value),
           size  = tip_size,
@@ -5451,7 +5451,7 @@ PlotFeatureDendrogram <- function(
         )
     } else {
       # tip points only -- set color scale here
-      p <- p %<+% tip_df +
+      p <- ggtree::`%<+%`(p, tip_df) +
         ggtree::geom_tippoint(
           ggplot2::aes(color = .data$annot_value),
           size  = tip_size,
@@ -5793,8 +5793,8 @@ ExportCytoscape <- function(
     if (top_k < 1L) stop("top_k must be >= 1.", call. = FALSE)
     # for each node, rank its edges by similarity descending
     # an edge is kept if it is in the top_k for either endpoint
-    rank_src <- ave(-sim_pass, src_pass, FUN = function(x) rank(x, ties.method = "first"))
-    rank_tgt <- ave(-sim_pass, tgt_pass, FUN = function(x) rank(x, ties.method = "first"))
+    rank_src <- stats::ave(-sim_pass, src_pass, FUN = function(x) rank(x, ties.method = "first"))
+    rank_tgt <- stats::ave(-sim_pass, tgt_pass, FUN = function(x) rank(x, ties.method = "first"))
     in_topk  <- (rank_src <= top_k) | (rank_tgt <= top_k)
     sim_pass <- sim_pass[in_topk]
     src_pass <- src_pass[in_topk]

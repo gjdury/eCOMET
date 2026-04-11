@@ -93,7 +93,7 @@ data_dir <- system.file(
  package = "ecomet"
 )
 stopifnot(nzchar(data_dir))  # fail loudly if package data is missing
-#data_dir <- "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/inst/extdata/tutorials/interspecific"
+
 
 demo_feature          <- file.path(data_dir, "Ecomet_Interspecific_Demo_full_feature_table.csv")
 demo_metadata         <- file.path(data_dir, "EcoMET_Interspecific_Demo_metadata_no_blank.csv")
@@ -898,14 +898,12 @@ one another, that suggests consistent species-level differences in
 chemistry. Overlap among species indicates greater similarity or weaker
 taxonomic structure.
 
-We can also control the beta diversity metrix in a PCOA plot. Here we
-use the Gen.Uni
+We can also visualize beta diversity in a PCoA plot. Here we use
+Generalized UniFrac (d_1) to show a structure-aware ordination.
 
 ``` r
-groups <- unique(mmo$metadata$group)
-custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
-
-PCOA_example <- PCoAplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_Gen.Uni[["d_1"]], outdir = 'output/PCOA', width = 6, height = 6)
+PCOA_example <- PCoAplot(mmo, color = custom_colors,
+  betadiv = beta_diversity_dreams_Gen.Uni[["d_1"]], outdir = "output/PCOA", width = 6, height = 6)
 ```
 
 ``` r
@@ -914,16 +912,19 @@ PCOA_example$plot
 
 ![](plot/T2_pcoa.png)
 
-PCoA can be interpreted similarly, although the axes are derived
-differently. The main point is that ordinations based on CSCS or
-Generalized UniFrac summarize chemistry after incorporating
+PCoA axes are derived from the distance matrix directly, so the axes
+reflect the chosen beta diversity metric. Ordinations based on
+structure-aware distances summarize chemistry after incorporating
 relationships among compounds, not just exact shared features.
 
 To compare how clusters differ when we incorporate structurally weighted
-beta distances, we place Bray-Curtis and Generalized UniFrac (d_1) PCoAs
-side by side. Because the two distance matrices are on different scales,
-each panel has free axes — interpret only the relative grouping of
-points across panels, not the axis values.
+beta distances, we place Bray-Curtis and CSCS PCoAs side by side. CSCS
+is the more informative contrast with Bray-Curtis because it uses the
+same abundance framework but adds chemical structure — so any shift in
+clustering reflects structural weighting rather than a change in
+diversity metric. Because the two distance matrices are on different
+scales, each panel has free axes — interpret only the relative grouping
+of points across panels, not the axis values.
 
 ``` r
 PCOA_example_bray <- PCoAplot(
@@ -934,16 +935,24 @@ PCOA_example_bray <- PCoAplot(
   save_output = FALSE
 )
 
+PCOA_example_cscs <- PCoAplot(
+  mmo,
+  color       = custom_colors,
+  betadiv     = beta_diversity_dreams_CSCS,
+  outdir      = "output/PCOA_cscs",
+  save_output = FALSE
+)
+
 # Combine data frames and label by method
 pcoa_bray_df        <- PCOA_example_bray$df
 pcoa_bray_df$method <- "Bray-Curtis"
 
-pcoa_genuni_df        <- PCOA_example$df
-pcoa_genuni_df$method <- "Generalized UniFrac (d_1)"
+pcoa_cscs_df        <- PCOA_example_cscs$df
+pcoa_cscs_df$method <- "CSCS\n(structurally weighted)"
 
-pcoa_combined <- rbind(pcoa_bray_df, pcoa_genuni_df)
+pcoa_combined <- rbind(pcoa_bray_df, pcoa_cscs_df)
 pcoa_combined$method <- factor(pcoa_combined$method,
-  levels = c("Bray-Curtis", "Generalized UniFrac (d_1)"))
+  levels = c("Bray-Curtis", "CSCS\n(structurally weighted)"))
 
 # Faceted comparison — publication figure
 pcoa_comparison <- ggplot2::ggplot(

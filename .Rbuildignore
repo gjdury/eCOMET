@@ -7,3 +7,8 @@
 ^README\.Rmd$
 ^doc$
 ^Meta$
+^260320_demo$
+^ecoMet_Tutorials\.code-workspace$
+^how_to_update_build_the_website\.Rmd$
+^index\.md$
+^tutorial$
