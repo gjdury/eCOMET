@@ -108,7 +108,7 @@ MyNewFunction <- function(mmo, ..., group_col = NULL) {
 
 - Use `ggplot2` (or `ggtree` for tree layouts) as the base
 - Accept a `palette` argument using
-  [`colorspace::qualitative_hcl()`](https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html)
+  [`colorspace::qualitative_hcl()`](https://rdrr.io/pkg/colorspace/man/hcl_palettes.html)
   for color scales
 - Return the plot object so users can modify it with `+`
 - Default to showing group-level information derived from `mmo$metadata`
