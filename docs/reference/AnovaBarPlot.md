@@ -16,7 +16,9 @@ AnovaBarPlot(
   group_list = NULL,
   save_output = TRUE,
   width = 6,
-  height = 6
+  height = 6,
+  colors = NULL,
+  posthoc = NULL
 )
 ```
 
@@ -62,6 +64,15 @@ AnovaBarPlot(
 - height:
 
   The height of the output plot in inches (default: 6)
+
+- colors:
+
+  A vector of colors for the groups (default: NULL)
+
+- posthoc:
+
+  A character string indicating the post-hoc test to perform (default:
+  NULL)
 
 ## Value
 

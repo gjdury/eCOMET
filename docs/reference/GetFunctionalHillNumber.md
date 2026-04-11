@@ -9,63 +9,45 @@ details of the functional Hill number calculation.
 
 ``` r
 GetFunctionalHillNumber(
-  mmo,
-  normalization = "None",
+  feature,
+  metadata,
+  distance_matrix,
   q = 1,
-  distance = "dreams",
-  filter_feature = FALSE,
-  feature_list = NULL
+  threshold = 0,
+  scale_dissim = TRUE
 )
 ```
 
 ## Arguments
 
-- mmo:
+- feature:
 
-  The mmo object containing feature data and metadata
+  Feature table with columns: id, feature, then sample columns
 
-- normalization:
+- metadata:
 
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'None')
+  Metadata table with sample and group columns
+
+- distance_matrix:
+
+  Feature distance matrix
 
 - q:
 
   The order of the Hill number to calculate (default: 1). Larger q
   values give more weight to evenness portion of the hill number over
-  richness.
+  richness. q = 0 treats abundance matrix as a presence absence matrix
 
-- distance:
+- threshold:
 
-  The distance metric to use for calculating dissimilarity. Options are
-  'dreams', 'm2ds', or 'cosine' (default: 'dreams')
+  Numeric; detection threshold for presence (default: 0)
 
-- filter_feature:
+- scale_dissim:
 
-  A boolean indicating whether to filter the feature data by a specific
-  list (default: FALSE)
-
-- feature_list:
-
-  A list of feature names to filter the feature data by, if
-  filter_feature is TRUE (default: NULL)
+  Boolean; whether to scale the distance matrix to be between 0 and 1
+  (default: TRUE)
 
 ## Value
 
 A data frame containing the functional Hill number for each group in the
 metadata, with columns for group and hill number.
-
-## Examples
-
-``` r
-if (FALSE) {
-hill_number <- GetFunctionalHillNumber(mmo,
-                                       normalization = 'Z',
-                                       q = 1, distance = 'dreams',
-                                       filter_feature = FALSE)
-hill_number <- GetFunctionalHillNumber(mmo, normalization = 'Z',
-                                       q = 3, distance = 'dreams',
-                                       filter_feature = TRUE,
-                                       feature_list = Glucosinolates)
-}
-```

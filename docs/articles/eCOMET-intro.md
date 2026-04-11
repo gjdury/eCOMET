@@ -24,11 +24,16 @@ function and contains:
 - **custom_annot**: (optional) Custom compound annotations. Added by
   [`AddCustomAnnot()`](https://phytoecia.github.io/eCOMET/reference/AddCustomAnnot.md).
 - **cos.dissim**: (optional) Cosine dissimilarity matrix. Added by
-  `AddChemdist()`.
+  [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md).
 - **m2ds.dissim**: (optional) MS2DeepScore dissimilarity matrix. Added
-  by `AddChemdist()`.
+  by
+  [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md).
 - **dreams.dissim**: (optional) DreaMS dissimilarity matrix. Added by
-  `AddChemdist()`.
+  [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md).
+- **\<name\>.dissim**: (optional) Any custom feature dissimilarity
+  matrix. Added by
+  [`AddCustomDist()`](https://phytoecia.github.io/eCOMET/reference/AddCustomDist.md)
+  with a user-supplied name.
 
 ## Input file requirements
 
@@ -133,21 +138,71 @@ mmo$sirius_annot
 
 ## Adding chemical dissimilarity
 
-The chemical dissimilarity matrices (cosine, MS2DeepScore, DreaMS) can
-be added to the `mmo` object. These are used for chemical dendrograms
-and chemical diversity analyses.
+Chemical dissimilarity matrices describe pairwise structural
+relationships among features. Once added to the `mmo` object they are
+used by
+[`GetBetaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetBetaDiversity.md),
+[`GetAlphaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.md)
+(weighted mode), and `HeatmapPlot()` via the `distance` argument.
 
-mmo \<- AddChemdist( mmo, cos_dir = “path/to/cosine_dissimilarity.csv”,
-m2ds_dir = “path/to/ms2deepscore_dissimilarity.csv”, dreams_dir =
-“path/to/dreams_dissimilarity.csv” )
+### Built-in methods: `AddChemDist()`
+
+[`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md)
+reads MZmine molecular networking output files for three supported
+similarity types and converts them to dissimilarity (`1 - similarity`)
+before storing them in the `mmo` object.
 
 ``` r
-# Add Dreams distance
-mmo <- AddChemDist(mmo, 
-                   dreams_dir = demo_dreams)
-
-mmo$dreams.dissim[1:10,1:10]
+mmo <- AddChemDist(mmo,
+  cos_dir    = "path/to/cosine_similarity.csv",
+  m2ds_dir   = "path/to/ms2deepscore_similarity.csv",
+  dreams_dir = "path/to/dreams_similarity.csv"
+)
 ```
+
+``` r
+# Add Dreams distance from demo data
+mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+mmo$dreams.dissim[1:10, 1:10]
+```
+
+Pass the stored matrix to downstream functions using its short name:
+
+``` r
+beta <- GetBetaDiversity(mmo, method = "CSCS", distance = "dreams")
+alpha <- GetAlphaDiversity(mmo, mode = "weighted", distance = "dreams")
+```
+
+### Custom distance matrices: `AddCustomDist()`
+
+If you have a feature dissimilarity matrix from another tool (e.g.
+Tanimoto structural similarity, NPC-based distances, or any other
+pairwise metric), use
+[`AddCustomDist()`](https://phytoecia.github.io/eCOMET/reference/AddCustomDist.md)
+to add it under a name of your choice.
+
+**Format requirements for the matrix:**
+
+- Square numeric matrix with row and column names matching the feature
+  IDs in `mmo$feature_data$id`.
+- Values must be **dissimilarities** in `[0, 1]`: 0 = identical, 1 =
+  maximally different. If your source is a similarity matrix, convert it
+  first with `dist_matrix <- 1 - sim_matrix`.
+- Diagonal should be 0. Matrix should be symmetric.
+
+``` r
+# Example: Tanimoto structural similarity from an external tool
+tanimoto_dist <- 1 - tanimoto_sim_matrix  # convert similarity → dissimilarity
+
+mmo <- AddCustomDist(mmo, dist_matrix = tanimoto_dist, name = "tanimoto")
+
+# Use it anywhere a 'distance' argument is accepted:
+beta  <- GetBetaDiversity(mmo, method = "CSCS",     distance = "tanimoto")
+alpha <- GetAlphaDiversity(mmo, mode = "weighted",  distance = "tanimoto")
+```
+
+The matrix is stored as `mmo$tanimoto.dissim` and the name `"tanimoto"`
+can be passed as the `distance` argument throughout the package.
 
 ## Adding custom annotations
 

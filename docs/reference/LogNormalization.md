@@ -7,7 +7,7 @@ to avoid -Inf values.
 ## Usage
 
 ``` r
-LogNormalization(mmo)
+LogNormalization(mmo, imputed_data = FALSE)
 ```
 
 ## Arguments
@@ -15,6 +15,10 @@ LogNormalization(mmo)
 - mmo:
 
   The mmo object
+
+- imputed_data:
+
+  Whether to use imputed feature data (default = FALSE)
 
 ## Value
 

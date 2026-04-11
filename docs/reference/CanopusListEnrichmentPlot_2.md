@@ -9,7 +9,7 @@ p-value, and subset count for each term level.
 ``` r
 CanopusListEnrichmentPlot_2(
   mmo,
-  feature_list,
+  id_list,
   pthr = 0.05,
   outdir,
   height = 5,
@@ -26,7 +26,7 @@ CanopusListEnrichmentPlot_2(
 
   The mmo object with sirius annotation and normalized data
 
-- feature_list:
+- id_list:
 
   A vector containing names of features to analyze
 
@@ -68,7 +68,7 @@ A list containing the enrichment plot and the enrichment results
 ``` r
 if (FALSE) {
 CanopusListEnrichmentPlot_2(
- mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+ mmo, id_list = DAMs_up$control_vs_treatment1.up,
  pthr = 0.05, outdir = 'canopus_enrichment_plot_topn.pdf',
  height = 5, width = 5, topn = 5
 )

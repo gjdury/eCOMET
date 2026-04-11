@@ -75,7 +75,7 @@ appropriate for your analysis (see Details).
 \itemize{
 \item \code{d_0}   -- presence/absence only; equivalent to unweighted UniFrac.
 Use when detection (not intensity) is the signal of interest.
-\item \code{d_0.5} -- balanced weighting (recommended default). Moderates the
+\item \code{d_0.5} -- balanced weighting. Moderates the
 influence of highly abundant features without ignoring abundance.
 \item \code{d_1}   -- fully abundance-weighted. Dominant features drive the distance.
 Use when peak intensity is a reliable biological signal.

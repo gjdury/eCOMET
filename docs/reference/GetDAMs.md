@@ -8,7 +8,7 @@ PairwiseComp() for all desired comparisons before using this function.
 ## Usage
 
 ``` r
-GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
+GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05, use_padj = TRUE)
 ```
 
 ## Arguments
@@ -26,6 +26,11 @@ GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05)
 
   The threshold of adjusted p-value to be considered significant
   (default: 0.05)
+
+- use_padj:
+
+  Boolean value indicating whether to use adjusted p-value (default:
+  TRUE)
 
 ## Value
 

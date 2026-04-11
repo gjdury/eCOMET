@@ -11,8 +11,8 @@ PLSDAplot(
   topk = 10,
   outdir,
   normalization = "Z",
-  filter_feature = FALSE,
-  feature_list = NULL,
+  filter_id = FALSE,
+  id_list = NULL,
   filter_group = FALSE,
   group_list = NULL,
   save_output = TRUE
@@ -43,11 +43,11 @@ PLSDAplot(
   The normalization method to use for feature data. Options are 'None',
   'Log', 'Meancentered', or 'Z' (default: 'Z')
 
-- filter_feature:
+- filter_id:
 
-  Boolean to filter features by feature_list (default: FALSE)
+  Boolean to filter features by id_list (default: FALSE)
 
-- feature_list:
+- id_list:
 
   A vector of feature names to filter (default: NULL)
 
@@ -76,12 +76,12 @@ if (FALSE) {
 PLSDAplot(
  mmo, color = c("Control" = "blue", "Treatment1" = "red", "Treatment2" = "green"),
  topk = 10, outdir = 'PLSDA_plot.pdf', normalization = 'Z',
- filter_feature = FALSE, filter_group = FALSE
+ filter_id = FALSE, filter_group = FALSE
 )
 PLSDAplot(
  mmo, color = c("Control" = "blue", "Treatment1" = "red"),
  topk = 5, outdir = 'PLSDA_plot.pdf', normalization = 'Log',
- filter_feature = TRUE, feature_list = Glucosinolates,
+ filter_id = TRUE, id_list = Glucosinolates,
  filter_group = TRUE, group_list = c("Control", "Treatment1")
 )
 }

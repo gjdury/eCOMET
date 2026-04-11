@@ -27,6 +27,7 @@ GetMZmineFeature(
   mz_col = NULL,
   rt_col = NULL,
   max_distance = 5,
+  pa_threshold = 1,
   feature_info_cols = c("id", "rt", "rt_range:min", "rt_range:max", "mz", "mz_range:min",
     "mz_range:max", "feature_group", "ion_identities:iin_id",
     "ion_identities:ion_identities")
@@ -75,6 +76,11 @@ GetMZmineFeature(
   Maximum edit distance used when fuzzy-matching metadata sample names
   to MZmine area column names (default 5). Lower this for stricter
   matching.
+
+- pa_threshold:
+
+  Minimum peak area threshold for a feature to be considered present in
+  a sample.
 
 - feature_info_cols:
 

@@ -7,53 +7,28 @@ feature dissimilarity.
 ## Usage
 
 ``` r
-GetHillNumbers(
-  mmo,
-  normalization = "None",
-  q = 0,
-  filter_feature = FALSE,
-  feature_list = NULL
-)
+GetHillNumbers(feature, metadata, q = 0, threshold = 0)
 ```
 
 ## Arguments
 
-- mmo:
+- feature:
 
-  The mmo object containing feature data and metadata
+  Feature table with columns: id, feature, then sample columns
 
-- normalization:
+- metadata:
 
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'None')
+  Metadata table with sample and group columns
 
 - q:
 
   The order of the Hill number to calculate (default: 0)
 
-- filter_feature:
+- threshold:
 
-  A boolean indicating whether to filter the feature data by a specific
-  list (default: FALSE)
-
-- feature_list:
-
-  A list of feature names to filter the feature data by, if
-  filter_feature is TRUE (default: NULL)
+  Numeric; detection threshold for presence (default: 0)
 
 ## Value
 
 A data frame containing the Hill number for each group in the metadata,
 with columns for group and hill number.
-
-## Examples
-
-``` r
-if (FALSE) {
-hill_number <- GetHillNumbers(mmo, normalization = 'Z',
-                q = 1, filter_feature = FALSE)
-hill_number <- GetHillNumbers(mmo, normalization = 'Z',
-                q = 2, filter_feature = TRUE,
-                 feature_list = Glucosinolates)
-}
-```

@@ -1,36 +1,32 @@
-# Replace zero and NA values in the mmo object
+# \#' Replace zero and NA values in the mmo object
 
-This function replaces zero and NA values in the feature data of the mmo
-object. Run this function before MassNormalization(),
-LogNormalization(), MeancenterNormalization(), or ZNormalization().
+This function replaces zero values in the feature table of an mmo
+object. Imputed data are stored in mmo\$imputed_feature_data, to be used
+for downsteam analyses including PairwiseComp(). Note that imputation
+affects normalizations (Log-transformation, etc.), as well as chemical
+diversity calculations that uses presence/absence.
 
 ## Usage
 
 ``` r
-ReplaceZero(mmo, method = "one")
+ReplaceZero(mmo, method = c("one", "half_min"))
 ```
 
 ## Arguments
 
 - mmo:
 
-  The mmo object
+  An mmo object containing `feature_data`
 
 - method:
 
-  The method to use for replacement. Options are 'one' (replace with 1)
-  or 'half_mean' (replace with half of the smallest non-zero value in
-  the row)
+  Replacement method:
+
+  - "one": replace zeros and NA values with 1
+
+  - "half_min": replace zeros and NA values with half of the smallest
+    non-zero value in each feature (row)
 
 ## Value
 
-The mmo object with replaced values in the feature data
-(mmo\$feature_data)
-
-## Examples
-
-``` r
-if (FALSE) {
-mmo <- ReplaceZero(mmo, method = 'one')
-}
-```
+The updated mmo object

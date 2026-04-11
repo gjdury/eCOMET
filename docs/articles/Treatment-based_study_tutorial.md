@@ -16,9 +16,9 @@ library(dplyr)
 #>     intersect, setdiff, setequal, union
 library(stringr)
 library(here)
-#> here() starts at /Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET
+#> here() starts at /home/minsoo/software/eCOMET
 here()
-#> [1] "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET"
+#> [1] "/home/minsoo/software/eCOMET"
 ```
 
 ### Background
@@ -212,7 +212,7 @@ compounds, CANOPUS may return lower probabilities for all compound
 classes, which means users might need to accept predictions with
 probabilities below 0.5 depending on their specific needs. Thus, the
 choice of threshold depends on the context and the user’s tolerance for
-uncertainty.”
+uncertainty."
 
 It can be helpful to visialize the distribution of thresholds to see how
 much you would be filtering out

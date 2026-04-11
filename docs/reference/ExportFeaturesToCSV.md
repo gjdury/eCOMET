@@ -6,7 +6,7 @@ comparisons to a CSV file.
 ## Usage
 
 ``` r
-ExportFeaturesToCSV(mmo, feature_list, normalization = "None", output_dir)
+ExportFeaturesToCSV(mmo, id_list, normalization = "None", output_dir)
 ```
 
 ## Arguments
@@ -16,7 +16,7 @@ ExportFeaturesToCSV(mmo, feature_list, normalization = "None", output_dir)
   The mmo object containing feature data, annotations, and pairwise
   comparisons
 
-- feature_list:
+- id_list:
 
   A list of feature names to filter and export
 
@@ -34,10 +34,10 @@ ExportFeaturesToCSV(mmo, feature_list, normalization = "None", output_dir)
 ``` r
 if (FALSE) {
 ExportFeaturesToCSV(mmo,
-                    feature_list = Glucosinolates,
+                    id_list = Glucosinolates,
                      normalization = 'Z',
                      output_dir = 'output.csv')
-ExportFeaturesToCSV(mmo, feature_list = DAMs_up$control_vs_treatment1.up,
+ExportFeaturesToCSV(mmo, id_list = DAMs_up$control_vs_treatment1.up,
                          normalization = 'None',
                           output_dir = 'output.csv')
 }

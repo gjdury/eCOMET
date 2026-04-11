@@ -10,7 +10,7 @@ results are saved as a CSV file and a PDF plot.
 ``` r
 MSEA(
   mmo,
-  feature_name,
+  feature_id,
   feature_score,
   term_level = "NPC_class",
   pthr = 0.05,
@@ -28,9 +28,9 @@ MSEA(
 
   The mmo object with sirius annotation and normalized data
 
-- feature_name:
+- feature_id:
 
-  A vector of feature names corresponding to the feature scores
+  A vector of feature ids corresponding to the feature scores
 
 - feature_score:
 

@@ -63,7 +63,8 @@ data_dir <- system.file(
  package = "ecomet"
 )
 stopifnot(nzchar(data_dir))  # fail loudly if package data is missing
-data_dir <- "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/inst/extdata/tutorials/interspecific"
+#data_dir <- "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/inst/extdata/tutorials/interspecific"
+
 demo_feature          <- file.path(data_dir, "Ecomet_Interspecific_Demo_full_feature_table.csv")
 demo_metadata         <- file.path(data_dir, "EcoMET_Interspecific_Demo_metadata_no_blank.csv")
 demo_sirius_formula   <- file.path(data_dir, "canopus_formula_summary.tsv")

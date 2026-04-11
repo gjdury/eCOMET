@@ -12,8 +12,8 @@ GetSpecializationIndex(
   normalization = "None",
   filter_group = FALSE,
   group_list = NULL,
-  filter_feature = FALSE,
-  feature_list = NULL
+  filter_id = FALSE,
+  id_list = NULL
 )
 ```
 
@@ -38,15 +38,15 @@ GetSpecializationIndex(
   A list of groups to filter the feature data by, if filter_group is
   TRUE (default: NULL)
 
-- filter_feature:
+- filter_id:
 
   A boolean indicating whether to filter the feature data by a specific
   list (default: FALSE)
 
-- feature_list:
+- id_list:
 
-  A list of feature names to filter the feature data by, if
-  filter_feature is TRUE (default: NULL)
+  A list of feature names to filter the feature data by, if filter_id is
+  TRUE (default: NULL)
 
 ## Value
 
@@ -64,6 +64,6 @@ specialization_index <- GetSpecializationIndex(mmo,
                                                normalization = 'Z',
                                                filter_group = TRUE,
                                                group_list = c('Control', 'Treatment1'),
-                                               filter_feature = TRUE)
+                                               filter_id = TRUE)
 }
 ```

@@ -6,7 +6,13 @@ files, and adds the annotations to the mmo object.
 ## Usage
 
 ``` r
-AddSiriusAnnot(mmo, canopus_structuredir, canopus_formuladir)
+AddSiriusAnnot(
+  mmo,
+  canopus_structuredir,
+  canopus_formuladir,
+  filter_annot = FALSE,
+  filter_threshold = 0.5
+)
 ```
 
 ## Arguments
@@ -22,6 +28,16 @@ AddSiriusAnnot(mmo, canopus_structuredir, canopus_formuladir)
 - canopus_formuladir:
 
   Path to the SIRIUS canopus_formula_summary.tsv file
+
+- filter_annot:
+
+  Logical. If TRUE, filter the annotations by probability threshold in
+  CANOPUS.
+
+- filter_threshold:
+
+  Numeric between 0 and 1. The probability threshold for filtering
+  annotations.
 
 ## Value
 

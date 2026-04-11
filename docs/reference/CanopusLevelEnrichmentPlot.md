@@ -29,7 +29,7 @@ CanopusLevelEnrichmentPlot(
 
 - comp.list:
 
-  A list to analyze, where each element is a vector of feature names
+  A list to analyze, where each element is a vector of feature ids
 
 - term_level:
 

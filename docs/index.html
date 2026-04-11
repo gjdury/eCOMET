@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="articles/index.html">Tutorials</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/contributing.html">Contributing</a></li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -51,47 +52,60 @@
 <div class="page-header"><h1 id="welcome-to-ecomet-a-tool-for-mass-spectrometrybased-ecological-metabolomics">Welcome to eCOMET: A Tool for Mass Spectrometry–Based Ecological Metabolomics<a class="anchor" aria-label="anchor" href="#welcome-to-ecomet-a-tool-for-mass-spectrometrybased-ecological-metabolomics"></a>
 </h1></div>
 <!-- badges: start -->
-<p><strong>eCOMET</strong> is an R package for processing and analyzing mass spectrometry–based metabolomics data in ecological and evolutionary contexts. It establishes a standardized pipeline that integrates MS1 feature–abundance tables with MS2 spectral similarity to generate common data products, including principal component analyses (PCA), chemical dendrograms where tips represent compounds, principal coordinates analyses (PCoA), and differential accumulation analyses. Unlike existing metabolomics toolkits that focus primarily on biomedical or cheminformatics applications, ecomet is designed explicitly for ecometabolomics. It emphasizes workflows that link metabolomic variation to ecological data, making it easier to move from raw mass spectrometry files to reproducible, comparative analyses of plant chemical diversity.</p>
+
+<p><strong>eCOMET</strong> is an R package designed specifically for ecological metabolomics (ecometabolomics), in which researchers apply untargeted mass spectrometry-based metabolomics to characterize the chemical phenotypes of organisms in their ecological and evolutionary context. Unlike metabolomics in biomedical or model-organism research, ecometabolomics frequently involve non-model, non-animal systems where genomic resources are scarce, reference spectral libraries provide limited coverage, and metabolic pathway annotations remain incomplete. Never the less, the goal of the package is to help chemical ecologists gain ecological insights from metabolomics data despite these contraints.</p>
+<p>It has two core goals:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Standardize ecometabolomics workflows</strong> by introducing the <code>mmo</code> object, a unified data container that keeps feature abundances, sample metadata, compound annotations, and chemical similarity matrices aligned throughout an analysis. eCOMET integrates directly with the outputs of leading metabolomics tools — <a href="https://mzmine.github.io/" class="external-link">MZmine</a>, <a href="https://v6.docs.sirius-ms.io/" class="external-link">SIRIUS/CANOPUS</a>, <a href="https://dreams-docs.readthedocs.io/" class="external-link">DreaMS</a>, and <a href="https://gnps.ucsd.edu/" class="external-link">GNPS</a> — making it easier to integrate data steams and improves reproducibility.</p></li>
+<li><p><strong>Provide educational resources for chemical ecologists</strong> through annotated tutorials covering common study designs, from treatment-based experiments to multi-species field comparisons. Unlike biomedical metabolomics toolkits, eCOMET is built around the questions chemical ecologists actually ask: How does chemical diversity vary across species or habitats? Which compounds are differentially accumulated under stress? How does metabolomic composition relate to trait or performance data?</p></li>
+</ol>
 <hr>
 <div class="section level2">
 <h2 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h2>
-<ul>
-<li>Import and normalize MS1 feature–abundance tables</li>
-<li>Integrate MS2 spectral similarity for chemical diversity analysis</li>
-<li>Perform differential accumulation analysis to find DAMs (Differentially accumulated metabolites)</li>
-<li>Visualize results with PCA, PLS-DA, PCoA, NMDS, volcano plots, heatmaps, and more</li>
-<li>Quantify chemical diversity using alpha and beta diversity metrics, utilizing spectral similarity based on modified cosine score, MS2DeepScore, and DreaMS</li>
-<li>Chemical class enrichment analysis using CANOPUS annotation</li>
-<li>Screening molecular features related to sample metadata (e.g., temperature, height, herbivory)</li>
-</ul>
+<p><strong>Data ingestion and the <code>mmo</code> object</strong> - Import MZmine feature tables and link them to sample metadata - Add SIRIUS/CANOPUS compound class annotations - Add pairwise chemical similarity from DreaMS, MS2DeepScore, or cosine similarity - Add custom annotations from in-house compound databases - Filter the <code>mmo</code> object by sample, group, or feature list — all linked tables update together - Match and filter associated MGF spectral files to keep MS2 data in sync</p>
+<p><strong>Statistics and differential analysis</strong> - Differential accumulation analysis (DAMs) with pairwise group comparisons - Volcano plots, ANOVA with post-hoc tests, and log2 fold-change summaries - Metabolite set enrichment analysis (MSEA) using CANOPUS class annotations - Chemical class enrichment analysis across multiple ClassyFire and NPC levels - Phenotype association screening — correlate individual features with continuous ecological variables (height, herbivory, temperature, etc.)</p>
+<p><strong>Chemical diversity</strong> - Alpha diversity: richness, Faith’s PD, Hill numbers (q = 0, 1, 2), functional Hill numbers weighted by chemical distance, rarefaction curves - Beta diversity: Bray-Curtis, Jaccard, CSCS (Chemical Structural and Compositional Similarity), and Generalized UniFrac using spectral similarity distances - Ordination: PCA, PLS-DA, NMDS, PCoA, hierarchical clustering - Specialization index for comparing chemical breadth across species or treatments</p>
+<p><strong>Compound networks and dendrograms</strong> - Build feature dendrograms from pairwise chemical distances (DreaMS, MS2DeepScore, cosine, or custom) - Incorporate Ion Identity Networking (IIN) and feature correlation constraints into dendrogram topology - Visualize dendrograms with <code>ggtree</code> — circular or rectangular layouts, class coloring, fully layerable with ggplot2 - Export to iTOL for interactive annotation and publication-quality circular trees - Export node and edge tables for Cytoscape molecular network visualization</p>
+<p><strong>Visualization</strong> - All plot functions return <code>ggplot</code>/<code>ggtree</code> objects — add layers, themes, and annotations after the call - Stacked bar plots of NPC compound class composition by group - Heatmaps with flexible normalization and annotation tracks</p>
+<hr>
+<p><img width="1921" height="1080" alt="eCOMET workflow overview" src="https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c"></p>
+<hr>
 </div>
-<div class="section level2"><h2 id="section">
-<img width="1921" height="1080" alt="Screenshot 2025-07-24 at 6 59 47 PM" src="https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c"><a class="anchor" aria-label="anchor" href="#section"></a>
-</h2></div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>The eCOMET uses pairwiseAdonis for PERMANOVA; as it is not in CRAN, users may have to install it separately: <a href="https://github.com/pmartinezarbizu/pairwiseAdonis" class="external-link uri">https://github.com/pmartinezarbizu/pairwiseAdonis</a></p>
-<p>Install the development version from GitHub:</p>
+<p>Install eCOMET from GitHub using <code>pak</code> (recommended — handles all dependencies automatically):</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"phytoecia/eCOMET"</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://phytoecia.github.io/eCOMET/">ecomet</a></span><span class="op">)</span></span></code></pre></div>
+<p>Or using <code>remotes</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"phytoecia/eCOMET"</span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
-<h2 id="preparing-data-for-analysis">Preparing data for analysis<a class="anchor" aria-label="anchor" href="#preparing-data-for-analysis"></a>
+<h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
-<p>We recommend reading <a href="./articles/Intro.html">Articles-Intro</a> before starting, to understand how the raw data from mass spectrometers can be prepared for analyses.<br>
-We currently support data processed by MZMine (version 4 or later).</p>
+<p><strong>New to eCOMET?</strong> Start with the <a href="./articles/eCOMET-intro.html">Introduction</a>, which explains the <code>mmo</code> object, required input file formats, and the core preprocessing steps.</p>
+<p>We currently support feature tables exported from <strong>MZmine version 4 or later</strong>. See the <a href="https://mzmine.github.io/mzmine_documentation/module_docs/io/feat-list-export.html" class="external-link">MZmine documentation</a> for export instructions.</p>
 </div>
 <div class="section level2">
 <h2 id="tutorials">Tutorials<a class="anchor" aria-label="anchor" href="#tutorials"></a>
 </h2>
-<p>eCOMET can be used for chemical ecological studies from diverse spectra of interests. We prepared two case studies: 1. <a href="./articles/Treatment-based_study_tutorial.html">Treatment-based_study</a> 2. <a href="./articles/Interspecific_study_tutorial.html">Observational_field_study</a></p>
+<p>eCOMET includes worked case studies covering two common study designs in chemical ecology:</p>
+<ol style="list-style-type: decimal">
+<li>
+<a href="./articles/Tutorial_1_Treatment-based_study.html">Treatment-based study</a> — comparing chemical profiles between experimental treatments; covers normalization, DAM analysis, volcano plots, heatmaps, and enrichment analysis</li>
+<li>
+<a href="./articles/Tutorial_2_Interspecific_Comparisons.html">Interspecific comparisons</a> — comparing chemical diversity across co-occurring species; covers feature-based and structure-aware beta diversity, NMDS, PCoA, and hierarchical clustering</li>
+<li>
+<a href="./articles/Tutorial_3_Dendrogram_and_Molecular_Networks.html">Compound dendrograms and molecular networks</a> — building and exporting chemical similarity trees and networks for iTOL and Cytoscape</li>
+</ol>
 <hr>
-<p>For more details, see the documentation and vignettes.<br>
-If you have questions or suggestions, visit the <a href="https://github.com/phytoecia/eCOMET" class="external-link">GitHub repository</a>, where we are actively developing.</p>
+<p>If you have questions, find a bug, or want to suggest a new feature, visit the <a href="https://github.com/phytoecia/eCOMET" class="external-link">GitHub repository</a>. Contributions are welcome — see the <a href="./articles/contributing.html">Contributing</a> page for how to get involved.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
@@ -136,7 +150,7 @@ If you have questions or suggestions, visit the <a href="https://github.com/phyt
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

@@ -1,8 +1,8 @@
 # HCplot
 
 Hierarchical clustering of samples from a precomputed beta-diversity
-matrix and plotting as a phylogram with tip labels colored by species
-(or any grouping column).
+matrix, plotted as a phylogram with tip labels colored by
+mmo\$metadata\$group.
 
 ## Usage
 
@@ -11,11 +11,9 @@ HCplot(
   mmo,
   betadiv,
   outdir,
-  group_col = "Species_binomial",
-  sample_col = "sample",
   hclust_method = "average",
-  palette = "Dark 3",
-  cex = 0.6,
+  color = NULL,
+  tip_label_size = 2.5,
   width = 10,
   height = 7,
   save_output = TRUE
@@ -26,70 +24,52 @@ HCplot(
 
 - mmo:
 
-  The mmo object containing metadata in mmo\$metadata
+  The mmo object
 
 - betadiv:
 
-  The beta diversity distance matrix, output of GetBetaDiversity()
+  Beta diversity distance matrix, output of GetBetaDiversity()
 
 - outdir:
 
-  Output prefix for files (e.g., "output/HC"). If save_output=TRUE a PDF
-  is saved.
-
-- group_col:
-
-  Metadata column name used to color tips (default: "Species_binomial")
-
-- sample_col:
-
-  Metadata column name containing sample IDs (default: "sample")
+  Output file prefix (e.g., "output/HC"). PNG saved here if
+  save_output=TRUE.
 
 - hclust_method:
 
   hclust linkage method (default: "average"; alternatives:
   "complete","ward.D2")
 
-- palette:
+- color:
 
-  Qualitative palette name for colorspace::qualitative_hcl (default:
-  "Dark 3")
+  Named vector of colors for groups. If NULL, uses Set3 palette.
 
-- cex:
+- tip_label_size:
 
-  Tip label size (default: 0.6)
+  Tip label text size (default: 2.5)
 
 - width:
 
-  PDF width (default: 10)
+  Plot width in inches (default: 10)
 
 - height:
 
-  PDF height (default: 7)
+  Plot height in inches (default: 7)
 
 - save_output:
 
-  Whether to save the plot to PDF (default: TRUE)
+  Whether to save the plot (default: TRUE)
 
 ## Value
 
-A list containing: hc (hclust), phy (phylo), tip_df (mapping), colors
-(named palette)
-
-## Details
-
-This function is intended for visualization (no cluster significance is
-implied).
+A list containing: plot (ggplot object), hc (hclust), phy (phylo)
 
 ## Examples
 
 ``` r
 if (FALSE) {
-bet <- GetBetaDiversity(mmo, method='bray',
-        normalization='Log', distance='dreams',
-         filter_feature=FALSE)
-HCplot(mmo,
-       betadiv = bet,
-       outdir = "output/HC_dreams_bray")
+bet <- GetBetaDiversity(mmo, method = 'bray', normalization = 'None')
+hc <- HCplot(mmo, betadiv = bet, outdir = "output/HC_bray")
+hc$plot
 }
 ```

@@ -16,7 +16,7 @@ filter_mmo(
   mmo,
   sample_list = NULL,
   group_list = NULL,
-  feature_list = NULL,
+  id_list = NULL,
   sample_col = "sample",
   group_col = "group",
   drop_empty_feat = TRUE,
@@ -43,7 +43,7 @@ filter_mmo(
   Optional character vector of group labels (matching `group_col` in
   `mmo$metadata`) to retain. Mutually exclusive with `sample_list`.
 
-- feature_list:
+- id_list:
 
   Optional character vector of feature IDs to retain. If `NULL`,
   features are determined from `feature_data` and optionally filtered by
@@ -66,7 +66,7 @@ filter_mmo(
 
 - empty_threshold:
 
-  Optional numeric threshold used to define “empty” features. If `NULL`
+  Optional numeric threshold used to define "empty" features. If `NULL`
   (default), the smallest positive, non-NA intensity in the retained
   samples is used. Features are kept if they have at least one value \>
   threshold across retained samples.

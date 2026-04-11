@@ -14,7 +14,7 @@ PCoAplot(
   outdir,
   width = 6,
   height = 6,
-  color,
+  color = NULL,
   save_output = TRUE
 )
 ```
@@ -60,7 +60,7 @@ results
 ``` r
 if (FALSE) {
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
- normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+ normalization = 'None', distance = 'dreams', filter_id = FALSE)
 PCoAplot(mmo, betadiv = beta_diversity, outdir = 'output/PCoA', width = 6, height = 6)
 }
 ```

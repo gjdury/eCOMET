@@ -9,14 +9,14 @@ custom-annotated features.
 ``` r
 GenerateHeatmapInputs(
   mmo,
-  filter_feature = FALSE,
-  feature_list = NULL,
+  filter_id = FALSE,
+  id_list = NULL,
   filter_group = FALSE,
   group_list = NULL,
   summarize = "mean",
   control_group = "ctrl",
   normalization = "None",
-  distance = "dreams"
+  distance = NULL
 )
 ```
 
@@ -26,11 +26,11 @@ GenerateHeatmapInputs(
 
   The mmo object with sirius annotation and normalized data
 
-- filter_feature:
+- filter_id:
 
-  Boolean to filter features by feature_list (default: FALSE)
+  Boolean to filter features by id_list (default: FALSE)
 
-- feature_list:
+- id_list:
 
   A vector of feature names to filter (default: NULL)
 

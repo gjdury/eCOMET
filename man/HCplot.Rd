@@ -8,56 +8,44 @@ HCplot(
   mmo,
   betadiv,
   outdir,
-  group_col = "Species_binomial",
-  sample_col = "sample",
   hclust_method = "average",
-  palette = "Dark 3",
-  cex = 0.6,
+  color = NULL,
+  tip_label_size = 2.5,
   width = 10,
   height = 7,
   save_output = TRUE
 )
 }
 \arguments{
-\item{mmo}{The mmo object containing metadata in mmo$metadata}
+\item{mmo}{The mmo object}
 
-\item{betadiv}{The beta diversity distance matrix, output of GetBetaDiversity()}
+\item{betadiv}{Beta diversity distance matrix, output of GetBetaDiversity()}
 
-\item{outdir}{Output prefix for files (e.g., "output/HC"). If save_output=TRUE a PDF is saved.}
-
-\item{group_col}{Metadata column name used to color tips (default: "Species_binomial")}
-
-\item{sample_col}{Metadata column name containing sample IDs (default: "sample")}
+\item{outdir}{Output file prefix (e.g., "output/HC"). PNG saved here if save_output=TRUE.}
 
 \item{hclust_method}{hclust linkage method (default: "average"; alternatives: "complete","ward.D2")}
 
-\item{palette}{Qualitative palette name for colorspace::qualitative_hcl (default: "Dark 3")}
+\item{color}{Named vector of colors for groups. If NULL, uses Set3 palette.}
 
-\item{cex}{Tip label size (default: 0.6)}
+\item{tip_label_size}{Tip label text size (default: 2.5)}
 
-\item{width}{PDF width (default: 10)}
+\item{width}{Plot width in inches (default: 10)}
 
-\item{height}{PDF height (default: 7)}
+\item{height}{Plot height in inches (default: 7)}
 
-\item{save_output}{Whether to save the plot to PDF (default: TRUE)}
+\item{save_output}{Whether to save the plot (default: TRUE)}
 }
 \value{
-A list containing: hc (hclust), phy (phylo), tip_df (mapping), colors (named palette)
+A list containing: plot (ggplot object), hc (hclust), phy (phylo)
 }
 \description{
-Hierarchical clustering of samples from a precomputed beta-diversity matrix
-and plotting as a phylogram with tip labels colored by species (or any grouping column).
-}
-\details{
-This function is intended for visualization (no cluster significance is implied).
+Hierarchical clustering of samples from a precomputed beta-diversity matrix,
+plotted as a phylogram with tip labels colored by mmo$metadata$group.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-bet <- GetBetaDiversity(mmo, method='bray',
-        normalization='Log', distance='dreams',
-         filter_id=FALSE)
-HCplot(mmo,
-       betadiv = bet,
-       outdir = "output/HC_dreams_bray")
+bet <- GetBetaDiversity(mmo, method = 'bray', normalization = 'None')
+hc <- HCplot(mmo, betadiv = bet, outdir = "output/HC_bray")
+hc$plot
 \dontshow{\}) # examplesIf}
 }

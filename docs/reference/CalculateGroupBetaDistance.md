@@ -37,7 +37,7 @@ corresponding beta diversity distances from the reference group.
 ``` r
 if (FALSE) {
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
- normalization = 'None', distance = 'dreams', filter_feature = FALSE)
+ normalization = 'None', distance = 'dreams', filter_id = FALSE)
 group_distances <- CalculateGroupBetaDistance(mmo, beta_div = beta_diversity,
  reference_group = 'Control', groups = c('Control', 'Treatment1', 'Treatment2'))
 }

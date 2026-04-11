@@ -26,7 +26,7 @@ The normalized AUC value
 
 ``` r
 if (FALSE) {
-curve <- CalculateCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
+curve <- GetCumulativeRichness(mmo, group =c("Control", "Treatment1", "Treatment2"))
 norm_auc <- CalcNormalizedAUC(curve)
 }
 ```

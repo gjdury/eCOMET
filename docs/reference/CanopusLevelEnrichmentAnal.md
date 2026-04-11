@@ -25,7 +25,7 @@ CanopusLevelEnrichmentAnal(
 
 - list_test:
 
-  A vector containing names of features to analyze
+  A vector containing ids of features to analyze
 
 - pthr:
 

@@ -12,11 +12,13 @@ VolcanoPlot(
   mmo,
   comp,
   topk = 10,
+  log2FC_thr = 1,
   pthr = 0.05,
   outdir = "volcano.png",
   height = 5,
   width = 5,
-  save_output = TRUE
+  save_output = TRUE,
+  use_padj = TRUE
 )
 ```
 
@@ -33,6 +35,11 @@ VolcanoPlot(
 - topk:
 
   The number of top features to label in the plot (default: 10)
+
+- log2FC_thr:
+
+  The threshold of log2 fold change to be considered significant
+  (default: 1)
 
 - pthr:
 
@@ -56,6 +63,11 @@ VolcanoPlot(
   A logical value indicating whether to save the output plot (default:
   TRUE)
 
+- use_padj:
+
+  A logical value indicating whether to use adjusted p-value (default:
+  TRUE)
+
 ## Value
 
 A list containing the volcano plot and the data used to generate it
@@ -66,7 +78,7 @@ A list containing the volcano plot and the data used to generate it
 if (FALSE) {
 VolcanoPlot(
  mmo, comp = 'Control_vs_Treatment1',
- topk = 10, pthr = 0.05,
+ topk = 10, log2FC_thr = 1, pthr = 0.05,
  outdir = 'volcano_con_tre1.png', height = 5, width = 5
 )
 }

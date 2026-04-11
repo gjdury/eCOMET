@@ -17,8 +17,8 @@ GetNormFeature(mmo, normalization)
 
 - normalization:
 
-  The normalization method to use. Options are 'None', 'Log',
-  'Meancentered', or 'Z'
+  The normalization method to use. Options are 'None','PA', 'Log',
+  'Meancentered', 'Z', or 'Imputed'
 
 ## Value
 

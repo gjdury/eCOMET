@@ -1,556 +1,154 @@
-# eCOMET
+# Welcome to eCOMET: A Tool for Mass Spectrometry–Based Ecological Metabolomics
 
-The eCOMET package provides tools for processing and analyzing mass
-spectrometry–based metabolomics data in ecological and evolutionary
-contexts. It establishes a standardized pipeline that integrates MS1
-feature–abundance tables with MS2 spectral similarity to generate common
-data products, including principal component analyses (PCA), chemical
-dendrograms where tips represent compounds, principal coordinates
-analyses (PCoA), and differential expression analyses. Unlike existing
-metabolomics toolkits that focus primarily on biomedical or
-cheminformatics applications, ecomet is designed explicitly for
-ecometabolomics. It emphasizes workflows that link metabolomic variation
-to ecological data, making it easier to move from raw mass spectrometry
-files to reproducible, comparative analyses of plant chemical diversity.
+**eCOMET** is an R package designed specifically for ecological
+metabolomics (ecometabolomics), in which researchers apply untargeted
+mass spectrometry-based metabolomics to characterize the chemical
+phenotypes of organisms in their ecological and evolutionary context.
+Unlike metabolomics in biomedical or model-organism research,
+ecometabolomics frequently involve non-model, non-animal systems where
+genomic resources are scarce, reference spectral libraries provide
+limited coverage, and metabolic pathway annotations remain incomplete.
+Never the less, the goal of the package is to help chemical ecologists
+gain ecological insights from metabolomics data despite these
+contraints.
 
-Find more details at [our webpage](https://phytoecia.github.io/eCOMET/).
+It has two core goals:
 
-The major toolboxes of eCOMET are as follows: ![Screenshot 2025-07-24 at
-6 59
-47 PM](https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c)
+1.  **Standardize ecometabolomics workflows** by introducing the `mmo`
+    object, a unified data container that keeps feature abundances,
+    sample metadata, compound annotations, and chemical similarity
+    matrices aligned throughout an analysis. eCOMET integrates directly
+    with the outputs of leading metabolomics tools —
+    [MZmine](https://mzmine.github.io/),
+    [SIRIUS/CANOPUS](https://v6.docs.sirius-ms.io/),
+    [DreaMS](https://dreams-docs.readthedocs.io/), and
+    [GNPS](https://gnps.ucsd.edu/) — making it easier to integrate data
+    steams and improves reproducibility.
+
+2.  **Provide educational resources for chemical ecologists** through
+    annotated tutorials covering common study designs, from
+    treatment-based experiments to multi-species field comparisons.
+    Unlike biomedical metabolomics toolkits, eCOMET is built around the
+    questions chemical ecologists actually ask: How does chemical
+    diversity vary across species or habitats? Which compounds are
+    differentially accumulated under stress? How does metabolomic
+    composition relate to trait or performance data?
+
+------------------------------------------------------------------------
+
+## Key Features
+
+**Data ingestion and the `mmo` object** - Import MZmine feature tables
+and link them to sample metadata - Add SIRIUS/CANOPUS compound class
+annotations - Add pairwise chemical similarity from DreaMS,
+MS2DeepScore, or cosine similarity - Add custom annotations from
+in-house compound databases - Filter the `mmo` object by sample, group,
+or feature list — all linked tables update together - Match and filter
+associated MGF spectral files to keep MS2 data in sync
+
+**Statistics and differential analysis** - Differential accumulation
+analysis (DAMs) with pairwise group comparisons - Volcano plots, ANOVA
+with post-hoc tests, and log2 fold-change summaries - Metabolite set
+enrichment analysis (MSEA) using CANOPUS class annotations - Chemical
+class enrichment analysis across multiple ClassyFire and NPC levels -
+Phenotype association screening — correlate individual features with
+continuous ecological variables (height, herbivory, temperature, etc.)
+
+**Chemical diversity** - Alpha diversity: richness, Faith’s PD, Hill
+numbers (q = 0, 1, 2), functional Hill numbers weighted by chemical
+distance, rarefaction curves - Beta diversity: Bray-Curtis, Jaccard,
+CSCS (Chemical Structural and Compositional Similarity), and Generalized
+UniFrac using spectral similarity distances - Ordination: PCA, PLS-DA,
+NMDS, PCoA, hierarchical clustering - Specialization index for comparing
+chemical breadth across species or treatments
+
+**Compound networks and dendrograms** - Build feature dendrograms from
+pairwise chemical distances (DreaMS, MS2DeepScore, cosine, or custom) -
+Incorporate Ion Identity Networking (IIN) and feature correlation
+constraints into dendrogram topology - Visualize dendrograms with
+`ggtree` — circular or rectangular layouts, class coloring, fully
+layerable with ggplot2 - Export to iTOL for interactive annotation and
+publication-quality circular trees - Export node and edge tables for
+Cytoscape molecular network visualization
+
+**Visualization** - All plot functions return `ggplot`/`ggtree` objects
+— add layers, themes, and annotations after the call - Stacked bar plots
+of NPC compound class composition by group - Heatmaps with flexible
+normalization and annotation tracks
+
+------------------------------------------------------------------------
+
+![eCOMET workflow
+overview](https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c)
+
+------------------------------------------------------------------------
 
 ## Installation
 
-You can install the development version of ecomet from
-[GitHub](https://github.com/) with:
+Install eCOMET from GitHub using `pak` (recommended — handles all
+dependencies automatically):
 
 ``` r
 # install.packages("pak")
 pak::pak("phytoecia/eCOMET")
+library(ecomet)
 ```
 
-This is a basic example which shows you how to solve a common problem:
+Or using `remotes`:
 
 ``` r
-library(ecomet)
-## basic example code
+# install.packages("remotes")
+remotes::install_github("phytoecia/eCOMET")
 ```
 
-## 0. Input files requirements
-
-Following input files are required to run eCOMET. See ‘/raw_data’ of
-demo files. 1. Feature quantification table generated by MZMine4
-(`features.csv`) -This file is generated by \[Feature list methods →
-Export feature list → CSV\]. See
-<https://mzmine.github.io/mzmine_documentation/module_docs/io/feat-list-export.html>
-2. Annotation of features by SIRIUS (`canopus_formula_summary.tsv` and
-`structure_identification.tsv`) -These are included in the standard
-output of SIRIUS. Make sure you run all SIRIUS → ZODIAC → CSI:FingerID →
-CANOPUS. Then export as tsv. 3. Metadata of samples (`metadata.csv`)
--Metadata should have three or more columns; the first three being
-sample, group, and mass. Additional information can be provided (see
-Part 9. Regression with metadata). 4. (Optional) Custom annotation of
-features (‘custom_DB_glucosinolates.csv’) -The custom DB includes three
-columns: compound, mz, rt 5. (Optional) Chemical similarity table from
-MZMine 4. The metric can be cosine, DreaMS, and MS2DeepScore
-(cosine.csv, dreams.csv, and ms2deepscore.csv) -To obtain these data,
-you need to run molecular networking at MZMine4 for each metric. See
-<https://mzmine.github.io/mzmine_documentation/module_docs/group_spectral_net/molecular_networking.html>
--Set the minimal similarity value as 0 to get all pairwise similarity.
--These tables are impoted and processed for heatmap visualization and
-chemical diversity quantification (see 10. Chemical Diversity Measures)
-
-## 1. Initializing the MMO object
-
-All input files are imported to construct a `mmo` object. The `mmo`
-object will be used in downstream statistics.
-
-``` R
-###
-# 1.1. Give directories
-mzmine_featuredir <- 'raw_data/250724_features_ms2.csv'
-metadatadir <- "raw_data/250728_mmo_metadata.csv"
-canopus_formuladir <- "raw_data/canopus_formula_summary.tsv"
-canopus_structuredir <- "raw_data/structure_identifications.tsv"
-gls_db <- 'raw_data/250428_GLS_Ath_simplegrad_MMO.csv'
-cos_dir <- 'raw_data/250728_sim_ms2_(modified)_cosine.csv'
-dreams_dir <- 'raw_data/250728_sim_dreams.csv'
-m2ds_dir <- 'raw_data/250728_sim_ms2deepscore.csv'
-```
-
-First import the mzmine feature list and metadata to create a `mmo`
-object.
-
-`mmo <- GetMZmineFeature(mzmine_featuredir, metadatadir) head(mmo$featre_data)`
-
-then add annotation generated from sirius to the object
-
-`mmo <- AddSiriusAnnot(mmo, canopus_structuredir, canopus_formuladir) head(mmo$sirius_annot)`
-
-Custom annotation can be added based on m/z and RT.
-
-`mmo <- AddCustomAnnot(mmo, DB = gls_db, mztol = 5, rttol = 0.1) # Add annotation`
-
-then process the quantification data
-
-``` R
-# Normalize data
-mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
-mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
-mmo <- MeancenterNormalization(mmo) # Add mean-centered area
-mmo <- LogNormalization(mmo) # Add log-transformed area
-mmo <- ZNormalization(mmo) # Add Zscore
-```
-
-The chemical similarity tables are imported then transformed into
-distance matrix
-
-`# Import chemical distance data for chemical diversity analyses mmo <- AddChemDist(mmo, cos_dir = cos_dir, dreams_dir = dreams_dir, m2ds_dir = m2ds_dir)`
-
-Check every data are imported well
-
-`summary(mmo)`
-
-### mmo object
-
-The `mmo` object contains following information 1) Feature
-quantification value ($`feature_data)
-2) Metadata (`$metadata) 3) Pairwise comparison data ($`pairwise)
-4) Log, mean-centered, and Z-transformed feature quantification value (`$log,
-\$meancentered, and \#zscore) 5) Sirius annotation (\$sirius_annot) 6)
-cosine distance ($`cos.dissim)
-7) DreaMS distance (`$dreams.dissim) 8) MS2DeepScore distance
-(m2ds.dissim)
-
-All features have id (from mzmine) and feature (mz_rt generated by
-GetMZmineFeature()). Both can be interchangable by FeatureToID(mmo,
-features) and IDToFeature(mmo, IDs).
-
-### Annotated features by SIRIUS
-
-Some feature groups may deserve particular interest. For the demo file,
-glucosinolates and flavonoids are. We can briefly annotate those
-metabolites using annotation from sirius.
-
-``` R
-features <- mmo$sirius_annot
-# Get list of glucosinolated using custom annoatation DB
-gls_hits <- mmo$custom_annot %>% filter(lengths(custom_annot) > 0)
-GLSs <- gls_hits %>% pull(feature)
-# Get list of flavonoids using sirius annotation
-FLVs <- features %>% filter(str_detect(features[[46]], "Flavonoid")) %>% pull(feature)
-```
-
-## 2. Summarise using PLS-DA
-
-By using PLS-DA plot, the general distribution of metabolic profile of
-each sample and group can be visualized. For each group give colors
-
-``` R
-# Define your custom colors for each group
-custom_colors <- c("ctrl" = "#999999", "sl1" = "#fdcdac", "le1" = "#b3e2cd")
-#Or automatically give colors
-custom_colors <- setNames(brewer.pal(length(unique(mmo$metadata$group)), "Set3"), unique(mmo$metadata$group))
-```
-
-Then plot PLS-DA
-
-``` R
-PLSDAplot(mmo, color = custom_colors, outdir = 'plots/plsda/PLSDA_Z.pdf', normalization = 'Z')
-PLSDAplot(mmo, color = custom_colors, topk = 0, outdir = 'plots/plsda/PLSDA_Z_noLoadings.pdf', normalization = 'Z')
-```
-
-![Screenshot 2025-09-01 at 9 15
-29 AM](https://github.com/user-attachments/assets/01630a20-c7b3-46d8-833e-85291ab9df37)
-
-The `topk` parameter can be adjusted to plot loadings of top features on
-the plot. The `normalization` can be `None`, `Log`, `Meancentered`, and
-`Z`. If a subset of features are to be used for ploting, set
-`filter_feature = TRUE` then provide the list of features to the
-`feature_list` If a subset of groups are to be plotted, set
-‘filter_group = TRUE’ then provide the list of groups to the group_list.
-
-``` R
-# Glucosinolates only
-PLSDAplot(mmo, custom_colors, topk = 0, outdir = 'plots/plsda_GLS.pdf', normalization = 'Z', filter_feature = TRUE, feature_list = GLSs)
-```
-
-## 3. Pairwise Comparison (DAMs)
-
-Many analyses targets to find **Differentially Accumulated Metabolites
-(DAMs)**. DAMs can be defined by thresholds of log2-fold change and
-adjusted p-value. Those two metrics are calculated by following code.
-Note that the divisor group is at the left.
-
-`# 3.1. Add pairwise comparisons mmo <- PairwiseComp(mmo, 'ctrl', 'sl1') mmo <- PairwiseComp(mmo, 'ctrl', 'le1')`
-
-Then DAMs of each comparison can be extracted.
-
-``` R
-# 3.2. Get DAMs from the comparisons
-DAMs <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.1) # log2(1.5) = 0.5849625
-DAMs_up <- DAMs$DAMs_up
-DAMs_down <- DAMs$DAMs_down
-head(DAMs_up)
-```
-
-The cutoffs for DAMs can be adjusted in the GetDAMs function
-
-## 4. Upset and Venn Diagram
-
-How many features are overlapping and specific are the common questions
-following DAM analysis. It can be visualized by UpSet plot and Venn
-diagram. The inputs for both are identical and can be prepared as
-following
-
-``` R
-# 4.1. Define groups
-VennInput <- list(
-  sl1.up = DAMs_up$ctrl_vs_sl1.up,
-  le1.up = DAMs_up$ctrl_vs_le1.up
-)
-```
-
-Then can be plotted as following
-
-``` R
-# 4.2. Plot
-# 4.2.1. Venn Diagram
-ggvenn(VennInput, stroke_size = 0.5, set_name_size = 4, show_percentage = FALSE) +
-  theme(legend.position = "none") 
-ggsave("plots/Venn/Venn_Upreg.pdf", height = 5, width = 5)
-
-
-
-# 4.2.2. Upset plot
-pdf("plots/Venn/Upset_Upreg.pdf", 7, 5)
-upset(fromList(VennInput), nsets=10, nintersects=20,order.by='freq', mainbar.y.label='Features in Set', line.size=1, point.size=4, shade.color='white', text.scale=1, show.numbers=FALSE)
-dev.off()
-```
-
-![Screenshot 2025-09-01 at 9 16
-00 AM](https://github.com/user-attachments/assets/8c92244c-c6c7-4197-983b-03dead991750)![Screenshot
-2025-09-01 at 9 16
-14 AM](https://github.com/user-attachments/assets/a2c8018f-9279-4497-aa06-bc2391638afe)
-
-## 5. Volcano plot
-
-The pairwise comparion can be visualized by a volcano plot. Following
-code generates volcano plots for all comparison made in section 3.
-
-``` R
-comparison_columns <- colnames(mmo$pairwise)
-log2FC_columns <- grep("log2FC", comparison_columns, value = TRUE)
-comparisons <- sub("_$", "", unique(sub("log2FC", "", log2FC_columns)))  # Remove trailing underscore from comparisons
-for (comp in comparisons){
-  VolcanoPlot(mmo, comp = comp, topk = 10, outdir = paste('plots/volcano/volcano_', comp, '.pdf', sep = ''))
-}
-```
-
-![Screenshot 2025-09-01 at 9 16
-30 AM](https://github.com/user-attachments/assets/082f866b-d8b1-4e4c-b1c3-5d07155ce733)
-
-## 6. Heat Map
-
-A heatmap is a great way to visualize the whole metabolome. Typically
-the features are clustered by the distribution pattern but alternatively
-the chemical similarity between features can be visualized. For heatmap,
-required inputs can be generated from mmo as follows:
-
-``` R
-# 6.1. Generate inputs for heat map
-HMinput <- GenerateHeatmapInputs(mmo, filter_feature = FALSE, feature_list = feature_list, 
-                                filter_group = FALSE, group_list = group_list, 
-                                summarize = 'mean', control_group = 'ctrl', 
-                                normalization = 'Z', distance = 'dreams')
-summary(HMinput)
-```
-
-Where filter_feature and filter_group can be used on desire. The
-‘summarize’ argument can be ‘mean’ or ‘fold_change’. If ‘fold_change’ is
-used, the ‘control_group’ should be noted. If the chemical similarities
-are to be plotted, the distance metric to be used should be designated
-in ‘distance’ as one of dreams, cosine, or m2ds. Then the class-level
-annotation table is generated.
-
-``` R
-# 6.2. Generate NPC-based annotation table for heatmap
-sirius_annot <- mmo$sirius_annot
-# Get NPC Annotations
-NPC_pathway <- unique(sirius_annot[[32]])
-NPC_pathway <- NPC_pathway[!is.na(NPC_pathway) & NPC_pathway != ""] # remove NA and empty 
-NPC_superclass <- unique(sirius_annot[[34]])
-NPC_superclass <- NPC_superclass[!is.na(NPC_superclass) & NPC_superclass != ""] # remove NA and empty
-NPC_class <- unique(sirius_annot[[36]])
-NPC_class <- NPC_class[!is.na(NPC_class) & NPC_class != ""] # remove NA and empty
-
-sirius_annot_filtered <- sirius_annot %>%
-  # select(id = 1, NPC_pathway = 30, NPC_class = 34) %>%
-  select(id = 1, NPC_class = 36, NPC_superclass = 34, NPC_pathway = 32) %>%
-  # select(id = 1, NPC_pathway = 30, NPC_superclass = 32) %>%
-  filter(id %in% rownames(distance_matrix)) # get features with fingerprints
-
-rownames(sirius_annot_filtered) <- sirius_annot_filtered$id
-sirius_annot_filtered$id <- NULL
-
-ann_colors = list(
-    NPC_pathway = setNames(brewer.pal(length(NPC_pathway), "Set2"), NPC_pathway),
-    NPC_class = setNames(viridis(length(NPC_class)), NPC_class),
-    NPC_superclass = setNames(viridis(length(NPC_superclass)), NPC_superclass)
-    )
-```
-
-The ann_colors will be plotted along with the heapmap to show which
-chemical class each features are included in. The heatmap can be
-visualized as follows:
-
-``` R
-pdf("plots/heatmap/dreams_total_Z.pdf", width = 15, height = 20)
-pheatmap(mat = HMinput$FC_matrix, 
-     cluster_rows = TRUE, #do not change
-     clustering_distance_rows = HMinput$dist_matrix, # Delete this line for UPGMA clustering of rows
-     cluster_cols = FALSE, 
-     clustering_method = "average", #UPGMA
-     show_rownames = TRUE, 
-     show_colnames = TRUE,
-     annotation_row = sirius_annot_filtered, # Dataframe with the rownames are identical with 'mat' and gives annotation
-     annotation_colors = ann_colors,
-     cellwidth = 25,
-     cellheight = 0.05,
-     treeheight_row = 100,
-     fontsize_row = 3,
-     fontsize_col = 15,
-     scale = 'none',
-     annotation_names_row = TRUE,
-    #  labels_row = row_label,
-     border_color = NA,
-     color = colorRampPalette(c("blue", "white", "red"))(100))
-dev.off()
-```
-
-## 7. Chemical class enrichment analysis
-
-Biological questions ask which class of chemical compounds are enriched
-in a set of compounds of interest (e.g., DAMs from above). This is
-analogue to the Gene Ontology enrichment analysis performed in
-transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus
-of SIRIUS are used to perform chemical class enrichment analysis of
-given list of features. The enrichment score of each term is calculated
-to plot the number of each term and the significance.
-
-``` R
-# 7.1. For a single set of features, a detailed enrichment plot can be generated
-# There are two plotting styles available
-CanopusListEnrichmentPlot(mmo, DAMs_up$ctrl_vs_sl1.up, pthr = 0.1, outdir = 'plots/enrichment/sl1_up.pdf', height = 6, width = 6)
-CanopusListEnrichmentPlot_2(mmo, DAMs_up$ctrl_vs_sl1.up, pthr = 0.1, outdir = 'plots/enrichment/sl1_up_2.pdf', topn = 10, height = 6, width = 6)
-```
-
-![Screenshot 2025-09-01 at 9 17
-04 AM](https://github.com/user-attachments/assets/66bb1636-6baa-4c08-b70a-70a7dde276bf)
-
-``` R
-# 7.2. For a list of sets features, a summary enrichment plot can be generated
-# The summary enrichment plot can be generated for either a single level of CANOPUS classification (8.2.1) or for all levels (8.2.2)
-# 7.2.1. For a single level of CANOPUS classification
-term_levels <- c('NPC_class', 'NPC_superclass', 'NPC_pathway', 'ClassyFire_most_specific', 'ClassyFire_level5', 'ClassyFire_subclass', 'ClassyFire_class', 'ClassyFire_superclass')
-CanopusLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'NPC_class', pthr = 0.1, prefix = 'plots/enrichment/DAMs_up_NPC_class.pdf')
-
-
-# 7.2.2. For all levels of CANOPUS classification
-# All levels, or onlt NPC or ClassyFire
-terms <- c('NPC', 'ClassyFire', 'all_terms')
-CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'all_terms', pthr = 0.1, prefix = 'plots/enrichment/DAMs_up_all_terms', width = 8, height = 12)
-```
-
-![Screenshot 2025-09-01 at 9 17
-23 AM](https://github.com/user-attachments/assets/0dac0d0d-8078-496d-8e4d-8285f74e475e)
-
-## 8. Regression with Metadata
-
-We are interested in finding anti-herbivore resistive compounds from the
-plant metabolome and testing whether such compounds are upregulated by
-insect attack. To do so, we first fit linear mixed model to the amount
-of each feature and the herbivore performance fed on each plant sample
-(see metadata). The negative effect size of the model represents the
-resistive value of the feature. We then test whether resistive features
-are upregulated (log2FC \> 1) by plotting the effect size of the LMM and
-the log2FC as scatter plot. In the demo file, resistive compounds (which
-have neative effect sizes) were upregulated, which implies plants
-produce resistive compounds properly in response to sl attack. The
-analysis can be done as follows:
-
-``` R
-# To perform regression, the phenotype of interest should be defined in the metadata as a column
-# 8.1. Regression of individual feature against a phenotype
-# model can be 'lm' or 'pearson' or 'lmm'
-# groups can be a vector of group names, or a single group name which has the phenotpye values in the metadata
-FeaturePerformanceRegression(mmo, target = '477.0636_7.5687', phenotype = 'sl', groups = c('sl1'), 
-  model = 'lm', normalization = 'Z', 
-  output = paste('plots/phenotype_regression/477.0636_7.5687_sl_lm.pdf'))
-
-
-
-# 8.2. Regression of all features against a phenotype and plotting the results 
-sl.lm <- GetPerformanceFeatureRegression(mmo, phenotype = 'sl', groups = c('sl1'), 
-                                        DAM.list = list(sl.up = DAMs_up$ctrl_vs_sl1.up, sl.down = DAMs_down$ctrl_vs_sl1.down), comparisons = c('ctrl_vs_sl1'))
-sl.lm.sig <- sl.lm %>% filter(p_value < 0.1)
-head(sl.lm.sig)
-
-sl.cor <- GetPerformanceFeatureCorrelation(mmo, phenotype = 'sl', groups = c('sl1'), 
-                                        DAM.list = list(sl.up = DAMs_up$ctrl_vs_sl1.up, sl.down = DAMs_down$ctrl_vs_sl1.down), comparisons = c('ctrl_vs_sl1'))
-sl.cor.sig <- sl.cor %>% filter(p_value < 0.1)
-head(sl.cor.sig)
-
-# One may want to plot the regression results along with the fold change values
-PlotFoldchangeResistanceRegression(sl.lm.sig, fold_change = 'ctrl_vs_sl1_log2FC', 
-                                   color = c('sl.up' = '#d42525ff', 'sl.down' = '#281e99ff'), 
-                                   output_dir = 'plots/phenotype_regression/sl_lm_sig.pdf')
-```
-
-![Screenshot 2025-09-01 at 9 17
-57 AM](https://github.com/user-attachments/assets/252801ee-4201-46b4-9cf2-2eb2c3c58b80)
-
-## 9. Chemical Diversity Measures
-
-The chemical diversity is one of the key parameters in ecological
-studies. MMO quantifies the chemical diversity idices using idea from
-`ChemoDiv` package. The fingerprint distances are treated as
-phylogenetic diversity as in measuring taxonomic diversity. Alpha
-diversity can be calculated as following.
-
-``` R
-# 9.1. Alpha diversity by Hill numbers
-# q : Hill number order, 0 for richness, 1 for Shannon, 2 for Simpson
-# mode : weighted for the chemical structure (use distance argument), unweighted for no chemical weight
-# filter_feature : if TRUE, only features in the feature_list are used
-# feature_list : a list of features to filter the alpha diversity calculation
-alphadiv <- GetAlphaDiversity(mmo, q = 3, normalization = 'Log', mode = 'weighted', distance = 'dreams', filter_feature = FALSE, feature_list = NULL)
-
-# 9.1.1 Plot the alpha diversity
-ggplot(alphadiv, aes(x = group, y = hill_number)) +
-  geom_boxplot(outlier.shape = NA) +
-  geom_beeswarm(size = 0.5) +
-  theme_classic() +
-  labs(title = 'Alpha Diversity by Hill Numbers', x = 'Group', y = 'Hill Number') +
-  theme(legend.position = "none", axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
-ggsave('plots/alphadiv/dreams_q3_log.pdf', width = 5, height = 5)
-# Test for significant differences between groups with ANOVA
-anova <- anova_tukey_dunnett(alphadiv, 'hill_number ~ group')
-write_anova(anova, 'plots/alphadiv/anova_hill_number.csv')
-```
-
-![Screenshot 2025-09-01 at 9 18
-39 AM](https://github.com/user-attachments/assets/4f053178-0888-4ef0-b0cb-8ce7460d64d7)
-
-``` R
-# 9.1.2 Plot the feature distribution
-# Function to plot histogram of values for each feature for given groups
-groups <- c('ctrl', 'sl1', 'le1')
-group.mean <- GetGroupMeans(mmo, normalization = 'Z', filter_feature = FALSE, feature_list = NULL)[,-1]
-long.group.mean <- data.frame(value = double(), group = character())
-for (group in groups) {
-  group_data <- data.frame(value = group.mean[, group], group = group)
-  colnames(group_data) <- c('value', 'group')
-  long.group.mean <- rbind(long.group.mean, group_data)
-}
-
-ggplot(data = long.group.mean, aes(x = value, fill = group, color = group)) +
-  geom_density(position = 'identity', alpha = 0) +
-  theme_classic() +
-  labs(x = "Normalized peak intensity", y = "Density") +
-  # scale_fill_manual(values = custom_colors) +
-  theme(legend.position = "right")
-ggsave('plots/alphadiv/density_function_Z.pdf', height = 6, width = 6)
-```
-
-![Screenshot 2025-09-01 at 9 18
-57 AM](https://github.com/user-attachments/assets/83419d41-76e5-49ea-875d-cf2f5148a67f)
-
-``` R
-metadata <- mmo$metadata
-feature <- mmo$zscore
-# The distribution should be shown!
-plot_data <- data.frame(value = double(), rank = double(), sample = character(), group = character())
-for (group in groups) {
-  group_samples <- metadata %>% filter(group == !!group) %>% pull(sample)
-  for (sample in group_samples) {
-    sample_data <- unlist(as.vector(feature[, sample]))
-    sorted_data <- sort(sample_data, decreasing = TRUE)
-    sample_plot_data <- data.frame(value = sorted_data, rank = seq_along(sorted_data), group = group, sample = sample)
-    plot_data <- rbind(plot_data, sample_plot_data)
-  }
-}
-
-
-
-ggplot(plot_data, aes(x = rank, y = value, color = group)) +
-  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2, position = position_dodge(width = 0.5), alpha = 0.06) +
-  stat_summary(fun = mean, geom = "line", position = position_dodge(width = 0.5)) +
-  theme_classic() +
-  labs(title = "Sorted Feature", x = "Rank", y = "Value")
-ggsave('plots/alphadiv/sorted_intensity_Z.png', height = 6, width = 6)
-```
-
-![Screenshot 2025-09-01 at 9 19
-19 AM](https://github.com/user-attachments/assets/1c6126f6-f5c9-41b2-ba3b-a05ec6aeef01)
-
-``` R
-# 9.2. Beta diversity
-# Calculate beta diversity for different normalizations and methods
-# For unweighted beta diversity, Bray-Curtis or Jaccard distance can be used
-bray <- GetBetaDiversity(mmo, method = 'bray', normalization = 'Log', filter_feature = FALSE, feature_list = NULL)
-jaccard <- GetBetaDiversity(mmo, method = 'jaccard', normalization = 'Log', filter_feature = FALSE, feature_list = NULL)
-
-# For weighted beta diversity, Generalized UniFrac can be used
-guni <- GetBetaDiversity(mmo, method = 'Gen.Uni', normalization = 'Log', distance = 'dreams', filter_feature = FALSE, feature_list = NULL)
-guni.0 <- guni[,,'d_0'] # GUniFrac with alpha 0
-guni.05 <- guni[,,'d_0.5'] # GUniFrac with alpha 0.5
-guni.1 <- guni[,,'d_1'] # GUniFrac with alpha 1
-
-
-# 9.2.1. NMDS plots for beta diversity
-nmds <- metaMDS(guni.05, k = 2, try = 50, trymax = 100)
-nmds_coords <- as.data.frame(scores(nmds))
-groups <- c()
-for (col in colnames(mmo$feature_data)[-c(1, 2)]) {
-  groups <- append(groups, metadata[metadata$sample == col, ]$group)
-}
-nmds_coords$group <- groups
-
-ggplot(nmds_coords, aes(x = NMDS1, y = NMDS2, color = group)) +
-      geom_point(size = 3) +
-      #geom_text_repel(aes(label = group), size = 3) +
-      theme_classic() +
-      stat_ellipse(level = 0.90) +
-      labs(x = "NMDS1", y = "NMDS2") +
-      theme(legend.position = "right")
-ggsave('plots/betadiv/NDMS_guni05.pdf', height = 6, width = 6)
-```
-
-![Screenshot 2025-09-01 at 9 19
-41 AM](https://github.com/user-attachments/assets/d18e868d-f934-4355-9d13-7dcf14b5bba0)
-
-``` R
-# 9.2.2. Quantification of beta diversity 
-group_distances <- CalculateGroupBetaDistance(mmo, beta_div = guni.05, reference_group = 'ctrl', groups = c('le1', 'sl1'))
-ggplot(group_distances, aes(x = group, y = distance)) +
-      geom_boxplot(outlier.shape = NA) +
-      geom_beeswarm(size = 0.5) +
-      theme_classic() +
-      labs(x = "Group", y = "Beta Diversity")
-ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
-```
-
-![Screenshot 2025-09-01 at 9 19
-55 AM](https://github.com/user-attachments/assets/3dcac3ac-35cf-427e-b8e2-4b462742e9e9)
-
-## 10. Exporting compounds of interest
-
-`ExportFeaturesToCSV(mmo, feature_list = DAMs_up$ctrl_vs_sl1.up, normalization = 'None', output_dir = 'output/sl1_up_features.csv')`
+------------------------------------------------------------------------
+
+## Getting started
+
+**New to eCOMET?** Start with the
+[Introduction](https://phytoecia.github.io/eCOMET/articles/eCOMET-intro.md),
+which explains the `mmo` object, required input file formats, and the
+core preprocessing steps.
+
+We currently support feature tables exported from **MZmine version 4 or
+later**. See the [MZmine
+documentation](https://mzmine.github.io/mzmine_documentation/module_docs/io/feat-list-export.html)
+for export instructions.
+
+## Tutorials
+
+eCOMET includes worked case studies covering two common study designs in
+chemical ecology:
+
+1.  [Treatment-based
+    study](https://phytoecia.github.io/eCOMET/articles/Tutorial_1_Treatment-based_study.md)
+    — comparing chemical profiles between experimental treatments;
+    covers normalization, DAM analysis, volcano plots, heatmaps, and
+    enrichment analysis
+2.  [Interspecific
+    comparisons](https://phytoecia.github.io/eCOMET/articles/Tutorial_2_Interspecific_Comparisons.md)
+    — comparing chemical diversity across co-occurring species; covers
+    feature-based and structure-aware beta diversity, NMDS, PCoA, and
+    hierarchical clustering
+3.  [Compound dendrograms and molecular
+    networks](https://phytoecia.github.io/eCOMET/articles/Tutorial_3_Dendrogram_and_Molecular_Networks.md)
+    — building and exporting chemical similarity trees and networks for
+    iTOL and Cytoscape
+
+------------------------------------------------------------------------
+
+If you have questions, find a bug, or want to suggest a new feature,
+visit the [GitHub repository](https://github.com/phytoecia/eCOMET).
+Contributions are welcome — see the
+[Contributing](https://phytoecia.github.io/eCOMET/articles/contributing.md)
+page for how to get involved.
 
 # Package index
 
 ## Core dataset processing
+
+Build and populate the mmo object from MZmine outputs and annotation
+tools.
 
 - [`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md)
   : Import MZmine feature table and metadata to create a mmo object
@@ -558,18 +156,20 @@ ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
   : Adding annotation from SIRIUS to the mmo object
 - [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md)
   : Add chemical distance matrices to the mmo object
+- [`AddCustomDist()`](https://phytoecia.github.io/eCOMET/reference/AddCustomDist.md)
+  : Add a custom feature distance matrix to the mmo object
 - [`AddCustomAnnot()`](https://phytoecia.github.io/eCOMET/reference/AddCustomAnnot.md)
   : Add custom annotations to an mmo object
-- [`LogNormalization()`](https://phytoecia.github.io/eCOMET/reference/LogNormalization.md)
-  : Log-normalize the peak area in the mmo object
+- [`ReplaceZero()`](https://phytoecia.github.io/eCOMET/reference/ReplaceZero.md)
+  : \#' Replace zero and NA values in the mmo object
 - [`MassNormalization()`](https://phytoecia.github.io/eCOMET/reference/MassNormalization.md)
   : Use sample mass in the metadata file to normalize the peak area
+- [`LogNormalization()`](https://phytoecia.github.io/eCOMET/reference/LogNormalization.md)
+  : Log-normalize the peak area in the mmo object
 - [`MeancenterNormalization()`](https://phytoecia.github.io/eCOMET/reference/MeancenterNormalization.md)
   : Mean-center the peak area in the mmo object
 - [`ZNormalization()`](https://phytoecia.github.io/eCOMET/reference/ZNormalization.md)
   : Z-normalize the peak area in the mmo object
-- [`ReplaceZero()`](https://phytoecia.github.io/eCOMET/reference/ReplaceZero.md)
-  : Replace zero and NA values in the mmo object
 - [`ReorderGroups()`](https://phytoecia.github.io/eCOMET/reference/ReorderGroups.md)
   : Reorder samples in the mmo object based on group order
 - [`SwitchGroup()`](https://phytoecia.github.io/eCOMET/reference/SwitchGroup.md)
@@ -577,7 +177,10 @@ ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
 - [`FeaturePresence()`](https://phytoecia.github.io/eCOMET/reference/FeaturePresence.md)
   : Convert feature abundances to presence / absence
 
-## Filterng MMO and associated MGF
+## Filtering
+
+Subset the mmo object by samples, groups, or features, and keep
+associated MGF spectral files in sync.
 
 - [`filter_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mmo.md)
   : Filter an mmo object by samples, groups, and/or features
@@ -594,32 +197,71 @@ ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
   : Filter SIRIUS structure (CSI:FingerID) annotations by COSMIC
   confidence score
 
-## Basic statistics and visualization
+## Differential analysis & visualization
+
+Identify and visualize differentially accumulated metabolites between
+groups.
 
 - [`PairwiseComp()`](https://phytoecia.github.io/eCOMET/reference/PairwiseComp.md)
   : Perform pairwise comparison between two groups in the mmo object
+- [`GetDAMs()`](https://phytoecia.github.io/eCOMET/reference/GetDAMs.md)
+  : Generates lists of DAMs (Differentially Accumulated Metabolites) for
+  each comparison in the mmo object
+- [`GetLog2FoldChange()`](https://phytoecia.github.io/eCOMET/reference/GetLog2FoldChange.md)
+  : Calculate log2 fold change for a given control group
+- [`GetGroupMeans()`](https://phytoecia.github.io/eCOMET/reference/GetGroupMeans.md)
+  : Calculate group means from the mmo object
 - [`VolcanoPlot()`](https://phytoecia.github.io/eCOMET/reference/VolcanoPlot.md)
   : Volcano plot for visualizing differential metabolite analysis
   results
-- [`PCAplot()`](https://phytoecia.github.io/eCOMET/reference/PCAplot.md)
-  : Plots PCA and performs PERMANOVA
-- [`PLSDAplot()`](https://phytoecia.github.io/eCOMET/reference/PLSDAplot.md)
-  : PLS-DA plot with feature loadings
 - [`AnovaBarPlot()`](https://phytoecia.github.io/eCOMET/reference/AnovaBarPlot.md)
   : Generate barplots for each feature and perform ANOVA
 - [`GenerateHeatmapInputs()`](https://phytoecia.github.io/eCOMET/reference/GenerateHeatmapInputs.md)
   : Generate input files to be used for pheatmap from the mmo object
-- [`GetDAMs()`](https://phytoecia.github.io/eCOMET/reference/GetDAMs.md)
-  : Generates lists of DAMs (Differentially Accumulated Metabolites) for
-  each comparison in the mmo object
-- [`GetGroupMeans()`](https://phytoecia.github.io/eCOMET/reference/GetGroupMeans.md)
-  : Calculate group means from the mmo object
-- [`GetLog2FoldChange()`](https://phytoecia.github.io/eCOMET/reference/GetLog2FoldChange.md)
-  : Calculate log2 fold change for a given control group
+
+## Ordination & clustering
+
+Multivariate methods for comparing samples and groups.
+
+- [`PCAplot()`](https://phytoecia.github.io/eCOMET/reference/PCAplot.md)
+  : Plots PCA and performs PERMANOVA
+- [`PLSDAplot()`](https://phytoecia.github.io/eCOMET/reference/PLSDAplot.md)
+  : PLS-DA plot with feature loadings
+- [`NMDSplot()`](https://phytoecia.github.io/eCOMET/reference/NMDSplot.md)
+  : NMDSplot
+- [`PCoAplot()`](https://phytoecia.github.io/eCOMET/reference/PCoAplot.md)
+  : PCoAplot
 - [`HCplot()`](https://phytoecia.github.io/eCOMET/reference/HCplot.md) :
   HCplot
 
+## Chemical diversity
+
+Alpha and beta diversity metrics incorporating feature abundance and
+chemical distances.
+
+- [`GetAlphaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.md)
+  : GetAlphaDiversity
+- [`GetBetaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetBetaDiversity.md)
+  : GetBetaDiversity
+- [`GetRichness()`](https://phytoecia.github.io/eCOMET/reference/GetRichness.md)
+  : GetRichness
+- [`GetHillNumbers()`](https://phytoecia.github.io/eCOMET/reference/GetHillNumbers.md)
+  : GetHillNumbers
+- [`GetFunctionalHillNumber()`](https://phytoecia.github.io/eCOMET/reference/GetFunctionalHillNumber.md)
+  : GetFunctionalHillNumber
+- [`GetFaithPD()`](https://phytoecia.github.io/eCOMET/reference/GetFaithPD.md)
+  : GetFaithPD
+- [`RarefactionAUC()`](https://phytoecia.github.io/eCOMET/reference/RarefactionAUC.md)
+  : RarefactionAUC
+- [`CalculateGroupBetaDistance()`](https://phytoecia.github.io/eCOMET/reference/CalculateGroupBetaDistance.md)
+  : CalculateGroupBetaDistance
+- [`GetSpecializationIndex()`](https://phytoecia.github.io/eCOMET/reference/GetSpecializationIndex.md)
+  : GetSpecializationIndex
+
 ## Chemical class analysis
+
+Enrichment and visualization of compound classes using SIRIUS/CANOPUS
+annotations.
 
 - [`CanopusLevelEnrichmentAnal()`](https://phytoecia.github.io/eCOMET/reference/CanopusLevelEnrichmentAnal.md)
   : Enrichment analysis for Canopus-predicted terms
@@ -634,43 +276,28 @@ ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
 - [`CanopusAllLevelEnrichmentPlot()`](https://phytoecia.github.io/eCOMET/reference/CanopusAllLevelEnrichmentPlot.md)
   : Generate a plot for enrichment analysis of Canopus-predicted terms
   across all levels
+- [`PlotNPCStackedBar()`](https://phytoecia.github.io/eCOMET/reference/PlotNPCStackedBar.md)
+  : PlotNPCStackedBar
 - [`MSEA()`](https://phytoecia.github.io/eCOMET/reference/MSEA.md) :
   Metabolite Set Enrichment Analysis (MSEA)
 
-## Chemical diversity Analysis
+## Compound networks & dendrograms
 
-- [`GetRichness()`](https://phytoecia.github.io/eCOMET/reference/GetRichness.md)
-  : GetRichness
-- [`GetAlphaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.md)
-  : GetAlphaDiversity
-- [`GetFunctionalHillNumber()`](https://phytoecia.github.io/eCOMET/reference/GetFunctionalHillNumber.md)
-  : GetFunctionalHillNumber
-- [`GetHillNumbers()`](https://phytoecia.github.io/eCOMET/reference/GetHillNumbers.md)
-  : GetHillNumbers
-- [`GetBetaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetBetaDiversity.md)
-  : GetBetaDiversity
-- [`NMDSplot()`](https://phytoecia.github.io/eCOMET/reference/NMDSplot.md)
-  : NMDSplot
-- [`PCoAplot()`](https://phytoecia.github.io/eCOMET/reference/PCoAplot.md)
-  : PCoAplot
-- [`CalculateGroupBetaDistance()`](https://phytoecia.github.io/eCOMET/reference/CalculateGroupBetaDistance.md)
-  : CalculateGroupBetaDistance
-- [`GetSpecializationIndex()`](https://phytoecia.github.io/eCOMET/reference/GetSpecializationIndex.md)
-  : GetSpecializationIndex
-- [`PlotNPCStackedBar()`](https://phytoecia.github.io/eCOMET/reference/PlotNPCStackedBar.md)
-  : PlotNPCStackedBar
-- [`BootCumulRichnessAUC()`](https://phytoecia.github.io/eCOMET/reference/BootCumulRichnessAUC.md)
-  : BootCumulRichnessAUC
-- [`BootstrapCumulativeRichness()`](https://phytoecia.github.io/eCOMET/reference/BootstrapCumulativeRichness.md)
-  : BootstrapCumulativeRichness
-- [`CalcNormalizedAUC()`](https://phytoecia.github.io/eCOMET/reference/CalcNormalizedAUC.md)
-  : CalcNormalizedAUC
-- [`CalculateCumulativeRichness()`](https://phytoecia.github.io/eCOMET/reference/CalculateCumulativeRichness.md)
-  : CalculateCumulativeRichness
-- [`CalculateNullCumulativeRichness()`](https://phytoecia.github.io/eCOMET/reference/CalculateNullCumulativeRichness.md)
-  : CalculateNullCumulativeRichness
+Build chemical similarity trees and export to iTOL or Cytoscape.
 
-## Metadata regression analysis
+- [`FeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/FeatureDendrogram.md)
+  : FeatureDendrogram
+- [`PlotFeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/PlotFeatureDendrogram.md)
+  : PlotFeatureDendrogram
+- [`ExportITOL()`](https://phytoecia.github.io/eCOMET/reference/ExportITOL.md)
+  : ExportITOL
+- [`ExportCytoscape()`](https://phytoecia.github.io/eCOMET/reference/ExportCytoscape.md)
+  : ExportCytoscape
+
+## Phenotype association
+
+Correlate individual features or metabolite sets with continuous
+ecological variables.
 
 - [`FeaturePhenotypeCorrelation()`](https://phytoecia.github.io/eCOMET/reference/FeaturePhenotypeCorrelation.md)
   : FeaturePhenotypeCorrelation
@@ -689,22 +316,43 @@ ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
 - [`PlotFoldchangeResistanceRegression_t()`](https://phytoecia.github.io/eCOMET/reference/PlotFoldchangeResistanceRegression_t.md)
   : PlotFoldchangeResistanceRegression_t
 
-## Output
+## Save & export
 
-- [`ExportFeaturesToCSV()`](https://phytoecia.github.io/eCOMET/reference/ExportFeaturesToCSV.md)
-  : ExportFeaturesToCSV
+Save mmo objects and export results.
+
 - [`SaveMMO()`](https://phytoecia.github.io/eCOMET/reference/SaveMMO.md)
   : Save entire mmo object to a file (RDS)
 - [`LoadMMO()`](https://phytoecia.github.io/eCOMET/reference/LoadMMO.md)
   : Load an mmo object previously saved with SaveMMO
+- [`ExportFeaturesToCSV()`](https://phytoecia.github.io/eCOMET/reference/ExportFeaturesToCSV.md)
+  : ExportFeaturesToCSV
+- [`pool_mmo_by_group()`](https://phytoecia.github.io/eCOMET/reference/pool_mmo_by_group.md)
+  : pool_mmo_by_group
 
-## misc
+## Utilities
+
+Helper functions for data access, formatting, and internal calculations.
+
+- [`GetDistanceMat()`](https://phytoecia.github.io/eCOMET/reference/GetDistanceMat.md)
+  : Get the distance matrix from the mmo object based on the specified
+  distance metric
+
+- [`GetNormFeature()`](https://phytoecia.github.io/eCOMET/reference/GetNormFeature.md)
+  : Retrieve feature data from the mmo object, with normalization
+  options
 
 - [`FeatureToID()`](https://phytoecia.github.io/eCOMET/reference/FeatureToID.md)
   : Convert feature names to IDs in the mmo object
 
 - [`IDToFeature()`](https://phytoecia.github.io/eCOMET/reference/IDToFeature.md)
   : Convert feature IDs to names in the mmo object
+
+- [`print(`*`<mmo>`*`)`](https://phytoecia.github.io/eCOMET/reference/print.mmo.md)
+  :
+
+  Print method for mmo objects Provides a clean, human-readable overview
+  of an `mmo` list object instead of dumping the entire list when the
+  object is printed in the console.
 
 - [`anova_tukey_dunnett()`](https://phytoecia.github.io/eCOMET/reference/anova_tukey_dunnett.md)
   : Perform ANOVA and Tukey's HSD test on the mmo object
@@ -715,27 +363,18 @@ ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
 - [`permanova_stat()`](https://phytoecia.github.io/eCOMET/reference/permanova_stat.md)
   : Perform PERMANOVA and pairwise comparisons
 
-- [`GetDistanceMat()`](https://phytoecia.github.io/eCOMET/reference/GetDistanceMat.md)
-  : Get the distance matrix from the mmo object based on the specified
-  distance metric
-
-- [`GetNormFeature()`](https://phytoecia.github.io/eCOMET/reference/GetNormFeature.md)
-  : Retrieve feature data from the mmo object, with normalization
-  options
-
-- [`filter_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mmo.md)
-  : Filter an mmo object by samples, groups, and/or features
-
-- [`print(`*`<mmo>`*`)`](https://phytoecia.github.io/eCOMET/reference/print.mmo.md)
-  :
-
-  Print method for mmo objects Provides a clean, human-readable overview
-  of an `mmo` list object instead of dumping the entire list when the
-  object is printed in the console.
-
 # Articles
 
 ### Tutorials
 
 - [eCOMET-intro](https://phytoecia.github.io/eCOMET/articles/eCOMET-intro.md):
-- [Treatment-based_study_tutorial](https://phytoecia.github.io/eCOMET/articles/Treatment-based_study_tutorial.md):
+- [Tutorial_1_Treatment-based_study](https://phytoecia.github.io/eCOMET/articles/Tutorial_1_Treatment-based_study.md):
+- [Tutorial 2: Interspecific
+  Ecometabolomics](https://phytoecia.github.io/eCOMET/articles/Tutorial_2_Interspecific_Comparisons.md):
+- [UNKNOWN
+  TITLE](https://phytoecia.github.io/eCOMET/articles/Tutorial_3_Dendrogram_and_Molecular_Networks.md):
+
+### Contributing
+
+- [How to
+  Contribute](https://phytoecia.github.io/eCOMET/articles/contributing.md):

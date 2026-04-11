@@ -1,32 +1,28 @@
 # GetRichness
 
-This function calculates the richness of features for each sample in the
-mmo object. Richness is defined as the number of non-missing features
-observed in each sample.
+Sample-level richness: number of features present in each sample. A
+feature is present if value \> threshold; 0 never counts as present.
 
 ## Usage
 
 ``` r
-GetRichness(mmo, filter_feature = FALSE, feature_list = NULL)
+GetRichness(feature_data, metadata, threshold = 0)
 ```
 
 ## Arguments
 
-- mmo:
+- feature_data:
 
-  The mmo object containing feature data and metadata
+  Feature table with columns: id, feature, then sample columns
 
-- filter_feature:
+- metadata:
 
-  A boolean indicating whether to filter features based on a provided
-  list (default: FALSE)
+  Metadata table with sample and group columns
 
-- feature_list:
+- threshold:
 
-  A list of features to include in the richness calculation if
-  filter_feature is TRUE (default: NULL)
+  Numeric; detection threshold for presence (default: 0)
 
 ## Value
 
-A data frame containing the richness for each sample, with columns for
-sample, richness, and group.
+data.frame with columns: sample, group, richness

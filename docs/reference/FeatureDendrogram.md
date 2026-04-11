@@ -1,8 +1,10 @@
-# Build a feature dendrogram from a dissimilarity matrix
+# FeatureDendrogram
 
-Given a feature-to-feature dissimilarity matrix (e.g., DREAMS, cosine,
-MS2DeepScore), cluster the features and optionally write a Newick tree
-for visualization in tools like iTOL.
+Build a feature-to-feature dendrogram from a dissimilarity matrix stored
+in the mmo object. Optionally collapses within-group distances for ion
+identity or correlation groups so that adducts/isotopes of the same
+compound cluster together before chemical distance drives the
+higher-level topology.
 
 ## Usage
 
@@ -12,13 +14,12 @@ FeatureDendrogram(
   distance = "dreams",
   features = NULL,
   method = "average",
-  save_output = FALSE,
-  outprefix = "feature_tree",
-  layout = c("base", "circular"),
-  npl_col = "NPC#class",
-  group_col = "group",
-  add_group_bars = TRUE,
-  abundance_fun = c("mean", "sum")
+  ion_identity = c("none", "correlation", "ion_identity_network"),
+  corr_col = "feature_group",
+  iin_col = "ion_identities:iin_id",
+  within_group_dist = 0.01,
+  save_newick = FALSE,
+  outprefix = "feature_tree"
 )
 ```
 
@@ -26,69 +27,101 @@ FeatureDendrogram(
 
 - mmo:
 
-  The mmo object containing one or more dissimilarity matrices (e.g.,
-  `dreams.dissim`)
+  mmo object. Must contain the requested dissimilarity matrix (added via
+  [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md)
+  or
+  [`AddCustomDist()`](https://phytoecia.github.io/eCOMET/reference/AddCustomDist.md))
+  and, for ion identity modes, `mmo$feature_info`.
 
 - distance:
 
-  Which dissimilarity matrix to use; one of "dreams", "cos", or "m2ds"
-  (default: "dreams")
+  Name of the dissimilarity matrix to use (default: `"dreams"`). Passed
+  to
+  [`GetDistanceMat()`](https://phytoecia.github.io/eCOMET/reference/GetDistanceMat.md);
+  supports built-in and custom names.
 
 - features:
 
-  Optional character vector of feature IDs to include; if NULL, all
-  features in the matrix are used
+  Optional character vector of feature IDs to include. `NULL` (default)
+  uses all features in the distance matrix.
 
 - method:
 
-  Clustering linkage method passed to
-  [`stats::hclust`](https://rdrr.io/r/stats/hclust.html) (default:
-  "average")
+  hclust linkage method (default: `"average"`). Other sensible choices:
+  `"complete"`, `"ward.D2"`.
 
-- save_output:
+- ion_identity:
 
-  Logical; if TRUE, write a Newick tree (`<outprefix>.nwk`) and a PDF
-  dendrogram (`<outprefix>.pdf`)
+  One of `"none"`, `"correlation"`, `"ion_identity_network"` (default:
+  `"none"`).
+
+- corr_col:
+
+  Column in `mmo$feature_info` containing MZmine correlation group IDs
+  (default: `"feature_group"`). Used when
+  `ion_identity = "correlation"`.
+
+- iin_col:
+
+  Column in `mmo$feature_info` containing MZmine IIN IDs (default:
+  `"ion_identities:iin_id"`). Used when
+  `ion_identity = "ion_identity_network"`.
+
+- within_group_dist:
+
+  Distance assigned to pairs within the same ion identity group
+  (default: `0.01`). A small positive value rather than 0 avoids
+  degenerate zero-height clusters in the tree while still pulling
+  grouped features together. Must be in `[0, 1]`.
+
+- save_newick:
+
+  Logical; if `TRUE` writes a Newick file (`<outprefix>.nwk`) of the
+  tree (default: `FALSE`).
 
 - outprefix:
 
-  File prefix for outputs when `save_output` is TRUE (default:
-  "feature_tree")
-
-- layout:
-
-  Choose "base" (original rectangular tree) or "circular" (ggtree-based
-  circular layout with annotation rings)
-
-- npl_col:
-
-  Column in `mmo$sirius_annot` used to color tips (e.g., "NPC#class");
-  ignored if missing
-
-- group_col:
-
-  Column in `mmo$metadata` that defines sample groups for tip bars
-
-- add_group_bars:
-
-  Logical; when TRUE, draws stacked bars at the tips summarizing feature
-  abundance by `group_col`
-
-- abundance_fun:
-
-  Aggregation used for group bars: "mean" (default) or "sum" over
-  samples within a group
+  File prefix used when `save_newick = TRUE` (default:
+  `"feature_tree"`).
 
 ## Value
 
-A list with `hclust` (the clustering), `dendrogram`, `phylo` (ape::phylo
-object), and when `layout = "circular"` a `ggplot` named `plot`
+A named list with:
+
+- `hclust` – the `hclust` object
+
+- `dendrogram` – the `dendrogram` object
+
+- `phylo` – the `phylo` object (for ape/iTOL)
+
+- `dist_used` – the (possibly modified) distance matrix used
+
+- `tip_map` – data.frame of feature ID -\> group assignment (`NULL` when
+  `ion_identity = "none"`)
+
+## Details
+
+**Ion identity options:**
+
+- `"none"` – use the raw dissimilarity matrix as-is.
+
+- `"correlation"` – features sharing the same MZmine correlation group
+  (typically co-eluting features likely derived from the same compound)
+  are assigned `within_group_dist` before clustering.
+
+- `"ion_identity_network"` – features linked by MZmine ion identity
+  networking (confirmed adducts / isotopes) are assigned
+  `within_group_dist` before clustering.
+
+In both grouped modes the constraint is applied symmetrically and the
+diagonal is forced to 0 after the assignment.
 
 ## Examples
 
 ``` r
 if (FALSE) {
-tree <- FeatureDendrogram(mmo, distance = "dreams", features = NULL, method = "average",
-                          save_output = TRUE, outprefix = "dreams_tree")
+tree <- FeatureDendrogram(mmo, distance = "dreams")
+tree_iin <- FeatureDendrogram(mmo, distance = "dreams",
+                              ion_identity = "ion_identity_network")
 }
 ```

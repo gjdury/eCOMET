@@ -10,7 +10,7 @@ default regression line of the plot uses linear model
 ``` r
 FeaturePhenotypeCorrelation(
   mmo,
-  feature,
+  feature_id,
   phenotype,
   groups,
   model = "lm",
@@ -28,9 +28,9 @@ FeaturePhenotypeCorrelation(
 
   The mmo object with feature data and metadata
 
-- feature:
+- feature_id:
 
-  The name of the feature to analyze
+  The id of the feature to analyze
 
 - phenotype:
 

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">ecomet</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +17,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Tutorials</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/contributing.html">Contributing</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/Phytoecia/eCOMET"><span class="fa fab fa-github"></span></a></li>
 <li class="nav-item"><form class="form-inline" role="search">
@@ -35,10 +36,9 @@
     <div class="section level2">
       <h2 id="core-dataset-processing">Core dataset processing<a class="anchor" aria-label="anchor" href="#core-dataset-processing"></a></h2>
 
+      <div class="section-desc"><p>Build and populate the mmo object from MZmine outputs and annotation tools.</p></div>
 
-
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -49,79 +49,96 @@
 
         </dt>
         <dd>Import MZmine feature table and metadata to create a mmo object</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="AddSiriusAnnot.html">AddSiriusAnnot()</a></code>
 
         </dt>
         <dd>Adding annotation from SIRIUS to the mmo object</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="AddChemDist.html">AddChemDist()</a></code>
 
         </dt>
         <dd>Add chemical distance matrices to the mmo object</dd>
-      </dl><dl><dt>
+
+        <dt>
+
+          <code><a href="AddCustomDist.html">AddCustomDist()</a></code>
+
+        </dt>
+        <dd>Add a custom feature distance matrix to the mmo object</dd>
+
+        <dt>
 
           <code><a href="AddCustomAnnot.html">AddCustomAnnot()</a></code>
 
         </dt>
         <dd>Add custom annotations to an mmo object</dd>
-      </dl><dl><dt>
 
-          <code><a href="LogNormalization.html">LogNormalization()</a></code>
-
-        </dt>
-        <dd>Log-normalize the peak area in the mmo object</dd>
-      </dl><dl><dt>
-
-          <code><a href="MassNormalization.html">MassNormalization()</a></code>
-
-        </dt>
-        <dd>Use sample mass in the metadata file to normalize the peak area</dd>
-      </dl><dl><dt>
-
-          <code><a href="MeancenterNormalization.html">MeancenterNormalization()</a></code>
-
-        </dt>
-        <dd>Mean-center the peak area in the mmo object</dd>
-      </dl><dl><dt>
-
-          <code><a href="ZNormalization.html">ZNormalization()</a></code>
-
-        </dt>
-        <dd>Z-normalize the peak area in the mmo object</dd>
-      </dl><dl><dt>
+        <dt>
 
           <code><a href="ReplaceZero.html">ReplaceZero()</a></code>
 
         </dt>
         <dd>#' Replace zero and NA values in the mmo object</dd>
-      </dl><dl><dt>
+
+        <dt>
+
+          <code><a href="MassNormalization.html">MassNormalization()</a></code>
+
+        </dt>
+        <dd>Use sample mass in the metadata file to normalize the peak area</dd>
+
+        <dt>
+
+          <code><a href="LogNormalization.html">LogNormalization()</a></code>
+
+        </dt>
+        <dd>Log-normalize the peak area in the mmo object</dd>
+
+        <dt>
+
+          <code><a href="MeancenterNormalization.html">MeancenterNormalization()</a></code>
+
+        </dt>
+        <dd>Mean-center the peak area in the mmo object</dd>
+
+        <dt>
+
+          <code><a href="ZNormalization.html">ZNormalization()</a></code>
+
+        </dt>
+        <dd>Z-normalize the peak area in the mmo object</dd>
+
+        <dt>
 
           <code><a href="ReorderGroups.html">ReorderGroups()</a></code>
 
         </dt>
         <dd>Reorder samples in the mmo object based on group order</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="SwitchGroup.html">SwitchGroup()</a></code>
 
         </dt>
         <dd>Switch the group column in the mmo object</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="FeaturePresence.html">FeaturePresence()</a></code>
 
         </dt>
         <dd>Convert feature abundances to presence / absence</dd>
       </dl></div><div class="section level2">
-      <h2 id="filterng-mmo-and-associated-mgf">Filterng MMO and associated MGF<a class="anchor" aria-label="anchor" href="#filterng-mmo-and-associated-mgf"></a></h2>
+      <h2 id="filtering">Filtering<a class="anchor" aria-label="anchor" href="#filtering"></a></h2>
 
+      <div class="section-desc"><p>Subset the mmo object by samples, groups, or features, and keep associated MGF spectral files in sync.</p></div>
 
-
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -132,37 +149,40 @@
 
         </dt>
         <dd>Filter an mmo object by samples, groups, and/or features</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="filter_mgf_to_mmo.html">filter_mgf_to_mmo()</a></code>
 
         </dt>
         <dd>Filter an MGF file to keep only spectra for features present in mmo$feature_data$id</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="annotate_feature_info_ms2_from_mgf.html">annotate_feature_info_ms2_from_mgf()</a></code>
 
         </dt>
         <dd>Annotate mmo$feature_info with MS2 presence and MS2 block counts from an MGF</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="filter_canopus_annotations.html">filter_canopus_annotations()</a></code>
 
         </dt>
         <dd>Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="filter_cosmic_structure.html">filter_cosmic_structure()</a></code>
 
         </dt>
         <dd>Filter SIRIUS structure (CSI:FingerID) annotations by COSMIC confidence score</dd>
       </dl></div><div class="section level2">
-      <h2 id="basic-statistics-and-visualization">Basic statistics and visualization<a class="anchor" aria-label="anchor" href="#basic-statistics-and-visualization"></a></h2>
+      <h2 id="differential-analysis-visualization">Differential analysis &amp; visualization<a class="anchor" aria-label="anchor" href="#differential-analysis-visualization"></a></h2>
 
+      <div class="section-desc"><p>Identify and visualize differentially accumulated metabolites between groups.</p></div>
 
-
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -173,114 +193,98 @@
 
         </dt>
         <dd>Perform pairwise comparison between two groups in the mmo object</dd>
-      </dl><dl><dt>
 
-          <code><a href="VolcanoPlot.html">VolcanoPlot()</a></code>
-
-        </dt>
-        <dd>Volcano plot for visualizing differential metabolite analysis results</dd>
-      </dl><dl><dt>
-
-          <code><a href="PCAplot.html">PCAplot()</a></code>
-
-        </dt>
-        <dd>Plots PCA and performs PERMANOVA</dd>
-      </dl><dl><dt>
-
-          <code><a href="PLSDAplot.html">PLSDAplot()</a></code>
-
-        </dt>
-        <dd>PLS-DA plot with feature loadings</dd>
-      </dl><dl><dt>
-
-          <code><a href="AnovaBarPlot.html">AnovaBarPlot()</a></code>
-
-        </dt>
-        <dd>Generate barplots for each feature and perform ANOVA</dd>
-      </dl><dl><dt>
-
-          <code><a href="GenerateHeatmapInputs.html">GenerateHeatmapInputs()</a></code>
-
-        </dt>
-        <dd>Generate input files to be used for pheatmap from the mmo object</dd>
-      </dl><dl><dt>
+        <dt>
 
           <code><a href="GetDAMs.html">GetDAMs()</a></code>
 
         </dt>
         <dd>Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the mmo object</dd>
-      </dl><dl><dt>
 
-          <code><a href="GetGroupMeans.html">GetGroupMeans()</a></code>
-
-        </dt>
-        <dd>Calculate group means from the mmo object</dd>
-      </dl><dl><dt>
+        <dt>
 
           <code><a href="GetLog2FoldChange.html">GetLog2FoldChange()</a></code>
 
         </dt>
         <dd>Calculate log2 fold change for a given control group</dd>
-      </dl><dl><dt>
 
-          <code><a href="HCplot.html">HCplot()</a></code>
+        <dt>
+
+          <code><a href="GetGroupMeans.html">GetGroupMeans()</a></code>
 
         </dt>
-        <dd>HCplot</dd>
+        <dd>Calculate group means from the mmo object</dd>
+
+        <dt>
+
+          <code><a href="VolcanoPlot.html">VolcanoPlot()</a></code>
+
+        </dt>
+        <dd>Volcano plot for visualizing differential metabolite analysis results</dd>
+
+        <dt>
+
+          <code><a href="AnovaBarPlot.html">AnovaBarPlot()</a></code>
+
+        </dt>
+        <dd>Generate barplots for each feature and perform ANOVA</dd>
+
+        <dt>
+
+          <code><a href="GenerateHeatmapInputs.html">GenerateHeatmapInputs()</a></code>
+
+        </dt>
+        <dd>Generate input files to be used for pheatmap from the mmo object</dd>
       </dl></div><div class="section level2">
-      <h2 id="chemical-class-analysis">Chemical class analysis<a class="anchor" aria-label="anchor" href="#chemical-class-analysis"></a></h2>
+      <h2 id="ordination-clustering">Ordination &amp; clustering<a class="anchor" aria-label="anchor" href="#ordination-clustering"></a></h2>
 
+      <div class="section-desc"><p>Multivariate methods for comparing samples and groups.</p></div>
 
-
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
 
       <dl><dt>
 
-          <code><a href="CanopusLevelEnrichmentAnal.html">CanopusLevelEnrichmentAnal()</a></code>
+          <code><a href="PCAplot.html">PCAplot()</a></code>
 
         </dt>
-        <dd>Enrichment analysis for Canopus-predicted terms</dd>
-      </dl><dl><dt>
+        <dd>Plots PCA and performs PERMANOVA</dd>
 
-          <code><a href="CanopusListEnrichmentPlot.html">CanopusListEnrichmentPlot()</a></code>
+        <dt>
 
-        </dt>
-        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms</dd>
-      </dl><dl><dt>
-
-          <code><a href="CanopusListEnrichmentPlot_2.html">CanopusListEnrichmentPlot_2()</a></code>
+          <code><a href="PLSDAplot.html">PLSDAplot()</a></code>
 
         </dt>
-        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms across multiple levels</dd>
-      </dl><dl><dt>
+        <dd>PLS-DA plot with feature loadings</dd>
 
-          <code><a href="CanopusLevelEnrichmentPlot.html">CanopusLevelEnrichmentPlot()</a></code>
+        <dt>
 
-        </dt>
-        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms at a specific level using a list of vectors of features</dd>
-      </dl><dl><dt>
-
-          <code><a href="CanopusAllLevelEnrichmentPlot.html">CanopusAllLevelEnrichmentPlot()</a></code>
+          <code><a href="NMDSplot.html">NMDSplot()</a></code>
 
         </dt>
-        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms across all levels</dd>
-      </dl><dl><dt>
+        <dd>NMDSplot</dd>
 
-          <code><a href="MSEA.html">MSEA()</a></code>
+        <dt>
+
+          <code><a href="PCoAplot.html">PCoAplot()</a></code>
 
         </dt>
-        <dd>Metabolite Set Enrichment Analysis (MSEA)</dd>
+        <dd>PCoAplot</dd>
+
+        <dt>
+
+          <code><a href="HCplot.html">HCplot()</a></code>
+
+        </dt>
+        <dd>HCplot</dd>
       </dl></div><div class="section level2">
-      <h2 id="chemical-diversity-analysis">Chemical diversity Analysis<a class="anchor" aria-label="anchor" href="#chemical-diversity-analysis"></a></h2>
+      <h2 id="chemical-diversity">Chemical diversity<a class="anchor" aria-label="anchor" href="#chemical-diversity"></a></h2>
 
+      <div class="section-desc"><p>Alpha and beta diversity metrics incorporating feature abundance and chemical distances.</p></div>
 
-
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -291,55 +295,163 @@
 
         </dt>
         <dd>GetAlphaDiversity</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="GetBetaDiversity.html">GetBetaDiversity()</a></code>
 
         </dt>
         <dd>GetBetaDiversity</dd>
-      </dl><dl><dt>
 
-          <code><a href="NMDSplot.html">NMDSplot()</a></code>
+        <dt>
 
-        </dt>
-        <dd>NMDSplot</dd>
-      </dl><dl><dt>
-
-          <code><a href="PCoAplot.html">PCoAplot()</a></code>
+          <code><a href="GetRichness.html">GetRichness()</a></code>
 
         </dt>
-        <dd>PCoAplot</dd>
-      </dl><dl><dt>
+        <dd>GetRichness</dd>
 
-          <code><a href="CalculateGroupBetaDistance.html">CalculateGroupBetaDistance()</a></code>
+        <dt>
 
-        </dt>
-        <dd>CalculateGroupBetaDistance</dd>
-      </dl><dl><dt>
-
-          <code><a href="GetSpecializationIndex.html">GetSpecializationIndex()</a></code>
+          <code><a href="GetHillNumbers.html">GetHillNumbers()</a></code>
 
         </dt>
-        <dd>GetSpecializationIndex</dd>
-      </dl><dl><dt>
+        <dd>GetHillNumbers</dd>
 
-          <code><a href="PlotNPCStackedBar.html">PlotNPCStackedBar()</a></code>
+        <dt>
+
+          <code><a href="GetFunctionalHillNumber.html">GetFunctionalHillNumber()</a></code>
 
         </dt>
-        <dd>PlotNPCStackedBar</dd>
-      </dl><dl><dt>
+        <dd>GetFunctionalHillNumber</dd>
+
+        <dt>
+
+          <code><a href="GetFaithPD.html">GetFaithPD()</a></code>
+
+        </dt>
+        <dd>GetFaithPD</dd>
+
+        <dt>
 
           <code><a href="RarefactionAUC.html">RarefactionAUC()</a></code>
 
         </dt>
         <dd>RarefactionAUC</dd>
+
+        <dt>
+
+          <code><a href="CalculateGroupBetaDistance.html">CalculateGroupBetaDistance()</a></code>
+
+        </dt>
+        <dd>CalculateGroupBetaDistance</dd>
+
+        <dt>
+
+          <code><a href="GetSpecializationIndex.html">GetSpecializationIndex()</a></code>
+
+        </dt>
+        <dd>GetSpecializationIndex</dd>
       </dl></div><div class="section level2">
-      <h2 id="metadata-regression-analysis">Metadata regression analysis<a class="anchor" aria-label="anchor" href="#metadata-regression-analysis"></a></h2>
+      <h2 id="chemical-class-analysis">Chemical class analysis<a class="anchor" aria-label="anchor" href="#chemical-class-analysis"></a></h2>
+
+      <div class="section-desc"><p>Enrichment and visualization of compound classes using SIRIUS/CANOPUS annotations.</p></div>
+
+      <dl></dl></div><div class="section level2">
 
 
 
 
-    </div><div class="section level2">
+      <dl><dt>
+
+          <code><a href="CanopusLevelEnrichmentAnal.html">CanopusLevelEnrichmentAnal()</a></code>
+
+        </dt>
+        <dd>Enrichment analysis for Canopus-predicted terms</dd>
+
+        <dt>
+
+          <code><a href="CanopusListEnrichmentPlot.html">CanopusListEnrichmentPlot()</a></code>
+
+        </dt>
+        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms</dd>
+
+        <dt>
+
+          <code><a href="CanopusListEnrichmentPlot_2.html">CanopusListEnrichmentPlot_2()</a></code>
+
+        </dt>
+        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms across multiple levels</dd>
+
+        <dt>
+
+          <code><a href="CanopusLevelEnrichmentPlot.html">CanopusLevelEnrichmentPlot()</a></code>
+
+        </dt>
+        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms at a specific level using a list of vectors of features</dd>
+
+        <dt>
+
+          <code><a href="CanopusAllLevelEnrichmentPlot.html">CanopusAllLevelEnrichmentPlot()</a></code>
+
+        </dt>
+        <dd>Generate a plot for enrichment analysis of Canopus-predicted terms across all levels</dd>
+
+        <dt>
+
+          <code><a href="PlotNPCStackedBar.html">PlotNPCStackedBar()</a></code>
+
+        </dt>
+        <dd>PlotNPCStackedBar</dd>
+
+        <dt>
+
+          <code><a href="MSEA.html">MSEA()</a></code>
+
+        </dt>
+        <dd>Metabolite Set Enrichment Analysis (MSEA)</dd>
+      </dl></div><div class="section level2">
+      <h2 id="compound-networks-dendrograms">Compound networks &amp; dendrograms<a class="anchor" aria-label="anchor" href="#compound-networks-dendrograms"></a></h2>
+
+      <div class="section-desc"><p>Build chemical similarity trees and export to iTOL or Cytoscape.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="FeatureDendrogram.html">FeatureDendrogram()</a></code>
+
+        </dt>
+        <dd>FeatureDendrogram</dd>
+
+        <dt>
+
+          <code><a href="PlotFeatureDendrogram.html">PlotFeatureDendrogram()</a></code>
+
+        </dt>
+        <dd>PlotFeatureDendrogram</dd>
+
+        <dt>
+
+          <code><a href="ExportITOL.html">ExportITOL()</a></code>
+
+        </dt>
+        <dd>ExportITOL</dd>
+
+        <dt>
+
+          <code><a href="ExportCytoscape.html">ExportCytoscape()</a></code>
+
+        </dt>
+        <dd>ExportCytoscape</dd>
+      </dl></div><div class="section level2">
+      <h2 id="phenotype-association">Phenotype association<a class="anchor" aria-label="anchor" href="#phenotype-association"></a></h2>
+
+      <div class="section-desc"><p>Correlate individual features or metabolite sets with continuous ecological variables.</p></div>
+
+      <dl></dl></div><div class="section level2">
 
 
 
@@ -350,178 +462,157 @@
 
         </dt>
         <dd>FeaturePhenotypeCorrelation</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="ScreenFeaturePhenotypeCorrelation.html">ScreenFeaturePhenotypeCorrelation()</a></code>
 
         </dt>
         <dd>Screen feature-phenotype correlation</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="GetPerformanceFeatureCorrelation.html">GetPerformanceFeatureCorrelation()</a></code>
 
         </dt>
         <dd>GetPerformanceFeatureCorrelation</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="GetPerformanceFeatureLMM.html">GetPerformanceFeatureLMM()</a></code>
 
         </dt>
         <dd>GetPerformanceFeatureLMM</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="GetPerformanceFeatureRegression.html">GetPerformanceFeatureRegression()</a></code>
 
         </dt>
         <dd>GetPerformanceFeatureRegression</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="PlotFoldchangeResistanceQuad.html">PlotFoldchangeResistanceQuad()</a></code>
 
         </dt>
         <dd>PlotFoldchangeResistanceQuad</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="PlotFoldchangeResistanceRegression.html">PlotFoldchangeResistanceRegression()</a></code>
 
         </dt>
         <dd>PlotFoldchangeResistanceRegression</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="PlotFoldchangeResistanceRegression_t.html">PlotFoldchangeResistanceRegression_t()</a></code>
 
         </dt>
         <dd>PlotFoldchangeResistanceRegression_t</dd>
       </dl></div><div class="section level2">
-      <h2 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a></h2>
+      <h2 id="save-export">Save &amp; export<a class="anchor" aria-label="anchor" href="#save-export"></a></h2>
 
+      <div class="section-desc"><p>Save mmo objects and export results.</p></div>
 
-
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
 
       <dl><dt>
-
-          <code><a href="ExportFeaturesToCSV.html">ExportFeaturesToCSV()</a></code>
-
-        </dt>
-        <dd>ExportFeaturesToCSV</dd>
-      </dl><dl><dt>
 
           <code><a href="SaveMMO.html">SaveMMO()</a></code>
 
         </dt>
         <dd>Save entire mmo object to a file (RDS)</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="LoadMMO.html">LoadMMO()</a></code>
 
         </dt>
         <dd>Load an mmo object previously saved with SaveMMO</dd>
+
+        <dt>
+
+          <code><a href="ExportFeaturesToCSV.html">ExportFeaturesToCSV()</a></code>
+
+        </dt>
+        <dd>ExportFeaturesToCSV</dd>
+
+        <dt>
+
+          <code><a href="pool_mmo_by_group.html">pool_mmo_by_group()</a></code>
+
+        </dt>
+        <dd>pool_mmo_by_group</dd>
       </dl></div><div class="section level2">
-      <h2 id="misc">misc<a class="anchor" aria-label="anchor" href="#misc"></a></h2>
+      <h2 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h2>
 
+      <div class="section-desc"><p>Helper functions for data access, formatting, and internal calculations.</p></div>
 
-
-
-    </div><div class="section level2">
+      <dl></dl></div><div class="section level2">
 
 
 
 
       <dl><dt>
 
-          <code><a href="FeatureToID.html">FeatureToID()</a></code>
-
-        </dt>
-        <dd>Convert feature names to IDs in the mmo object</dd>
-      </dl><dl><dt>
-
-          <code><a href="IDToFeature.html">IDToFeature()</a></code>
-
-        </dt>
-        <dd>Convert feature IDs to names in the mmo object</dd>
-      </dl><dl><dt>
-
-          <code><a href="filter_canopus_annotations.html">filter_canopus_annotations()</a></code>
-
-        </dt>
-        <dd>Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold</dd>
-      </dl><dl><dt>
-
-          <code><a href="anova_tukey_dunnett.html">anova_tukey_dunnett()</a></code>
-
-        </dt>
-        <dd>Perform ANOVA and Tukey's HSD test on the mmo object</dd>
-      </dl><dl><dt>
-
-          <code><a href="write_anova.html">write_anova()</a></code>
-
-        </dt>
-        <dd>Write results of anova_tukey_dunnett to a CSV file</dd>
-      </dl><dl><dt>
-
-          <code><a href="permanova_stat.html">permanova_stat()</a></code>
-
-        </dt>
-        <dd>Perform PERMANOVA and pairwise comparisons</dd>
-      </dl><dl><dt>
-
           <code><a href="GetDistanceMat.html">GetDistanceMat()</a></code>
 
         </dt>
         <dd>Get the distance matrix from the mmo object based on the specified distance metric</dd>
-      </dl><dl><dt>
+
+        <dt>
 
           <code><a href="GetNormFeature.html">GetNormFeature()</a></code>
 
         </dt>
         <dd>Retrieve feature data from the mmo object, with normalization options</dd>
-      </dl><dl><dt>
 
-          <code><a href="filter_mmo.html">filter_mmo()</a></code>
+        <dt>
+
+          <code><a href="FeatureToID.html">FeatureToID()</a></code>
 
         </dt>
-        <dd>Filter an mmo object by samples, groups, and/or features</dd>
-      </dl><dl><dt>
+        <dd>Convert feature names to IDs in the mmo object</dd>
+
+        <dt>
+
+          <code><a href="IDToFeature.html">IDToFeature()</a></code>
+
+        </dt>
+        <dd>Convert feature IDs to names in the mmo object</dd>
+
+        <dt>
 
           <code><a href="print.mmo.html">print(<i>&lt;mmo&gt;</i>)</a></code>
 
         </dt>
         <dd>Print method for mmo objects Provides a clean, human-readable overview of an <code>mmo</code> list object instead of dumping the entire list when the object is printed in the console.</dd>
-      </dl><dl><dt>
 
-          <code><a href="GetFaithPD.html">GetFaithPD()</a></code>
+        <dt>
 
-        </dt>
-        <dd>GetFaithPD</dd>
-      </dl><dl><dt>
-
-          <code><a href="GetFunctionalHillNumber.html">GetFunctionalHillNumber()</a></code>
+          <code><a href="anova_tukey_dunnett.html">anova_tukey_dunnett()</a></code>
 
         </dt>
-        <dd>GetFunctionalHillNumber</dd>
-      </dl><dl><dt>
+        <dd>Perform ANOVA and Tukey's HSD test on the mmo object</dd>
 
-          <code><a href="GetHillNumbers.html">GetHillNumbers()</a></code>
+        <dt>
 
-        </dt>
-        <dd>GetHillNumbers</dd>
-      </dl><dl><dt>
-
-          <code><a href="GetRichness.html">GetRichness()</a></code>
+          <code><a href="write_anova.html">write_anova()</a></code>
 
         </dt>
-        <dd>GetRichness</dd>
-      </dl><dl><dt>
+        <dd>Write results of anova_tukey_dunnett to a CSV file</dd>
 
-          <code><a href="pool_mmo_by_group.html">pool_mmo_by_group()</a></code>
+        <dt>
+
+          <code><a href="permanova_stat.html">permanova_stat()</a></code>
 
         </dt>
-        <dd>pool_mmo_by_group</dd>
+        <dd>Perform PERMANOVA and pairwise comparisons</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
@@ -532,7 +623,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
