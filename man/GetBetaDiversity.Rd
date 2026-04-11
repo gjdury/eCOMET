@@ -19,11 +19,14 @@ GetBetaDiversity(
 \arguments{
 \item{mmo}{The mmo object containing feature data and metadata}
 
-\item{method}{The method of beta diversity calculation. Options are 'Gen.Uni' for Generalized UniFrac, 'bray' for Bray-Curtis, 'jaccard' for Jaccard, or 'CSCS' for Compound Similarity and Chemical structural and compositional similarity (default: 'Gen.Uni')}
+\item{method}{Beta diversity method: 'Gen.Uni', 'bray', 'jaccard', or 'CSCS' (default: 'Gen.Uni')}
 
-\item{normalization}{The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
+\item{normalization}{Abundance table to use. Options: 'None', 'Log', 'Meancentered', 'Z', 'PA'
+(default: 'None'). Ignored for 'jaccard', which always uses PA.
+For 'bray' and 'CSCS', this is the primary lever for controlling abundance sensitivity.}
 
-\item{distance}{The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'NULL')}
+\item{distance}{Feature dissimilarity metric: 'dreams', 'm2ds', or 'cosine'.
+Required for 'Gen.Uni' and 'CSCS'; ignored for 'bray' and 'jaccard'.}
 
 \item{filter_id}{A boolean indicating whether to filter the feature data by a specific list (default: FALSE)}
 
@@ -33,21 +36,58 @@ GetBetaDiversity(
 
 \item{group_list}{A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)}
 
-\item{scale_dissim}{Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)}
+\item{scale_dissim}{Boolean; whether to scale the feature distance matrix to between 0,1 (default: TRUE)}
 }
 \value{
-A distance matrix of beta diversity values between samples.
+For 'bray', 'jaccard', 'CSCS': a symmetric sample-by-sample distance matrix (matrix).
+For 'Gen.Uni': a named list with three distance matrices named \code{d_0} (presence/absence),
+\code{d_0.5} (balanced), and \code{d_1} (fully abundance-weighted).
 }
 \description{
-This function calculates the beta diversity for a given mmo object, method (Generalized Unifrac, bray, jaccard, or CSCS), normalization method, distance metric, and optional feature filtering.
-Then it returns a distance matrix of beta diversity values.
-The Generalized UniFrac and CSCS method requires a distance matrix of feature dissimilarity, which is calculated using the specified distance metric.
-Bray-Curtis and Jaccard methods are calculated using the vegan package, not considering feature dissimilarity.
+Calculate beta diversity (sample-to-sample dissimilarity) for an mmo object.
+Four methods are supported, differing in how they handle feature abundance and
+structural relationships among compounds:
+}
+\details{
+\itemize{
+\item 'bray'    : Bray-Curtis dissimilarity. Feature-overlap only; no compound
+distance matrix required. Abundance sensitivity is controlled
+via \code{normalization}: use \code{'None'} for raw abundances,
+\code{'Log'} to compress dynamic range, or \code{'PA'} to reduce
+to presence/absence.
+\item 'jaccard' : Jaccard dissimilarity. Presence/absence only by definition.
+The \code{normalization} argument is ignored; PA data are always
+used internally. A warning is issued if a non-PA normalization
+is supplied.
+\item 'CSCS'    : Chemical Structural and Compositional Similarity. Incorporates
+pairwise compound distances so that samples sharing structurally
+related (but not identical) features can still be considered
+similar. Requires \code{distance}. Abundance sensitivity is
+controlled via \code{normalization} (same options as bray).
+\item 'Gen.Uni' : Generalized UniFrac. Partitions beta diversity across branches
+of a compound dendrogram. Requires \code{distance}. Returns a
+named list of three distance matrices, one per abundance-weighting
+level (\code{d_0}, \code{d_0.5}, \code{d_1}). Choose the one
+appropriate for your analysis (see Details).
+}
+
+\strong{Choosing an abundance-weighting level for Gen.Uni:}
+\itemize{
+\item \code{d_0}   -- presence/absence only; equivalent to unweighted UniFrac.
+Use when detection (not intensity) is the signal of interest.
+\item \code{d_0.5} -- balanced weighting (recommended default). Moderates the
+influence of highly abundant features without ignoring abundance.
+\item \code{d_1}   -- fully abundance-weighted. Dominant features drive the distance.
+Use when peak intensity is a reliable biological signal.
+}
+Access a specific matrix with e.g. \code{result[["d_0.5"]]}.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
  normalization = 'None', distance = 'dreams', filter_id = FALSE)
+# Access a specific weighting level:
+d_balanced <- beta_diversity[["d_0.5"]]
 beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
  normalization = 'Z', filter_id = TRUE, id_list = Glucosinolates,
  filter_group = TRUE, group_list = c('Control', 'Treatment1'))

@@ -27,13 +27,24 @@ GetAlphaDiversity(
 \arguments{
 \item{mmo}{The mmo object containing feature data and metadata}
 
-\item{q}{The order of the Hill number to calculate (default: 1)}
+\item{q}{The Hill number order controlling abundance sensitivity (default: 1).
+Only applies to \code{mode = "weighted"} and \code{mode = "unweighted"};
+ignored for \code{"richness"} and \code{"faith"}.
+\itemize{
+\item \code{q = 0} -- richness: all detected features count equally regardless of abundance.
+\item \code{q = 1} -- Shannon-type: features weighted proportionally to their relative abundance.
+\item \code{q = 2} -- Simpson-type: dominant (high-abundance) features weighted more strongly.
+}}
 
-\item{normalization}{The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
+\item{normalization}{Abundance table to use. Options: 'None', 'Log', 'Meancentered', 'Z', 'PA'
+(default: 'None'). Using \code{'PA'} forces presence/absence regardless of \code{mode} or \code{q},
+effectively making every detected feature equally abundant before the Hill calculation.}
 
-\item{mode}{The mode of diversity calculation. One of 'weighted', 'unweighted', 'faith', 'richness' (default: 'richness')}
+\item{mode}{The diversity metric to calculate. One of 'weighted', 'unweighted', 'faith', 'richness'
+(default: 'richness'). Use \code{q} to control abundance sensitivity for 'weighted' and 'unweighted'.}
 
-\item{distance}{The distance metric to use for calculating dissimilarity. Options are 'dreams', 'm2ds', or 'cosine' (default: 'dreams')}
+\item{distance}{Feature dissimilarity metric: 'dreams', 'm2ds', or 'cosine' (default: 'dreams').
+Required for \code{mode = "weighted"} and \code{mode = "faith"}; ignored otherwise.}
 
 \item{threshold}{Numeric threshold used to define metabolite presence (default: 0)}
 

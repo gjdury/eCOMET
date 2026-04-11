@@ -9,16 +9,24 @@ GetDistanceMat(mmo, distance = "dreams")
 \arguments{
 \item{mmo}{The mmo object}
 
-\item{distance}{The distance metric to use. Options are 'dreams', 'cosine', or 'm2ds'}
+\item{distance}{Name of the distance matrix to retrieve. Built-in options are
+\code{'dreams'}, \code{'cosine'}, and \code{'m2ds'}. Any name passed to
+\code{AddCustomDist(mmo, name = ...)} is also valid.}
 }
 \value{
-The distance matrix corresponding to the specified distance metric
+The distance matrix (numeric matrix with feature ID row/col names).
 }
 \description{
-This function retrieves the distance matrix from the mmo object based on the specified distance metric.
+Retrieve a feature distance matrix from the mmo object
+}
+\details{
+Looks up a dissimilarity matrix stored in the mmo object by name. Works with
+the three built-in matrices added by \code{AddChemDist()} as well as any
+custom matrix added via \code{AddCustomDist()}.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 distance_matrix <- GetDistanceMat(mmo, distance = 'dreams')
+distance_matrix <- GetDistanceMat(mmo, distance = 'tanimoto')  # custom
 \dontshow{\}) # examplesIf}
 }

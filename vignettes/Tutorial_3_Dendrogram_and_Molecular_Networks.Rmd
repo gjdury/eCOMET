@@ -4,8 +4,12 @@
      Subset to a representative set of features before enabling eval=TRUE. -->
 
 ---
-title: "Compound Dendrograms and Molecular Networks"
-output: html_notebook
+title: "Tutorial 3: Compound Dendrograms and Molecular Networks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Tutorial 3: Compound Dendrograms and Molecular Networks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # Overview

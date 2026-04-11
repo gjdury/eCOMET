@@ -1,6 +1,10 @@
 ---
-title: "Interspecific Ecometabolomics Tutorial"
-output: html_notebook
+title: "Tutorial 2: Interspecific Ecometabolomics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Tutorial 2: Interspecific Ecometabolomics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # Overview
@@ -37,7 +41,7 @@ The package can be loaded or updated as needed using Pak:
 
 ```
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, message = FALSE, warning = FALSE}
 
 library(ecomet)
 library(dplyr)
@@ -59,17 +63,15 @@ data_dir <- system.file(
  package = "ecomet"
 )
 stopifnot(nzchar(data_dir))  # fail loudly if package data is missing
-
+data_dir <- "/Users/dlforrister/Library/CloudStorage/OneDrive-SmithsonianInstitution/One_Drive_BackUps_Local_Mac_Files/CODE_GIT_HUB_2017_Aug_31/eCOMET/inst/extdata/tutorials/interspecific"
 demo_feature          <- file.path(data_dir, "Ecomet_Interspecific_Demo_full_feature_table.csv")
 demo_metadata         <- file.path(data_dir, "EcoMET_Interspecific_Demo_metadata_no_blank.csv")
 demo_sirius_formula   <- file.path(data_dir, "canopus_formula_summary.tsv")
 demo_sirius_structure <- file.path(data_dir, "structure_identifications.tsv")
 demo_dreams           <- file.path(data_dir, "Ecomet_Interspecific_Demo_dreams_sim_dreams.csv")
 
-
-
-
 ```
+
 # Initialize eCOMET object
 
 ```{r, eval = FALSE}
@@ -123,6 +125,7 @@ The `mmo` object can also be filtered and subsetted. This creates a new object a
 
 unique(mmo$metadata$group)
 mmo_subset <- filter_mmo(mmo,group_list = unique(mmo$metadata$group)[1])
+
 ```
 
 This is the table you would inspect if you want to understand how intensities are organized, check whether zeros are present, or confirm that sample columns are aligned with the metadata.
@@ -147,7 +150,7 @@ For simple richness, we are effectively asking: how many distinct features are p
 
 This first call calculates richness for each individual sample. This is useful when you want to see how much within-species variation exists among biological replicates before collapsing samples into species-level summaries.
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
 sample_richness <- GetAlphaDiversity(
   mmo,
@@ -157,17 +160,35 @@ sample_richness <- GetAlphaDiversity(
 )
 
 Sample_Richness <- ggplot2::ggplot(sample_richness, ggplot2::aes(x = group, y = value)) +
-  ggplot2::geom_boxplot(outlier.shape = NA) +
-  ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6) +
+  ggplot2::geom_boxplot(outlier.shape = NA, linewidth = 0.6) +
+  ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6, size = 1.8) +
   ggplot2::labs(
-    x = "Species",
-    y = "Feature Richness"
+    title = "Feature Richness Across Tropical Tree Species",
+    x     = "Species",
+    y     = "Feature Richness"
   ) +
-  ggplot2::theme_classic() +
+  ggplot2::theme_classic(base_size = 12) +
   ggplot2::theme(
-    axis.text.x = element_text(angle = 90, hjust = 0.5)
+    plot.title       = ggplot2::element_text(face = "bold", size = 13, hjust = 0.5),
+    axis.title       = ggplot2::element_text(face = "bold", size = 12),
+    axis.text.y      = ggplot2::element_text(face = "bold", size = 10),
+    axis.text.x      = ggplot2::element_text(face = "bold.italic", size = 10,
+                                              angle = 45, hjust = 1),
+    axis.line        = ggplot2::element_line(linewidth = 0.6),
+    axis.ticks       = ggplot2::element_line(linewidth = 0.6)
   )
+
 Sample_Richness
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plots_for_publication/Fig4a_sample_richness.png", Sample_Richness,
+       width = 8, height = 5, dpi = 400)
+ggsave("plot/T2_sample_richness.png", Sample_Richness, width = 7, height = 5, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_sample_richness.png")
 ```
 
 This plot shows the distribution of feature richness among samples within each species. If one species tends to have higher richness than another, that suggests it accumulates a broader set of detectable metabolites under the sampling conditions used here. Wide spread within a species indicates substantial among-sample variation, which can reflect biological heterogeneity, environmental effects, or analytical noise.
@@ -176,7 +197,7 @@ This plot shows the distribution of feature richness among samples within each s
 
 The next summary moves from individual samples to the average richness of each species. This is useful when the goal is to compare species-level central tendencies rather than emphasize replicate-level spread.
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
 group_mean_richness <- GetAlphaDiversity(
   mmo,
@@ -194,7 +215,7 @@ Differences in average richness among species can be interpreted as differences 
 
 We can also calculate cumulative richness within each species by pooling observations across all of its samples. This asks a different question: how many distinct features have been observed for a species across the full set of sampled individuals?
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
 group_pooled_richness <- GetAlphaDiversity(
   mmo,
@@ -232,46 +253,71 @@ group_rarefied_richness$raw
 
 ```
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
 group_rarefied_richness$summary
 
 ```
 
-```{r, eval = T}
-compound_accumlation_curve <- ggplot(group_rarefied_richness$summary, aes(x = n_samples, y = mean, color = group, fill = group)) +
+```{r, eval = FALSE}
+compound_accumlation_curve <- ggplot(group_rarefied_richness$summary,
+    aes(x = n_samples, y = mean, color = group, fill = group)) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, color = NA) +
-  geom_line(linewidth = 1) +
+  geom_line(linewidth = 0.8) +
   geom_point(size = 2) +
   labs(
-    x = "Number of samples",
-    y = "Estimated feature richness",
-    color = "Species",
-    fill = "Species"
+    title  = "Feature Richness Accumulation by Species",
+    x      = "Number of samples",
+    y      = "Estimated feature richness",
+    color  = "Species",
+    fill   = "Species"
   ) +
-  theme_classic()
+  theme_classic(base_size = 12) +
+  theme(
+    plot.title      = element_text(face = "bold", size = 13, hjust = 0.5),
+    axis.title      = element_text(face = "bold", size = 12),
+    axis.text       = element_text(face = "bold", size = 10),
+    axis.line       = element_line(linewidth = 0.6),
+    axis.ticks      = element_line(linewidth = 0.6),
+    legend.title    = element_text(face = "bold.italic", size = 10),
+    legend.text     = element_text(face = "italic", size = 9)
+  )
 
 compound_accumlation_curve
+```
 
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plots_for_publication/Fig4b_accumulation_curve.png", compound_accumlation_curve,
+       width = 8, height = 5, dpi = 400)
+ggsave("plot/T2_accumulation_curve.png", compound_accumlation_curve, width = 8, height = 5, dpi = 100)
+```
 
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_accumulation_curve.png")
 ```
 
 These outputs summarize both the expected richness at each sampling depth and the underlying permutation results. Curves that begin to plateau suggest that sampling is approaching the detectable richness of that species, whereas steeply increasing curves suggest that additional sampling would likely recover more features. This makes the curves useful for comparing species while accounting for differences in sample number.
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
-p <- RarefactionAUC(group_rarefied_richness, n_boot = 500)
+Rarefaction_AUC <- RarefactionAUC(group_rarefied_richness, n_boot = 500)
 
-ggplot(p$auc_boot) +
+
+Rarefaction_AUC_Plot <- ggplot(Rarefaction_AUC$auc_boot) +
   geom_density(aes(x = auc, fill = group)) +
   theme_classic()
 
-
-
-p
-
-
+Rarefaction_AUC_Plot
 ```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/Rarefaction_AUC_Plot.png", Rarefaction_AUC_Plot, width = 8, height = 5, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/Rarefaction_AUC_Plot.png")
+```
+
 
 We can also summarize this by quantifying the area under the curve for each species.
 
@@ -296,10 +342,35 @@ CANOPUS assigns posterior probabilities to each compound class prediction. We ca
 
 First, let's visualize the distribution of prediction confidence:
 
-```{r, eval=T}
-hist(mmo$sirius_annot$`NPC#pathway Probability`,
-     main = "Distribution of NPC Pathway Probabilities",
-     xlab = "Probability", col = "lightblue")
+```{r, eval=FALSE}
+sirius_hist <- ggplot2::ggplot(
+    mmo$sirius_annot,
+    ggplot2::aes(x = .data[["NPC#pathway Probability"]])
+  ) +
+  ggplot2::geom_histogram(bins = 40, fill = "steelblue", color = "white", linewidth = 0.3) +
+  ggplot2::labs(
+    title = "Distribution of NPC Pathway Probabilities",
+    x     = "Probability",
+    y     = "Count"
+  ) +
+  ggplot2::theme_classic(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 13, hjust = 0.5),
+    axis.title = ggplot2::element_text(face = "bold", size = 12),
+    axis.text  = ggplot2::element_text(face = "bold", size = 10),
+    axis.line  = ggplot2::element_line(linewidth = 0.6),
+    axis.ticks = ggplot2::element_line(linewidth = 0.6)
+  )
+
+sirius_hist
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_npc_pathway_prob.png", sirius_hist, width = 7, height = 5, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_npc_pathway_prob.png")
 ```
 
 There is typically a long tail of low-confidence predictions. We can filter these using `filter_canopus_annotations()`:
@@ -325,7 +396,7 @@ mmo$sirius_annot_filtered_NPC_pathway_0.8
 
 SIRIUS structure predictions are scored by the COSMIC confidence score. These scores should be interpreted with caution — they are not probabilities. The [SIRIUS team recommends](https://www.nature.com/articles/s41587-021-01045-9) focusing on the highest-confidence hits (e.g., top 5--10%).
 
-```{r, eval=T}
+```{r, eval=FALSE}
 # Replace -Infinity values with 0
 mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate[
   which(mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate == "-Infinity")
@@ -335,11 +406,37 @@ Cosmic_Scores <- as.numeric(
   mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate
 )
 
-hist(Cosmic_Scores, main = "COSMIC Confidence Scores for Structures",
-     xlab = "Confidence Score", col = "lightblue")
+cosmic_hist <- ggplot2::ggplot(
+    data.frame(score = Cosmic_Scores),
+    ggplot2::aes(x = score)
+  ) +
+  ggplot2::geom_histogram(bins = 40, fill = "steelblue", color = "white", linewidth = 0.3) +
+  ggplot2::labs(
+    title = "COSMIC Confidence Scores for Structures",
+    x     = "Confidence Score",
+    y     = "Count"
+  ) +
+  ggplot2::theme_classic(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold", size = 13, hjust = 0.5),
+    axis.title = ggplot2::element_text(face = "bold", size = 12),
+    axis.text  = ggplot2::element_text(face = "bold", size = 10)
+  )
+
+cosmic_hist
 ```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_cosmic_scores.png", cosmic_hist, width = 7, height = 5, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_cosmic_scores.png")
+
+```
+
 # Find the threshold for the top 10% of scores
-```{r, eval=T}
+```{r, eval=FALSE}
 quantile(x = Cosmic_Scores, probs = 0.9, na.rm = TRUE)
 ```
 
@@ -357,7 +454,9 @@ Now that we have annotations we can calculate the richness per compound class. T
 
 ## 4.3 Generate a NPClassifier based stacked barplot
 
-```{r, eval=T}
+For functions plotting functions we give the option to save the plot directly by providing an outdir, and setting save_output = T. Otherwise it will return a ggplot object that can be further modified.
+
+```{r, eval=FALSE}
 
 mmo_stacked_bar <- PlotNPCStackedBar(mmo, 
     group_col = 'Species_binomial', 
@@ -366,9 +465,39 @@ mmo_stacked_bar <- PlotNPCStackedBar(mmo,
     save_output = FALSE)
 
 #Note that the plot is returned as a ggplot object so it can be easily modified by adding + to the object
-mmo_stacked_bar$plot + labs(title = "Stacked Richness Plot")
+p_stacked <- mmo_stacked_bar$plot +
+  ggplot2::labs(
+    title = "NPC Compound Class Composition\n Across Tropical Tree Species",
+    x     = "Species",
+    y     = "Feature Richness",
+    fill  = "NPC Pathway"
+  ) +
+  ggplot2::theme_classic(base_size = 12) +
+  ggplot2::theme(
+    plot.title    = ggplot2::element_text(face = "bold", size = 13, hjust = 0.5),
+    axis.title    = ggplot2::element_text(face = "bold", size = 12),
+    axis.title.y   = ggplot2::element_blank(),
+    axis.text.y   = ggplot2::element_text(face = "bold", size = 10),
+    axis.text.x   = ggplot2::element_text(face = "bold.italic", size = 10,
+                                           angle = 45, hjust = 1),
+    axis.line     = ggplot2::element_line(linewidth = 0.6),
+    axis.ticks    = ggplot2::element_line(linewidth = 0.6),
+    legend.title  = ggplot2::element_text(face = "bold", size = 10),
+    legend.text   = ggplot2::element_text(size = 9),
+    legend.position = "right"
+  )
 
+p_stacked
+```
 
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plots_for_publication/Fig4c_npc_stacked_bar.png", p_stacked,
+       width = 10, height = 6, dpi = 400)
+ggsave("plot/T2_npc_stacked_bar.png", p_stacked, width = 8, height = 5, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_npc_stacked_bar.png")
 ```
 
 # 5. Compare samples with feature-based multivariate methods
@@ -379,26 +508,57 @@ Before introducing structure-aware methods, it is helpful to start with standard
 
 PCA is a feature-based ordination method that reduces the dimensionality of the abundance matrix. Here it provides a first look at whether samples from the same species cluster together when each detected feature is treated as an independent variable.
 
-First we have to normalize the data using zscore and then remove any features that have zero variance in the dataset.
+### Choosing a normalization for PCA
+
+PCA is sensitive to differences in feature magnitude — in LC-MS data, peak areas routinely span four to six orders of magnitude. Without scaling, a single highly abundant compound can dominate the first principal component, and the ordination ends up summarizing little more than "how much of that one compound is there."
+
+`PCAplot()` accepts a `normalization` argument that controls how the feature table is scaled before PCA is run. The main options are:
+
+| Option | What it does | When to use |
+|---|---|---|
+| `"Z"` | Z-score: mean = 0, SD = 1 per feature | Equal weight to all features; good for detecting subtle variation in rare compounds |
+| `"Log"` | Log10 transformation | Compresses dynamic range while preserving relative abundance differences |
+| `"PA"` | Presence/absence | Ignores abundance entirely; purely compositional |
+| `"None"` | Raw peak areas | Only appropriate if you have already normalized externally |
+
+**Z-score** is the most aggressive equalizer. Every feature — abundant or trace — contributes equally to the PCA. The tradeoff is that noisy low-abundance features are up-weighted alongside well-measured ones.
+
+**Log transformation** compresses the dynamic range without fully equalizing features. Compounds that are genuinely more abundant still have proportionally more influence, which is often more ecologically meaningful when dominant compounds drive a species' chemistry.
+
+For this interspecific comparison, we use `normalization = "Log"` to preserve relative abundance information while bringing outlier features closer to the range of the rest of the matrix. We also remove features with zero variance across samples, which would cause PCA to fail.
 
 ```{r, eval = FALSE}
+# Remove zero-variance features (cause PCA to fail regardless of normalization)
+zero_variance <- apply(mmo$feature_data[, -(1:2)], 1, var) == 0
+features_to_keep <- mmo$feature_data$id[!zero_variance]
+mmo <- filter_mmo(mmo, id_list = features_to_keep)
 
-mmo <- ZNormalization(mmo) # Add Zscore
+#add normalization
 
-zero_variance <- mmo$zscore$id[is.na(mmo$zscore[,3])]
-
-features_to_keep <- mmo$feature_data$id[!mmo$feature_data$id %in% zero_variance]
-mmo_subset <- filter_mmo(mmo,id_list = features_to_keep)
+mmo <- MeancenterNormalization(mmo)
+mmo <- LogNormalization(mmo)
+mmo <- ZNormalization(mmo)
 
 groups <- unique(mmo$metadata$group)
-custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+custom_colors <- setNames(
+  grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)),
+  groups
+)
 
-
-mmo_pca <- PCAplot(mmo_subset,color = custom_colors, normalization = 'None',label = F, save_output = FALSE)
+mmo_pca <- PCAplot(mmo, color = custom_colors,
+                   normalization = "Log", label = FALSE, save_output = FALSE)
 ```
 
-```{r, eval = T}
+```{r, eval = FALSE}
 mmo_pca$plot
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_pca.png", mmo_pca$plot, width = 7, height = 6, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_pca.png")
 ```
 
 If samples from the same species cluster together in PCA space, that suggests species differ in their overall multivariate chemical profiles. However, PCA still depends on the observed feature matrix and does not account for structural relatedness among unshared compounds.
@@ -411,18 +571,39 @@ We use `GetBetaDiversity()`, which like `GetAlphaDiversity()` can calculate seve
 
 We generate a distance matrix and pass it directly to `HCplot()`, which handles clustering and produces a phylogram with tips colored by species group.
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
 beta_diversity_dreams_bray <- GetBetaDiversity(mmo, method = 'bray',
-  normalization = 'None')
+  normalization = 'Log')
 
 hc_bray <- HCplot(
   mmo,
-  betadiv       = beta_diversity_dreams_bray,
-  outdir        = "output/HC_bray",
-  hclust_method = "ward.D2",
-  save_output   = FALSE
+  betadiv     = beta_diversity_dreams_bray,
+  outdir      = "output/T2_hc_bray",
+  color       = custom_colors,
+  save_output = FALSE
 )
+
+# Publication-ready customisation
+hc_bray_plot <- hc_bray$plot +
+  ggplot2::theme(
+    plot.title   = ggplot2::element_text(face = "bold", size = 13, hjust = 0.5),
+    legend.title = ggplot2::element_text(face = "bold", size = 11),
+    legend.text  = ggplot2::element_text(face = "italic", size = 10)
+  ) +
+  ggplot2::labs(title = "Sample Similarity\n(Bray-Curtis, structurally unweighted)")
+
+hc_bray_plot
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plots_for_publication/Fig4d_hc_bray.png",
+  plot = hc_bray_plot, width = 10, height = 7, dpi = 300)
+ggsave("plot/T2_hc_bray.png", hc_bray_plot, width = 8, height = 6, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_hc_bray.png")
 ```
 
 You can see that Bray Curtis distance is grouping species into their own clusters well. This is because most species do not share features and thus form unique clusters.
@@ -435,7 +616,7 @@ Feature-overlap metrics become limited when most compounds are unique to one spe
 
 We introduce feature-based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
 
-```{r, eval = T}
+```{r, eval = FALSE}
 # Add Dreams distance
 mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
@@ -469,18 +650,28 @@ We present two structure-aware methods below:
 
 CSCS incorporates relationships among compounds when calculating dissimilarity. Two samples can therefore be considered more similar if they contain different features that are nonetheless chemically related.
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
 beta_diversity_dreams_CSCS <- GetBetaDiversity(mmo, method = 'CSCS',
-  normalization = 'None', distance = "dreams")
+  normalization = 'Log', distance = "dreams")
 
 hc_cscs <- HCplot(
   mmo,
   betadiv       = beta_diversity_dreams_CSCS,
   outdir        = "output/HC_CSCS",
   hclust_method = "ward.D2",
+  color         = custom_colors,
   save_output   = FALSE
 )
+hc_cscs$plot
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_hc_cscs.png", hc_cscs$plot, width = 8, height = 6, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_hc_cscs.png")
 ```
 
 Relative to Bray-Curtis, CSCS should often reduce the apparent distance between samples that lack shared exact features but still contain compounds from similar chemical neighborhoods.
@@ -489,23 +680,32 @@ Relative to Bray-Curtis, CSCS should often reduce the apparent distance between 
 
 Generalized UniFrac uses the feature dendrogram to partition differences among samples across branches of the chemical tree. Instead of asking only whether the same features are present, it asks how much chemical branch length is shared or unique across samples.
 
-```{r, eval = T}
+```{r, eval = FALSE}
 
 beta_diversity_dreams_Gen.Uni <- GetBetaDiversity(mmo, method = 'Gen.Uni',
-  normalization = 'None', distance = "dreams")
+  normalization = 'Log', distance = "dreams")
 # GetBetaDiversity() prints a message listing the three available matrices.
 # Inspect the names:
-names(beta_diversity_dreams_Gen.Uni)  # "d_0", "d_0.5", "d_1"
 
 # Choose one weighting level before passing to HCplot.
-# Here we use d_0.5 (balanced), which is the recommended default.
+# Here we use d_1 (abundance-weighted), which is the recommended default.
 hc_GenUni <- HCplot(
   mmo,
-  betadiv       = beta_diversity_dreams_Gen.Uni[["d_0.5"]],
+  betadiv       = beta_diversity_dreams_Gen.Uni[["d_1"]],
   outdir        = "output/HC_GenUni",
   hclust_method = "ward.D2",
+  color         = custom_colors,
   save_output   = FALSE
 )
+hc_GenUni$plot
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_hc_genuni.png", hc_GenUni$plot, width = 8, height = 6, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_hc_genuni.png")
 ```
 
 
@@ -517,7 +717,7 @@ Both CSCS and Generalized UniFrac move beyond exact feature overlap. In an inter
 
 We can use these distance matrices directly in ordination methods such as NMDS and PCoA. These plots summarize multivariate dissimilarity among samples in a low-dimensional space.
 
-```{r, eval = F}
+```{r, eval = FALSE}
 
 groups <- unique(mmo$metadata$group)
 custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
@@ -526,26 +726,103 @@ NMDS <- NMDSplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS,
 ```
 
 
-```{r, eval = T}
+```{r, eval = FALSE}
 NMDS$plot
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_nmds.png", NMDS$plot, width = 7, height = 6, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_nmds.png")
 ```
 
 In an NMDS plot, points that are closer together represent samples with more similar chemical profiles under the chosen distance metric. If samples from the same species cluster tightly and species separate from one another, that suggests consistent species-level differences in chemistry. Overlap among species indicates greater similarity or weaker taxonomic structure.
 
+
+We can also control the beta diversity metrix in a PCOA plot. Here we use the Gen.Uni
 ```{r, eval = FALSE}
 
 groups <- unique(mmo$metadata$group)
 custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
 
-PCOA_example <- PCoAplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS, outdir = 'output/NMDS', width = 6, height = 6)
+PCOA_example <- PCoAplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_Gen.Uni[["d_1"]], outdir = 'output/PCOA', width = 6, height = 6)
 ```
 
 
-```{r, eval = T}
+```{r, eval = FALSE}
 PCOA_example$plot
 ```
 
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_pcoa.png", PCOA_example$plot, width = 7, height = 6, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_pcoa.png")
+```
+
 PCoA can be interpreted similarly, although the axes are derived differently. The main point is that ordinations based on CSCS or Generalized UniFrac summarize chemistry after incorporating relationships among compounds, not just exact shared features.
+
+To compare how clusters differ when we incorporate structurally weighted beta distances, we place Bray-Curtis and Generalized UniFrac (d_1) PCoAs side by side. Because the two distance matrices are on different scales, each panel has free axes — interpret only the relative grouping of points across panels, not the axis values.
+
+```{r, eval = FALSE}
+PCOA_example_bray <- PCoAplot(
+  mmo,
+  color       = custom_colors,
+  betadiv     = beta_diversity_dreams_bray,
+  outdir      = "output/PCOA_bray",
+  save_output = FALSE
+)
+
+# Combine data frames and label by method
+pcoa_bray_df        <- PCOA_example_bray$df
+pcoa_bray_df$method <- "Bray-Curtis"
+
+pcoa_genuni_df        <- PCOA_example$df
+pcoa_genuni_df$method <- "Generalized UniFrac (d_1)"
+
+pcoa_combined <- rbind(pcoa_bray_df, pcoa_genuni_df)
+pcoa_combined$method <- factor(pcoa_combined$method,
+  levels = c("Bray-Curtis", "Generalized UniFrac (d_1)"))
+
+# Faceted comparison — publication figure
+pcoa_comparison <- ggplot2::ggplot(
+    pcoa_combined,
+    ggplot2::aes(x = .data$PCoA1, y = .data$PCoA2, color = .data$group)
+  ) +
+  ggplot2::geom_point(size = 3) +
+  ggplot2::stat_ellipse(level = 0.90) +
+  ggplot2::scale_color_manual(values = custom_colors, name = "Species") +
+  ggplot2::facet_wrap(~ method, scales = "free") +
+  ggplot2::theme_classic(base_size = 12) +
+  ggplot2::theme(
+    strip.text      = ggplot2::element_text(face = "bold", size = 12),
+    legend.position = "right",
+    axis.title      = ggplot2::element_text(face = "bold"),
+    legend.text     = ggplot2::element_text(face = "italic")
+  ) +
+  ggplot2::labs(
+    x     = "PCoA1",
+    y     = "PCoA2",
+    title = "Beta Diversity: Feature-based vs. Structurally-weighted"
+  )
+
+pcoa_comparison
+```
+
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plots_for_publication/Figure4e_pcoa_comparison.png",
+  plot = pcoa_comparison, width = 14, height = 6, dpi = 300)
+ggsave("plot/T2_pcoa_comparison.png", pcoa_comparison, width = 12, height = 5, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_pcoa_comparison.png")
+```
+
+
 
 # 8. structure-aware alpha diversity
 
@@ -556,7 +833,7 @@ So far, our alpha diversity summaries have treated each feature as equally disti
 
 group_mean_functionalhill <- GetAlphaDiversity(
   mmo,
-  normalization = "None",
+  normalization = "Log",
   distance = "dreams",
   mode = "weighted",
   threshold = 0,
@@ -606,9 +883,16 @@ combined_plot <- plot_grid(
 ```
 
 
-```{r, eval = T}
+```{r, eval = FALSE}
 combined_plot
+```
 
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_alpha_combined.png", combined_plot, width = 7, height = 8, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_alpha_combined.png")
 ```
 
 If richness counts every detected feature equally, structure-aware diversity asks whether those features represent many different kinds of chemistry or many closely related variants of the same chemistry. Species with similar raw richness can therefore differ in functional Hill diversity if one contains a broader range of chemical types.
@@ -616,7 +900,7 @@ If richness counts every detected feature equally, structure-aware diversity ask
 ```{r, eval = FALSE}
 rarefied_functionalhill <- GetAlphaDiversity(
   mmo,
-  normalization = "None",
+  normalization = "Log",
   distance = "dreams",
   mode = "weighted",
   threshold = 0,
@@ -636,7 +920,7 @@ rarefied_functionalhill$raw
 ```
 here we plot the functional richness accumulation curve
 
-```{r, eval = T}
+```{r, eval = FALSE}
 functional_hill_compound_accumlation_curve <- ggplot(rarefied_functionalhill$summary, aes(x = n_samples, y = mean, color = group, fill = group)) +
   geom_ribbon(aes(ymin = lwr, ymax = upr), alpha = 0.2, color = NA) +
   geom_line(linewidth = 1) +
@@ -650,7 +934,14 @@ functional_hill_compound_accumlation_curve <- ggplot(rarefied_functionalhill$sum
   theme_classic()
 
 functional_hill_compound_accumlation_curve
+```
 
+```{r, eval=FALSE, echo=FALSE}
+ggsave("plot/T2_functional_hill_accumulation.png", functional_hill_compound_accumlation_curve, width = 8, height = 5, dpi = 100)
+```
+
+```{r echo=FALSE, out.width="100%"}
+knitr::include_graphics("plot/T2_functional_hill_accumulation.png")
 ```
 
 Rarefying the structure-aware diversity estimates can help distinguish species that have both high chemical diversity and broad structural coverage from species whose diversity saturates quickly as more samples are added.

@@ -1,10 +1,10 @@
 ---
-title: "Treatment-based Study Tutorial"
+title: "Tutorial_1_Treatment-based_study"
 authors: "Dale L. Forrister & Min-Soo Choi"
 date: "2026-03-30"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Treatment-based_study_tutorial}
+  %\VignetteIndexEntry{Tutorial_1_Treatment-based_study}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1671,7 +1671,7 @@ annotate_feature_info_ms2_from_mgf <- function(
 #'   Default is \code{"group"}.
 #' @param drop_empty_feat Logical; if \code{TRUE} (default) drop features with no
 #'   non-zero values in the retained samples.
-#' @param empty_threshold Optional numeric threshold used to define “empty”
+#' @param empty_threshold Optional numeric threshold used to define "empty"
 #'   features. If \code{NULL} (default), the smallest positive, non-NA intensity
 #'   in the retained samples is used. Features are kept if they have at least
 #'   one value > threshold across retained samples.
@@ -1839,7 +1839,7 @@ filter_mmo <- function(mmo,
   mmo_filtered$feature_data <- feat_abund_filtered
   mmo_filtered$metadata <- meta[meta[[sample_col]] %in% keep_samples, , drop = FALSE]
 
-  # Standard feature×sample tables if present
+  # Standard featurexsample tables if present
   for (nm in c("log", "zscore", "meancentered")) {
     if (nm %in% names(mmo_filtered)) {
       mmo_filtered[[nm]] <- filter_feature_sample_table(mmo_filtered[[nm]], features_keep, keep_samples)
@@ -1856,8 +1856,8 @@ filter_mmo <- function(mmo,
     mmo_filtered$pairwise <- filter_feature_df_by_id(mmo_filtered$pairwise, features_keep)
   }
 
-  # Any “annotation-like” feature-level data.frame with an id column:
-  # - this catches sirius_annot AND any sirius_annot_filtered_* you’ve created,
+  # Any "annotation-like" feature-level data.frame with an id column:
+  # - this catches sirius_annot AND any sirius_annot_filtered_* you've created,
   #   plus other feature-level tables you add in the future.
   for (nm in names(mmo_filtered)) {
     obj <- mmo_filtered[[nm]]
@@ -3842,7 +3842,7 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
     }
     if(!is.null(Letters)){ ## BE: ! if post-hoc is..
       plot <- plot +
-              geom_text(data = Letters, aes(x = .data$x, y = max(feature_values$value)*1.1, label = label),
+              geom_text(data = Letters, aes(x = .data$x, y = max(feature_values$value)*1.1, label = .data$label),
               inherit.aes = FALSE, size = 3, color = "black")
     }
     plot
@@ -4627,7 +4627,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' \itemize{
 #'   \item \code{d_0}   -- presence/absence only; equivalent to unweighted UniFrac.
 #'                         Use when detection (not intensity) is the signal of interest.
-#'   \item \code{d_0.5} -- balanced weighting (recommended default). Moderates the
+#'   \item \code{d_0.5} -- balanced weighting. Moderates the
 #'                         influence of highly abundant features without ignoring abundance.
 #'   \item \code{d_1}   -- fully abundance-weighted. Dominant features drive the distance.
 #'                         Use when peak intensity is a reliable biological signal.
@@ -4645,9 +4645,10 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @param id_list A list of feature names to filter the feature data by, if filter_id is TRUE (default: NULL)
 #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
 #' @param group_list A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)
-#' @param scale_dissim Boolean; whether to scale the feature distance matrix to [0, 1] (default: TRUE)
+#' @param scale_dissim Boolean; whether to scale the feature distance matrix to between 0,1 (default: TRUE)
 #' @return For 'bray', 'jaccard', 'CSCS': a symmetric sample-by-sample distance matrix (matrix).
-#'   For 'Gen.Uni': a named list of three distance matrices: \code{d_0}, \code{d_0.5}, \code{d_1}.
+#'   For 'Gen.Uni': a named list with three distance matrices named \code{d_0} (presence/absence),
+#'   \code{d_0.5} (balanced), and \code{d_1} (fully abundance-weighted).
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
@@ -4698,7 +4699,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
     message(
       "Gen.Uni returned three distance matrices with different abundance-weighting levels:\n",
       "  d_0   : presence/absence only (unweighted)\n",
-      "  d_0.5 : balanced weighting (recommended)\n",
+      "  d_0.5 : balanced weighting\n",
       "  d_1   : fully abundance-weighted\n",
       "Access one with e.g. result[[\"d_0.5\"]] before passing to NMDSplot() or PCoAplot()."
     )
@@ -4974,117 +4975,75 @@ print.mmo <- function(x, ...) {
 
 #' HCplot
 #'
-#' Hierarchical clustering of samples from a precomputed beta-diversity matrix
-#' and plotting as a phylogram with tip labels colored by species (or any grouping column).
+#' Hierarchical clustering of samples from a precomputed beta-diversity matrix,
+#' plotted as a phylogram with tip labels colored by mmo$metadata$group.
 #'
-#' This function is intended for visualization (no cluster significance is implied).
-#'
-#' @param mmo The mmo object containing metadata in mmo$metadata
-#' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity()
-#' @param outdir Output prefix for files (e.g., "output/HC"). If save_output=TRUE a PDF is saved.
-#' @param group_col Metadata column name used to color tips (default: "Species_binomial")
-#' @param sample_col Metadata column name containing sample IDs (default: "sample")
+#' @param mmo The mmo object
+#' @param betadiv Beta diversity distance matrix, output of GetBetaDiversity()
+#' @param outdir Output file prefix (e.g., "output/HC"). PNG saved here if save_output=TRUE.
 #' @param hclust_method hclust linkage method (default: "average"; alternatives: "complete","ward.D2")
-#' @param palette Qualitative palette name for colorspace::qualitative_hcl (default: "Dark 3")
-#' @param cex Tip label size (default: 0.6)
-#' @param width PDF width (default: 10)
-#' @param height PDF height (default: 7)
-#' @param save_output Whether to save the plot to PDF (default: TRUE)
-#' @return A list containing: hc (hclust), phy (phylo), tip_df (mapping), colors (named palette)
+#' @param color Named vector of colors for groups. If NULL, uses Set3 palette.
+#' @param tip_label_size Tip label text size (default: 2.5)
+#' @param width Plot width in inches (default: 10)
+#' @param height Plot height in inches (default: 7)
+#' @param save_output Whether to save the plot (default: TRUE)
+#' @return A list containing: plot (ggplot object), hc (hclust), phy (phylo)
 #' @export
 #' @examplesIf FALSE
-#' bet <- GetBetaDiversity(mmo, method='bray',
-#'         normalization='Log', distance='dreams',
-#'          filter_id=FALSE)
-#' HCplot(mmo,
-#'        betadiv = bet,
-#'        outdir = "output/HC_dreams_bray")
+#' bet <- GetBetaDiversity(mmo, method = 'bray', normalization = 'None')
+#' hc <- HCplot(mmo, betadiv = bet, outdir = "output/HC_bray")
+#' hc$plot
 HCplot <- function(
     mmo,
     betadiv,
     outdir,
-    group_col = "Species_binomial",
-    sample_col = "sample",
     hclust_method = "average",
-    palette = "Dark 3",
-    cex = 0.6,
+    color = NULL,
+    tip_label_size = 2.5,
     width = 10,
     height = 7,
     save_output = TRUE
 ){
   .require_pkg("ape")
-  .require_pkg("colorspace")
+  .require_pkg("ggtree")
 
   metadata <- mmo$metadata
-  if (is.null(metadata) || !is.data.frame(metadata))
-    stop("mmo$metadata must be a data.frame.")
 
-  if (!sample_col %in% names(metadata))
-    stop("metadata is missing sample_col = '", sample_col, "'")
-  if (!group_col %in% names(metadata))
-    stop("metadata is missing group_col = '", group_col, "'")
+  if (is.null(color)) {
+    groups <- unique(metadata$group)
+    color <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+  }
 
-  # Ensure betadiv has labels
-  if (is.null(rownames(betadiv)) || is.null(colnames(betadiv)))
-    stop("betadiv must have rownames and colnames equal to sample IDs.")
-
-  # Convert to dist and hclust
-  d <- as.dist(betadiv)
+  # Cluster
+  d  <- as.dist(betadiv)
   hc <- stats::hclust(d, method = hclust_method)
-
-  # Convert to phylo
   tr <- ape::as.phylo(hc)
 
-  tip_ids <- tr$tip.label
-  md_ids  <- as.character(metadata[[sample_col]])
-  grp_map <- metadata[[group_col]]
-  grp_vec <- grp_map[match(tip_ids, md_ids)]
-
-  if (anyNA(grp_vec)) {
-    bad <- tip_ids[is.na(grp_vec)]
-    stop(
-      "Group labels missing for some tree tips (ID mismatch between betadiv labels and metadata$",
-      sample_col, "). Example missing IDs:\n",
-      paste(head(bad, 25), collapse = "\n")
-    )
-  }
-  grp_vec <- as.character(grp_vec)
-
-  # Build palette
-  grp_levels <- sort(unique(grp_vec))
-  grp_cols <- setNames(colorspace::qualitative_hcl(length(grp_levels), palette = palette), grp_levels)
-  tip_cols <- unname(grp_cols[grp_vec])
-
+  # Map group to tips
   tip_df <- data.frame(
-    tip = tip_ids,
-    group = grp_vec,
-    color = tip_cols,
+    label = tr$tip.label,
+    group = metadata$group[match(tr$tip.label, metadata$sample)],
     stringsAsFactors = FALSE
   )
 
-  # Plot
-  main_title <- paste0("Hierarchical clustering (", hclust_method, ")")
+  tip_depth <- max(ape::node.depth.edgelength(tr))
 
-  if (save_output) grDevices::pdf(paste0(outdir, "_HC.pdf"), width = width, height = height)
-  op <- graphics::par(no.readonly = TRUE)
-  on.exit({
-    graphics::par(op)
-    if (save_output) grDevices::dev.off()
-  }, add = TRUE)
+  plot <- ggtree::`%<+%`(ggtree::ggtree(tr, layout = "rectangular"), tip_df) +
+    ggtree::geom_tippoint(ggplot2::aes(color = .data$group), size = 2) +
+    ggtree::geom_tiplab(ggplot2::aes(color = .data$group),
+                        size = tip_label_size, hjust = -0.05, show.legend = FALSE) +
+    ggplot2::scale_color_manual(values = color, name = "group") +
+    ggplot2::labs(title = paste0("Hierarchical clustering (", hclust_method, ")")) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(legend.position = "right",
+                   plot.title = ggplot2::element_text(hjust = 0.5)) +
+    ggplot2::xlim(NA, tip_depth * 1.5)
 
-  graphics::par(mar = c(2, 2, 2, 12))  # wide right margin for labels
-  plot(tr, type = "phylogram", cex = cex, tip.color = tip_cols, main = main_title)
+  if (save_output) {
+    ggsave(paste0(outdir, '_HC.pdf'), plot = plot, width = width, height = height)
+  }
 
-  graphics::legend(
-    "topleft",
-    legend = grp_levels,
-    col = unname(grp_cols[grp_levels]),
-    pch = 15,
-    cex = 0.6,
-    bty = "n"
-  )
-
-  return(list(hc = hc, phy = tr, tip_df = tip_df, colors = grp_cols))
+  return(list(plot = plot, hc = hc, phy = tr))
 }
 
 
@@ -5140,7 +5099,7 @@ HCplot <- function(
 #'     \item \code{dendrogram} -- the \code{dendrogram} object
 #'     \item \code{phylo}     -- the \code{phylo} object (for ape/iTOL)
 #'     \item \code{dist_used} -- the (possibly modified) distance matrix used
-#'     \item \code{tip_map}   -- data.frame of feature ID → group assignment
+#'     \item \code{tip_map}   -- data.frame of feature ID -> group assignment
 #'                               (\code{NULL} when \code{ion_identity = "none"})
 #'   }
 #' @export
@@ -5338,7 +5297,7 @@ FeatureDendrogram <- function(
 #' # Rectangular layout, no coloring
 #' PlotFeatureDendrogram(tree, mmo, layout = "rectangular", color_by = NULL)
 #'
-#' # Returned object is a ggplot — keep layering
+#' # Returned object is a ggplot -- keep layering
 #' p <- PlotFeatureDendrogram(tree, mmo)
 #' p + ggtree::geom_tiplab(size = 1, align = TRUE)
 PlotFeatureDendrogram <- function(
@@ -5470,7 +5429,7 @@ PlotFeatureDendrogram <- function(
   if (!is.null(color_by) && n_levels > 0 && isTRUE(color_branches) &&
       !is.null(node_annot_df)) {
     p <- p %<+% node_annot_df +
-      ggplot2::aes(color = branch_class) +
+      ggplot2::aes(color = .data$branch_class) +
       ggplot2::scale_color_manual(
         name     = color_by,
         values   = col_vals,
@@ -5486,15 +5445,15 @@ PlotFeatureDendrogram <- function(
       # color scale already set; just add tip points using same aesthetic
       p <- p %<+% tip_df +
         ggtree::geom_tippoint(
-          ggplot2::aes(color = annot_value),
+          ggplot2::aes(color = .data$annot_value),
           size  = tip_size,
           na.rm = TRUE
         )
     } else {
-      # tip points only — set color scale here
+      # tip points only -- set color scale here
       p <- p %<+% tip_df +
         ggtree::geom_tippoint(
-          ggplot2::aes(color = annot_value),
+          ggplot2::aes(color = .data$annot_value),
           size  = tip_size,
           na.rm = TRUE
         ) +
@@ -5734,9 +5693,9 @@ ExportITOL <- function(
 #' Two complementary filters control which edges are retained. Both are
 #' applied together (a pair must pass both to be included):
 #' \itemize{
-#'   \item \code{sim_threshold} — drop all edges with similarity below this
+#'   \item \code{sim_threshold} -- drop all edges with similarity below this
 #'     value. Higher values produce sparser, higher-confidence networks.
-#'   \item \code{top_k} — for each node, retain only its \code{top_k} most
+#'   \item \code{top_k} -- for each node, retain only its \code{top_k} most
 #'     similar neighbours (by similarity). \code{NULL} keeps all edges that
 #'     pass the threshold. This is useful for preventing highly-connected hub
 #'     nodes from dominating the layout.
@@ -5748,16 +5707,16 @@ ExportITOL <- function(
 #' The node table always includes \code{id}, \code{prevalence} (proportion of
 #' samples with detected abundance), and one \code{mean_<group>} column per
 #' group. Any columns present in \code{mmo$feature_info} and
-#' \code{mmo$sirius_annot} are appended automatically — the function does not
+#' \code{mmo$sirius_annot} are appended automatically -- the function does not
 #' assume specific column names. Column names are sanitised to replace
 #' characters that cause problems in Cytoscape (spaces, \code{#}, \code{:}).
 #'
 #' \strong{Loading in Cytoscape:}
 #' \enumerate{
-#'   \item File → Import → Network from File → select \code{_edges.csv}.
+#'   \item File -> Import -> Network from File -> select \code{_edges.csv}.
 #'     Map \code{source} as Source Node, \code{target} as Target Node,
 #'     \code{similarity} as Edge Attribute.
-#'   \item File → Import → Table from File → select \code{_nodes.csv}.
+#'   \item File -> Import -> Table from File -> select \code{_nodes.csv}.
 #'     Map \code{id} as the Key column matching node names.
 #'   \item In the Style panel, map \code{Fill Color} to any annotation column
 #'     (e.g. \code{NPC_pathway}) to color nodes by compound class.
@@ -5816,7 +5775,7 @@ ExportCytoscape <- function(
   dist_mat  <- dist_mat[keep, keep, drop = FALSE]
   n         <- nrow(dist_mat)
 
-  # upper triangle — all pairs, no self-loops
+  # upper triangle -- all pairs, no self-loops
   ut        <- which(upper.tri(dist_mat), arr.ind = TRUE)
   sim_vals  <- 1 - dist_mat[ut]
 
@@ -5875,7 +5834,7 @@ ExportCytoscape <- function(
 
   nodes <- data.frame(id = feat_ids, stringsAsFactors = FALSE)
 
-  # feature_info — append all columns except id, sanitise names
+  # feature_info -- append all columns except id, sanitise names
   if (!is.null(mmo$feature_info) && is.data.frame(mmo$feature_info)) {
     fi      <- mmo$feature_info
     fi$id   <- as.character(fi$id)
@@ -5906,7 +5865,7 @@ ExportCytoscape <- function(
       NA_real_
   }
 
-  # sirius_annot — append all columns except id, sanitise names
+  # sirius_annot -- append all columns except id, sanitise names
   if (!is.null(mmo$sirius_annot) && is.data.frame(mmo$sirius_annot)) {
     annot      <- mmo$sirius_annot
     annot$id   <- as.character(annot$id)
@@ -5915,7 +5874,7 @@ ExportCytoscape <- function(
     annot_sub  <- annot_sub[, setdiff(names(annot_sub), "id"), drop = FALSE]
     names(annot_sub) <- .sanitise_colname(names(annot_sub))
     annot_sub  <- annot_sub[, setdiff(names(annot_sub), names(nodes)), drop = FALSE]
-    # blank → NA
+    # blank -> NA
     for (col in names(annot_sub)) {
       v <- as.character(annot_sub[[col]])
       v[v == "" | v == "NA"] <- NA_character_
@@ -5932,10 +5891,10 @@ ExportCytoscape <- function(
 
   utils::write.csv(nodes, nodes_path, row.names = FALSE, na = "")
   message("Node table: ", nrow(nodes), " nodes, ", ncol(nodes),
-          " columns → ", nodes_path)
+          " columns -> ", nodes_path)
 
   utils::write.csv(edges, edges_path, row.names = FALSE, na = "")
-  message("Edge table: ", nrow(edges), " edges → ", edges_path)
+  message("Edge table: ", nrow(edges), " edges -> ", edges_path)
 
   invisible(list(nodes      = nodes,      edges      = edges,
                  nodes_path = nodes_path, edges_path = edges_path))

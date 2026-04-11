@@ -40,7 +40,7 @@ Default is \code{"group"}.}
 \item{drop_empty_feat}{Logical; if \code{TRUE} (default) drop features with no
 non-zero values in the retained samples.}
 
-\item{empty_threshold}{Optional numeric threshold used to define “empty”
+\item{empty_threshold}{Optional numeric threshold used to define "empty"
 features. If \code{NULL} (default), the smallest positive, non-NA intensity
 in the retained samples is used. Features are kept if they have at least
 one value > threshold across retained samples.}

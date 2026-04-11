@@ -21,7 +21,8 @@ GetFunctionalHillNumber(
 \item{distance_matrix}{Feature distance matrix}
 
 \item{q}{The order of the Hill number to calculate (default: 1).
-Larger q values give more weight to evenness portion of the hill number over richness.}
+Larger q values give more weight to evenness portion of the hill number over richness.
+q = 0 treats abundance matrix as a presence absence matrix}
 
 \item{threshold}{Numeric; detection threshold for presence (default: 0)}
 
