@@ -88,7 +88,7 @@ We currently support feature tables exported from **MZmine version 4 or later**.
 
 eCOMET includes worked case studies covering two common study designs in chemical ecology:
 
-1. [Treatment-based study](./articles/Tutorial_1_Treatment-based_study.html) — comparing chemical profiles between experimental treatments; covers normalization, DAM analysis, volcano plots, heatmaps, and enrichment analysis
+1. [Treatment-based study](./articles/Tutorial_1_Treatment_based_study.html) — comparing chemical profiles between experimental treatments; covers normalization, DAM analysis, volcano plots, heatmaps, and enrichment analysis
 2. [Interspecific comparisons](./articles/Tutorial_2_Interspecific_Comparisons.html) — comparing chemical diversity across co-occurring species; covers feature-based and structure-aware beta diversity, NMDS, PCoA, and hierarchical clustering
 3. [Compound dendrograms and molecular networks](./articles/Tutorial_3_Dendrogram_and_Molecular_Networks.html) — building and exporting chemical similarity trees and networks for iTOL and Cytoscape
 

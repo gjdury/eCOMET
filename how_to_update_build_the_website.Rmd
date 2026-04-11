@@ -36,9 +36,13 @@ Quick quality check
 devtools::check()          # should be clean (0 errors/warnings/notes ideally)
 ```
 
+
+
 Optional: preview site locally
 
 ```{r}
+#pkgdown::clean_site()
+
 pkgdown::build_site()      # view locally; doesn’t affect GitHub
 ```
 
@@ -60,7 +64,7 @@ common tasks
 ```{r}
 #Add a vignette
 
-usethis::use_vignette("intro")  # creates vignettes/intro.Rmd
+#usethis::use_vignette("intro")  # creates vignettes/intro.Rmd
 devtools::build_vignettes()
 ```
 

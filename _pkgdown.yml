@@ -143,12 +143,12 @@ articles:
   - title: "Tutorials"
     contents:
       - eCOMET-intro
-      - Tutorial_1_Treatment-based_study
-      - Tutorial_2_Interspecific_Comparisons
-      - Tutorial_3_Dendrogram_and_Molecular_Networks
+      - articles/Tutorial_1_Treatment_based_study
+      - articles/Tutorial_2_Interspecific_Comparisons
+      - articles/Tutorial_3_Dendrogram_and_Mol_Networks
   - title: "Contributing"
     contents:
-      - contributing
+      - articles/contributing
 
 news:
   one_page: true

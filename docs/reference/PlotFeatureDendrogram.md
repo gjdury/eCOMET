@@ -66,7 +66,7 @@ PlotFeatureDendrogram(
 - palette:
 
   Qualitative palette name for
-  [`colorspace::qualitative_hcl`](https://rdrr.io/pkg/colorspace/man/hcl_palettes.html)
+  [`colorspace::qualitative_hcl`](https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html)
   (default: `"Dark 3"`).
 
 - na_color:

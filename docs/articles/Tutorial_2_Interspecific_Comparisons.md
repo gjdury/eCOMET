@@ -1,5 +1,9 @@
 # Tutorial 2: Interspecific Ecometabolomics
 
+> **Download and run this tutorial:**
+> [Tutorial_2_Interspecific_Comparisons.Rmd](https://raw.githubusercontent.com/Phytoecia/eCOMET/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd)
+> — open in RStudio and run chunks with Ctrl+Enter.
+
 ## Overview
 
 This tutorial introduces an interspecific ecometabolomics workflow using
@@ -53,7 +57,7 @@ This tutorial is organized into the following sections:
   metrics](#id_8-revisit-alpha-diversity-with-structure-aware-metrics)
 - [Key takeaways](#key-takeaways)
 
-The package can be loaded or updated as needed using Pak:
+The package can be installed or updated as needed using Pak:
 
 ``` r
 #install
@@ -64,11 +68,13 @@ The package can be loaded or updated as needed using Pak:
 ```
 
 ``` r
+
 library(ecomet)
 library(dplyr)
 library(ggplot2)
 library(ape)
 library(colorspace)
+library(cowplot)
 ```
 
 ## 1. Load input data and build the MMO object
@@ -108,6 +114,10 @@ demo_dreams           <- file.path(data_dir, "Ecomet_Interspecific_Demo_dreams_s
 mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'Species_binomial', sample_col = "filename")
 
 mmo
+#> MMO object
+#>   Feature number: 3760
+#>   56 samples in 10 groups
+#>   MMO object contains: feature_data, feature_info, pairwise, metadata, feature_presence
 ```
 
 After this step, `mmo` becomes the main object passed through the rest
@@ -132,7 +142,22 @@ We are working with a dataset containing 10 species of tropical trees
 with 5-8 replicate samples for each species.
 
 ``` r
-mmo$metadata
+
+head(mmo$metadata)
+#>                 filename Species_binomial  Genus speciesCode mzmine_sample_type
+#> 1 annRSS85_MDP0005.mzXML    Annona RSS-85 Annona    annRSS85             sample
+#> 2 annRSS85_MDP0091.mzXML    Annona RSS-85 Annona    annRSS85             sample
+#> 3 annRSS85_MDP0307.mzXML    Annona RSS-85 Annona    annRSS85             sample
+#> 4 annRSS85_MDP0415.mzXML    Annona RSS-85 Annona    annRSS85             sample
+#> 5 annRSS85_MDP0464.mzXML    Annona RSS-85 Annona    annRSS85             sample
+#> 6 annRSS85_MDP0636.mzXML    Annona RSS-85 Annona    annRSS85             sample
+#>       Family           sample      sample_full_exact         group
+#> 1 Annonaceae annRSS85_MDP0005 annRSS85_MDP0005.mzXML Annona RSS-85
+#> 2 Annonaceae annRSS85_MDP0091 annRSS85_MDP0091.mzXML Annona RSS-85
+#> 3 Annonaceae annRSS85_MDP0307 annRSS85_MDP0307.mzXML Annona RSS-85
+#> 4 Annonaceae annRSS85_MDP0415 annRSS85_MDP0415.mzXML Annona RSS-85
+#> 5 Annonaceae annRSS85_MDP0464 annRSS85_MDP0464.mzXML Annona RSS-85
+#> 6 Annonaceae annRSS85_MDP0636 annRSS85_MDP0636.mzXML Annona RSS-85
 ```
 
 When
@@ -152,7 +177,29 @@ feature back to its measured properties, match features across steps, or
 merge in annotation data.
 
 ``` r
-mmo$feature_info
+
+head(mmo$feature_info)
+#>    id          feature     rt rt_range:min rt_range:max       mz mz_range:min
+#> 1   4 206.04484_0.6304 0.6304       0.0033       0.7531 206.0448     206.0436
+#> 2   6 132.95824_0.5285 0.5285       0.5178       0.7674 132.9582     132.9575
+#> 3  37 131.96147_0.5448 0.5448       0.3031       0.8025 131.9615     131.9608
+#> 4  91 151.04493_0.5637 0.5637       0.3120       0.8119 151.0449     151.0445
+#> 5  94 119.01877_0.5618 0.5618       0.3188       0.8027 119.0188     119.0182
+#> 6 101 218.98332_0.5644 0.5644       0.4951       0.6238 218.9833     218.9826
+#>   mz_range:max feature_group ion_identities:iin_id
+#> 1     206.0456            NA                    NA
+#> 2     132.9587            NA                    NA
+#> 3     131.9622            10                    NA
+#> 4     151.0456            10                    NA
+#> 5     119.0193            10                    NA
+#> 6     218.9844            10                    NA
+#>   ion_identities:ion_identities
+#> 1                          <NA>
+#> 2                          <NA>
+#> 3                          <NA>
+#> 4                          <NA>
+#> 5                          <NA>
+#> 6                          <NA>
 ```
 
 This table is especially useful when you are troubleshooting missing
@@ -166,7 +213,18 @@ most diversity and ordination analyses. Each row is a detected feature,
 and each sample column contains its measured abundance.
 
 ``` r
-mmo$feature_data
+mmo$feature_data[1:10,1:5]
+#>     id          feature annRSS85_MDP0005 annRSS85_MDP0091 annRSS85_MDP0307
+#> 1    4 206.04484_0.6304          12400.0            27720            36960
+#> 2    6 132.95824_0.5285              0.0                0           163700
+#> 3   37 131.96147_0.5448         242600.0           172000            79350
+#> 4   91 151.04493_0.5637         301600.0           311300           398000
+#> 5   94 119.01877_0.5618         973800.0          1135000          1437000
+#> 6  101 218.98332_0.5644         229200.0           295900           838100
+#> 7  130  232.9989_0.5648         210700.0           278800           720600
+#> 8  200 170.05744_0.5943            455.4             1103                0
+#> 9  204 249.04509_0.6028        1091000.0          1254000          1309000
+#> 10 211  221.0419_0.6106          18610.0                0            16920
 ```
 
 The `mmo` object can also be filtered and subsetted. This creates a new
@@ -179,7 +237,9 @@ subsetting can often be applied on the fly without manually creating a
 separate object first.
 
 ``` r
-unique(mmo$metadata$group)
+#View the groups
+#unique(mmo$metadata$group)
+
 mmo_subset <- filter_mmo(mmo,group_list = unique(mmo$metadata$group)[1])
 ```
 
@@ -232,6 +292,7 @@ among biological replicates before collapsing samples into species-level
 summaries.
 
 ``` r
+
 sample_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
@@ -261,7 +322,7 @@ Sample_Richness <- ggplot2::ggplot(sample_richness, ggplot2::aes(x = group, y = 
 Sample_Richness
 ```
 
-![](plot/T2_sample_richness.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-10-1.png)
 
 This plot shows the distribution of feature richness among samples
 within each species. If one species tends to have higher richness than
@@ -279,6 +340,7 @@ species-level central tendencies rather than emphasize replicate-level
 spread.
 
 ``` r
+
 group_mean_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
@@ -287,6 +349,17 @@ group_mean_richness <- GetAlphaDiversity(
   ci = 0.95   # optional; controls lwr/upr quantiles in the summary
 )
 group_mean_richness
+#>                       group     mean        sd n        se      lwr      upr
+#> 1             Annona RSS-85 1296.333 140.74327 6  57.45820 1115.875 1430.625
+#> 2  Beilschmiedia tovarensis 1016.600  75.61283 5  33.81509  924.600 1112.100
+#> 3           Elaeagia mariae 1165.250 120.70951 8  42.67726  955.775 1282.800
+#> 4                 Inga alba 1085.400 303.86642 5 135.89319  686.000 1421.100
+#> 5             Myrcia fallax 1141.833 222.76931 6  90.94519  814.500 1382.500
+#> 6          Myrsine coriacea  947.600 173.94913 5  77.79242  806.800 1213.000
+#> 7          Ocotea aciphylla 1481.167  81.43566 6  33.24597 1374.250 1579.375
+#> 8          Pourouma bicolor 1144.000 107.08875 5  47.89154 1000.800 1262.500
+#> 9      Schizocalyx obovatus 1020.800 125.87573 5  56.29334  876.700 1162.800
+#> 10   Weinmannia lechleriana 1077.800 136.96058 5  61.25063  879.600 1208.100
 ```
 
 Differences in average richness among species can be interpreted as
@@ -303,6 +376,7 @@ how many distinct features have been observed for a species across the
 full set of sampled individuals?
 
 ``` r
+
 group_pooled_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
@@ -312,6 +386,17 @@ group_pooled_richness <- GetAlphaDiversity(
 )
 
 group_pooled_richness
+#>                       group value
+#> 1             Annona RSS-85  2079
+#> 2  Beilschmiedia tovarensis  1575
+#> 3           Elaeagia mariae  1880
+#> 4                 Inga alba  1723
+#> 5             Myrcia fallax  1934
+#> 6          Myrsine coriacea  1520
+#> 7          Ocotea aciphylla  2366
+#> 8          Pourouma bicolor  1669
+#> 9      Schizocalyx obovatus  1500
+#> 10   Weinmannia lechleriana  1506
 ```
 
 Species with high cumulative richness may have either chemically diverse
@@ -337,6 +422,7 @@ expected richness for a species if you had collected 1, 2, 3, and so on
 up to all available samples.
 
 ``` r
+
 group_rarefied_richness <- GetAlphaDiversity(
   mmo,
   mode = "richness",
@@ -348,11 +434,26 @@ group_rarefied_richness <- GetAlphaDiversity(
   pool_method = "sum"
 )
 
-group_rarefied_richness$raw
+head(group_rarefied_richness$raw)
+#>           group n_samples perm_id value
+#> 1 Annona RSS-85         1       1  1379
+#> 2 Annona RSS-85         1       2  1351
+#> 3 Annona RSS-85         1       3  1379
+#> 4 Annona RSS-85         1       4  1373
+#> 5 Annona RSS-85         1       5  1122
+#> 6 Annona RSS-85         1       6  1438
 ```
 
 ``` r
-group_rarefied_richness$summary
+
+head(group_rarefied_richness$summary)
+#>           group n_samples     mean      lwr      upr n_perm_eff
+#> 1 Annona RSS-85         1 1340.333 1150.625 1430.625          6
+#> 2 Annona RSS-85         2 1625.133 1503.800 1791.650         15
+#> 3 Annona RSS-85         3 1812.900 1611.000 1953.000         20
+#> 4 Annona RSS-85         4 1931.933 1807.650 1994.200         15
+#> 5 Annona RSS-85         5 1986.167 1918.000 2053.375          6
+#> 6 Annona RSS-85         6 2079.000 2079.000 2079.000          1
 ```
 
 ``` r
@@ -382,7 +483,7 @@ compound_accumlation_curve <- ggplot(group_rarefied_richness$summary,
 compound_accumlation_curve
 ```
 
-![](plot/T2_accumulation_curve.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-15-1.png)
 
 These outputs summarize both the expected richness at each sampling
 depth and the underlying permutation results. Curves that begin to
@@ -393,6 +494,7 @@ useful for comparing species while accounting for differences in sample
 number.
 
 ``` r
+
 Rarefaction_AUC <- RarefactionAUC(group_rarefied_richness, n_boot = 500)
 
 
@@ -403,7 +505,7 @@ Rarefaction_AUC_Plot <- ggplot(Rarefaction_AUC$auc_boot) +
 Rarefaction_AUC_Plot
 ```
 
-![](plot/Rarefaction_AUC_Plot.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-16-1.png)
 
 We can also summarize this by quantifying the area under the curve for
 each species.
@@ -424,8 +526,10 @@ You can also add your own custom annotations if you have an external
 table that maps features to compound identities or classes.
 
 ``` r
+
 #Add SIRIUS annotation
 mmo <- AddSiriusAnnot(mmo, canopus_structuredir = demo_sirius_structure, canopus_formuladir = demo_sirius_formula)
+
 mmo$sirius_annot
 ```
 
@@ -460,7 +564,7 @@ sirius_hist <- ggplot2::ggplot(
 sirius_hist
 ```
 
-![](plot/T2_npc_pathway_prob.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-18-1.png)
 
 There is typically a long tail of low-confidence predictions. We can
 filter these using
@@ -487,6 +591,7 @@ mmo <- filter_canopus_annotations(
   suffix        = "NPC_pathway_0.8",
   overwrite     = TRUE
 )
+
 mmo$sirius_annot_filtered_NPC_pathway_0.8
 ```
 
@@ -528,12 +633,14 @@ cosmic_hist <- ggplot2::ggplot(
 cosmic_hist
 ```
 
-![](plot/T2_cosmic_scores.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-20-1.png)
 
 ## Find the threshold for the top 10% of scores
 
 ``` r
 quantile(x = Cosmic_Scores, probs = 0.9, na.rm = TRUE)
+#>    90% 
+#> 0.8371
 ```
 
 ``` r
@@ -556,11 +663,15 @@ directly by providing an outdir, and setting save_output = T. Otherwise
 it will return a ggplot object that can be further modified.
 
 ``` r
+
 mmo_stacked_bar <- PlotNPCStackedBar(mmo, 
     group_col = 'Species_binomial', 
     outdir = 'NPC_stakced_bar.pdf', 
     width = 8, height =4, 
     save_output = FALSE)
+#> [1] "Group column switched to Species_binomial"
+#> [1] "10 groups in total"
+#> [1] "The list of groups are: Annona RSS-85, Beilschmiedia tovarensis, Elaeagia mariae, Inga alba, Myrcia fallax, Myrsine coriacea, Ocotea aciphylla, Pourouma bicolor, Schizocalyx obovatus, Weinmannia lechleriana"
 
 #Note that the plot is returned as a ggplot object so it can be easily modified by adding + to the object
 p_stacked <- mmo_stacked_bar$plot +
@@ -588,7 +699,7 @@ p_stacked <- mmo_stacked_bar$plot +
 p_stacked
 ```
 
-![](plot/T2_npc_stacked_bar.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-23-1.png)
 
 ## 5. Compare samples with feature-based multivariate methods
 
@@ -649,6 +760,7 @@ mmo <- filter_mmo(mmo, id_list = features_to_keep)
 
 mmo <- MeancenterNormalization(mmo)
 mmo <- LogNormalization(mmo)
+#> [1] "Log-normalized values were added to mmo$log"
 mmo <- ZNormalization(mmo)
 
 groups <- unique(mmo$metadata$group)
@@ -665,7 +777,7 @@ mmo_pca <- PCAplot(mmo, color = custom_colors,
 mmo_pca$plot
 ```
 
-![](plot/T2_pca.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-25-1.png)
 
 If samples from the same species cluster together in PCA space, that
 suggests species differ in their overall multivariate chemical profiles.
@@ -693,6 +805,7 @@ which handles clustering and produces a phylogram with tips colored by
 species group.
 
 ``` r
+
 beta_diversity_dreams_bray <- GetBetaDiversity(mmo, method = 'bray',
   normalization = 'Log')
 
@@ -716,7 +829,7 @@ hc_bray_plot <- hc_bray$plot +
 hc_bray_plot
 ```
 
-![](plot/T2_hc_bray.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-26-1.png)
 
 You can see that Bray Curtis distance is grouping species into their own
 clusters well. This is because most species do not share features and
@@ -745,6 +858,17 @@ that group mz-features into structurally similar groups on a tree.
 mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
 mmo$dreams.dissim[1:10,1:10]
+#>         4    37    91    94   101   130   200   204   211   213
+#> 4   0.000 0.751 1.000 1.000 0.775 0.659 1.000 0.647 0.827 0.772
+#> 37  0.751 0.000 1.000 0.730 0.738 0.733 0.786 1.000 0.720 1.000
+#> 91  1.000 1.000 0.000 0.255 0.688 0.552 1.000 0.622 0.774 1.000
+#> 94  1.000 0.730 0.255 0.000 0.585 0.522 1.000 0.585 0.683 0.694
+#> 101 0.775 0.738 0.688 0.585 0.000 0.171 1.000 0.600 0.587 0.703
+#> 130 0.659 0.733 0.552 0.522 0.171 0.000 1.000 0.548 0.569 0.730
+#> 200 1.000 0.786 1.000 1.000 1.000 1.000 0.000 1.000 1.000 1.000
+#> 204 0.647 1.000 0.622 0.585 0.600 0.548 1.000 0.000 0.607 0.555
+#> 211 0.827 0.720 0.774 0.683 0.587 0.569 1.000 0.607 0.000 0.442
+#> 213 0.772 1.000 1.000 0.694 0.703 0.730 1.000 0.555 0.442 0.000
 ```
 
 This matrix stores pairwise chemical dissimilarity among features. Once
@@ -819,6 +943,7 @@ dissimilarity. Two samples can therefore be considered more similar if
 they contain different features that are nonetheless chemically related.
 
 ``` r
+
 beta_diversity_dreams_CSCS <- GetBetaDiversity(mmo, method = 'CSCS',
   normalization = 'Log', distance = "dreams")
 
@@ -833,7 +958,7 @@ hc_cscs <- HCplot(
 hc_cscs$plot
 ```
 
-![](plot/T2_hc_cscs.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-28-1.png)
 
 Relative to Bray-Curtis, CSCS should often reduce the apparent distance
 between samples that lack shared exact features but still contain
@@ -847,8 +972,12 @@ only whether the same features are present, it asks how much chemical
 branch length is shared or unique across samples.
 
 ``` r
+
 beta_diversity_dreams_Gen.Uni <- GetBetaDiversity(mmo, method = 'Gen.Uni',
   normalization = 'Log', distance = "dreams")
+#> Accumulate the abundance along the tree branches...
+#> Compute pairwise distances ...
+#> Completed!
 # GetBetaDiversity() prints a message listing the three available matrices.
 # Inspect the names:
 
@@ -865,7 +994,7 @@ hc_GenUni <- HCplot(
 hc_GenUni$plot
 ```
 
-![](plot/T2_hc_genuni.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-29-1.png)
 
 Both CSCS and Generalized UniFrac move beyond exact feature overlap. In
 an interspecific dataset, that is often the biologically appropriate
@@ -879,17 +1008,21 @@ as NMDS and PCoA. These plots summarize multivariate dissimilarity among
 samples in a low-dimensional space.
 
 ``` r
+
 groups <- unique(mmo$metadata$group)
 custom_colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
 
-NMDS <- NMDSplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS, outdir = 'output/NMDS', width = 6, height = 6)
+NMDS <- NMDSplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS,
+                 outdir = 'output/NMDS',
+                 width = 6, height = 6,
+                 save_output = FALSE)
 ```
 
 ``` r
 NMDS$plot
 ```
 
-![](plot/T2_nmds.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-31-1.png)
 
 In an NMDS plot, points that are closer together represent samples with
 more similar chemical profiles under the chosen distance metric. If
@@ -903,14 +1036,17 @@ Generalized UniFrac (d_1) to show a structure-aware ordination.
 
 ``` r
 PCOA_example <- PCoAplot(mmo, color = custom_colors,
-  betadiv = beta_diversity_dreams_Gen.Uni[["d_1"]], outdir = "output/PCOA", width = 6, height = 6)
+  betadiv = beta_diversity_dreams_Gen.Uni[["d_1"]], 
+  outdir = "output/PCOA", 
+  width = 6, height = 6,
+  save_output = FALSE)
 ```
 
 ``` r
 PCOA_example$plot
 ```
 
-![](plot/T2_pcoa.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-33-1.png)
 
 PCoA axes are derived from the distance matrix directly, so the axes
 reflect the chosen beta diversity metric. Ordinations based on
@@ -979,7 +1115,7 @@ pcoa_comparison <- ggplot2::ggplot(
 pcoa_comparison
 ```
 
-![](plot/T2_pcoa_comparison.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-34-1.png)
 
 ## 8. structure-aware alpha diversity
 
@@ -990,6 +1126,7 @@ much unique diversity as chemically distant compounds. This gives a more
 functional view of chemical diversity within each sample or species.
 
 ``` r
+
 group_mean_functionalhill <- GetAlphaDiversity(
   mmo,
   normalization = "Log",
@@ -1000,9 +1137,68 @@ group_mean_functionalhill <- GetAlphaDiversity(
   ci = 0.95   # optional; controls lwr/upr quantiles in the summary
 )
 group_mean_functionalhill
+#>              sample                    group     value
+#> 1  annRSS85_MDP0005            Annona RSS-85 1753206.3
+#> 2  annRSS85_MDP0091            Annona RSS-85 1753582.5
+#> 3  annRSS85_MDP0307            Annona RSS-85 1910780.5
+#> 4  annRSS85_MDP0415            Annona RSS-85 1687474.2
+#> 5  annRSS85_MDP0464            Annona RSS-85 1133026.8
+#> 6  annRSS85_MDP0636            Annona RSS-85 1104330.2
+#> 7    beitov_MDP0008 Beilschmiedia tovarensis 1145308.3
+#> 8    beitov_MDP0229 Beilschmiedia tovarensis  863457.4
+#> 9    beitov_MDP0466 Beilschmiedia tovarensis  733205.4
+#> 10   beitov_MDP0536 Beilschmiedia tovarensis  975442.8
+#> 11   beitov_MDP0638 Beilschmiedia tovarensis  898505.6
+#> 12   elamar_MDP0022          Elaeagia mariae 1335654.3
+#> 13   elamar_MDP0104          Elaeagia mariae  965135.2
+#> 14   elamar_MDP0244          Elaeagia mariae 1161497.1
+#> 15   elamar_MDP0423          Elaeagia mariae 1199102.1
+#> 16   elamar_MDP0479          Elaeagia mariae 1425507.3
+#> 17   elamar_MDP0547          Elaeagia mariae  759208.8
+#> 18   elamar_MDP0651          Elaeagia mariae 1401670.5
+#> 19   elamar_MDP0720          Elaeagia mariae 1483933.4
+#> 20   ingalb_MDP0036                Inga alba 1483835.3
+#> 21   ingalb_MDP0115                Inga alba 1919854.4
+#> 22   ingalb_MDP0260                Inga alba 1191965.2
+#> 23   ingalb_MDP0336                Inga alba  371055.3
+#> 24   ingalb_MDP0735                Inga alba  730737.8
+#> 25  myr2fal_MDP0051            Myrcia fallax 1304563.6
+#> 26  myr2fal_MDP0130            Myrcia fallax  511474.6
+#> 27  myr2fal_MDP0269            Myrcia fallax 1740573.4
+#> 28  myr2fal_MDP0360            Myrcia fallax  800080.7
+#> 29  myr2fal_MDP0569            Myrcia fallax 1530809.8
+#> 30  myr2fal_MDP0678            Myrcia fallax 1130863.6
+#> 31  myr8cor_MDP0214         Myrsine coriacea 1387676.2
+#> 32  myr8cor_MDP0444         Myrsine coriacea  664712.9
+#> 33  myr8cor_MDP0507         Myrsine coriacea  598500.2
+#> 34  myr8cor_MDP0617         Myrsine coriacea  521899.8
+#> 35  myr8cor_MDP0679         Myrsine coriacea  777342.7
+#> 36   ocoaci_MDP0057         Ocotea aciphylla 1998877.3
+#> 37   ocoaci_MDP0134         Ocotea aciphylla 2316543.2
+#> 38   ocoaci_MDP0275         Ocotea aciphylla 1713947.2
+#> 39   ocoaci_MDP0365         Ocotea aciphylla 2351181.2
+#> 40   ocoaci_MDP0576         Ocotea aciphylla 1909361.5
+#> 41   ocoaci_MDP0751         Ocotea aciphylla 1991312.3
+#> 42  pou2bic_MDP0068         Pourouma bicolor 1468636.9
+#> 43  pou2bic_MDP0144         Pourouma bicolor 1050802.0
+#> 44  pou2bic_MDP0284         Pourouma bicolor 1242546.6
+#> 45  pou2bic_MDP0375         Pourouma bicolor  856883.5
+#> 46  pou2bic_MDP0764         Pourouma bicolor 1244316.4
+#> 47  sch4obo_MDP0079     Schizocalyx obovatus  683229.4
+#> 48  sch4obo_MDP0156     Schizocalyx obovatus  734315.8
+#> 49  sch4obo_MDP0293     Schizocalyx obovatus 1230012.7
+#> 50  sch4obo_MDP0394     Schizocalyx obovatus  979810.3
+#> 51  sch4obo_MDP0772     Schizocalyx obovatus 1031886.6
+#> 52   weilec_MDP0087   Weinmannia lechleriana 1301957.8
+#> 53   weilec_MDP0160   Weinmannia lechleriana  638061.9
+#> 54   weilec_MDP0526   Weinmannia lechleriana  915838.3
+#> 55   weilec_MDP0599   Weinmannia lechleriana 1170650.2
+#> 56   weilec_MDP0703   Weinmannia lechleriana 1045505.5
+```
 
+Compare the structure-aware ordination from a feature only
 
-
+``` r
 sample_hill_number <- ggplot2::ggplot(group_mean_functionalhill, ggplot2::aes(x = group, y = value)) +
   ggplot2::geom_boxplot(outlier.shape = NA) +
   ggplot2::geom_jitter(width = 0.15, height = 0, alpha = 0.6) +
@@ -1016,7 +1212,6 @@ sample_hill_number <- ggplot2::ggplot(group_mean_functionalhill, ggplot2::aes(x 
   )+
     scale_y_log10() 
 
-library(cowplot)
 p1 <- Sample_Richness +
   theme(
     axis.title.x = element_blank(),
@@ -1038,13 +1233,11 @@ combined_plot <- plot_grid(
   axis = "lr",
   rel_heights = c(1, 2.5)
 )
-```
 
-``` r
 combined_plot
 ```
 
-![](plot/T2_alpha_combined.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-36-1.png)
 
 If richness counts every detected feature equally, structure-aware
 diversity asks whether those features represent many different kinds of
@@ -1068,8 +1261,25 @@ rarefied_functionalhill <- GetAlphaDiversity(
 )
 
 
-rarefied_functionalhill$summary
-rarefied_functionalhill$raw
+head(rarefied_functionalhill$summary)
+#>           group n_samples    mean     lwr     upr n_perm_eff
+#> 1 Annona RSS-85         1 1618816 1166059 1836639          6
+#> 2 Annona RSS-85         2 2086032 1786714 2524320         15
+#> 3 Annona RSS-85         3 2395699 1853452 2764308         20
+#> 4 Annona RSS-85         4 2526602 2254960 2706734         15
+#> 5 Annona RSS-85         5 2552918 2436951 2730872          6
+#> 6 Annona RSS-85         6 2669040 2669040 2669040          1
+```
+
+``` r
+head(rarefied_functionalhill$raw)
+#>           group n_samples perm_id   value
+#> 1 Annona RSS-85         1       1 1716417
+#> 2 Annona RSS-85         1       2 1624375
+#> 3 Annona RSS-85         1       3 1716417
+#> 4 Annona RSS-85         1       4 1701286
+#> 5 Annona RSS-85         1       5 1100586
+#> 6 Annona RSS-85         1       6 1853814
 ```
 
 here we plot the functional richness accumulation curve
@@ -1090,7 +1300,7 @@ functional_hill_compound_accumlation_curve <- ggplot(rarefied_functionalhill$sum
 functional_hill_compound_accumlation_curve
 ```
 
-![](plot/T2_functional_hill_accumulation.png)
+![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-39-1.png)
 
 Rarefying the structure-aware diversity estimates can help distinguish
 species that have both high chemical diversity and broad structural

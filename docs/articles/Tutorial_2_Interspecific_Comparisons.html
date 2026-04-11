@@ -61,6 +61,10 @@
 
     
     
+<blockquote>
+<p><strong>Download and run this tutorial:</strong> <a href="https://raw.githubusercontent.com/Phytoecia/eCOMET/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd" class="external-link">Tutorial_2_Interspecific_Comparisons.Rmd</a>
+— open in RStudio and run chunks with Ctrl+Enter.</p>
+</blockquote>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
@@ -112,7 +116,7 @@ Recalculate beta diversity using chemical distances</a></li>
 Revisit alpha diversity with structure-aware metrics</a></li>
 <li><a href="#key-takeaways">Key takeaways</a></li>
 </ul>
-<p>The package can be loaded or updated as needed using Pak:</p>
+<p>The package can be installed or updated as needed using Pak:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#install</span></span>
 <span><span class="co">#pak::pak("phytoecia/eCOMET")</span></span>
@@ -120,11 +124,13 @@ Revisit alpha diversity with structure-aware metrics</a></li>
 <span><span class="co">#upgrade</span></span>
 <span><span class="co">#pak::pak("phytoecia/eCOMET", upgrade = TRUE)</span></span></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://phytoecia.github.io/eCOMET/">ecomet</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://phytoecia.github.io/eCOMET/">ecomet</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/emmanuelparadis/ape" class="external-link">ape</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://colorspace.R-Forge.R-project.org/" class="external-link">colorspace</a></span><span class="op">)</span></span></code></pre></div>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://colorspace.R-Forge.R-project.org/" class="external-link">colorspace</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot/" class="external-link">cowplot</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="load-input-data-and-build-the-mmo-object">1. Load input data and build the MMO object<a class="anchor" aria-label="anchor" href="#load-input-data-and-build-the-mmo-object"></a>
@@ -161,7 +167,11 @@ feature table.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMZmineFeature.html">GetMZmineFeature</a></span><span class="op">(</span>mzmine_dir<span class="op">=</span><span class="va">demo_feature</span>, metadata_dir <span class="op">=</span> <span class="va">demo_metadata</span>, group_col <span class="op">=</span> <span class="st">'Species_binomial'</span>, sample_col <span class="op">=</span> <span class="st">"filename"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">mmo</span></span></code></pre></div>
+<span><span class="va">mmo</span></span>
+<span><span class="co">#&gt; MMO object</span></span>
+<span><span class="co">#&gt;   Feature number: 3760</span></span>
+<span><span class="co">#&gt;   56 samples in 10 groups</span></span>
+<span><span class="co">#&gt;   MMO object contains: feature_data, feature_info, pairwise, metadata, feature_presence</span></span></code></pre></div>
 <p>After this step, <code>mmo</code> becomes the main object passed
 through the rest of the tutorial. As you add normalization results,
 structural annotations, or chemical distances, they are stored within
@@ -184,7 +194,22 @@ structure, or any additional sample-level covariates.</p>
 <p>We are working with a dataset containing 10 species of tropical trees
 with 5-8 replicate samples for each species.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span></span></code></pre></div>
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                 filename Species_binomial  Genus speciesCode mzmine_sample_type</span></span>
+<span><span class="co">#&gt; 1 annRSS85_MDP0005.mzXML    Annona RSS-85 Annona    annRSS85             sample</span></span>
+<span><span class="co">#&gt; 2 annRSS85_MDP0091.mzXML    Annona RSS-85 Annona    annRSS85             sample</span></span>
+<span><span class="co">#&gt; 3 annRSS85_MDP0307.mzXML    Annona RSS-85 Annona    annRSS85             sample</span></span>
+<span><span class="co">#&gt; 4 annRSS85_MDP0415.mzXML    Annona RSS-85 Annona    annRSS85             sample</span></span>
+<span><span class="co">#&gt; 5 annRSS85_MDP0464.mzXML    Annona RSS-85 Annona    annRSS85             sample</span></span>
+<span><span class="co">#&gt; 6 annRSS85_MDP0636.mzXML    Annona RSS-85 Annona    annRSS85             sample</span></span>
+<span><span class="co">#&gt;       Family           sample      sample_full_exact         group</span></span>
+<span><span class="co">#&gt; 1 Annonaceae annRSS85_MDP0005 annRSS85_MDP0005.mzXML Annona RSS-85</span></span>
+<span><span class="co">#&gt; 2 Annonaceae annRSS85_MDP0091 annRSS85_MDP0091.mzXML Annona RSS-85</span></span>
+<span><span class="co">#&gt; 3 Annonaceae annRSS85_MDP0307 annRSS85_MDP0307.mzXML Annona RSS-85</span></span>
+<span><span class="co">#&gt; 4 Annonaceae annRSS85_MDP0415 annRSS85_MDP0415.mzXML Annona RSS-85</span></span>
+<span><span class="co">#&gt; 5 Annonaceae annRSS85_MDP0464 annRSS85_MDP0464.mzXML Annona RSS-85</span></span>
+<span><span class="co">#&gt; 6 Annonaceae annRSS85_MDP0636 annRSS85_MDP0636.mzXML Annona RSS-85</span></span></code></pre></div>
 <p>When <code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code> is called,
 <code>group_col = "Species_binomial"</code> tells <code>eCOMET</code>
 which metadata column should define the biological groups used
@@ -201,7 +226,29 @@ descriptors. This is the table to inspect when you need to trace a
 feature back to its measured properties, match features across steps, or
 merge in annotation data.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_info</span></span></code></pre></div>
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_info</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    id          feature     rt rt_range:min rt_range:max       mz mz_range:min</span></span>
+<span><span class="co">#&gt; 1   4 206.04484_0.6304 0.6304       0.0033       0.7531 206.0448     206.0436</span></span>
+<span><span class="co">#&gt; 2   6 132.95824_0.5285 0.5285       0.5178       0.7674 132.9582     132.9575</span></span>
+<span><span class="co">#&gt; 3  37 131.96147_0.5448 0.5448       0.3031       0.8025 131.9615     131.9608</span></span>
+<span><span class="co">#&gt; 4  91 151.04493_0.5637 0.5637       0.3120       0.8119 151.0449     151.0445</span></span>
+<span><span class="co">#&gt; 5  94 119.01877_0.5618 0.5618       0.3188       0.8027 119.0188     119.0182</span></span>
+<span><span class="co">#&gt; 6 101 218.98332_0.5644 0.5644       0.4951       0.6238 218.9833     218.9826</span></span>
+<span><span class="co">#&gt;   mz_range:max feature_group ion_identities:iin_id</span></span>
+<span><span class="co">#&gt; 1     206.0456            NA                    NA</span></span>
+<span><span class="co">#&gt; 2     132.9587            NA                    NA</span></span>
+<span><span class="co">#&gt; 3     131.9622            10                    NA</span></span>
+<span><span class="co">#&gt; 4     151.0456            10                    NA</span></span>
+<span><span class="co">#&gt; 5     119.0193            10                    NA</span></span>
+<span><span class="co">#&gt; 6     218.9844            10                    NA</span></span>
+<span><span class="co">#&gt;   ion_identities:ion_identities</span></span>
+<span><span class="co">#&gt; 1                          &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 2                          &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 3                          &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 4                          &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 5                          &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 6                          &lt;NA&gt;</span></span></code></pre></div>
 <p>This table is especially useful when you are troubleshooting missing
 annotations, checking ion identity groupings, or tracking how individual
 features behave across analysis steps.</p>
@@ -213,7 +260,18 @@ features behave across analysis steps.</p>
 most diversity and ordination analyses. Each row is a detected feature,
 and each sample column contains its measured abundance.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
+<span><span class="co">#&gt;     id          feature annRSS85_MDP0005 annRSS85_MDP0091 annRSS85_MDP0307</span></span>
+<span><span class="co">#&gt; 1    4 206.04484_0.6304          12400.0            27720            36960</span></span>
+<span><span class="co">#&gt; 2    6 132.95824_0.5285              0.0                0           163700</span></span>
+<span><span class="co">#&gt; 3   37 131.96147_0.5448         242600.0           172000            79350</span></span>
+<span><span class="co">#&gt; 4   91 151.04493_0.5637         301600.0           311300           398000</span></span>
+<span><span class="co">#&gt; 5   94 119.01877_0.5618         973800.0          1135000          1437000</span></span>
+<span><span class="co">#&gt; 6  101 218.98332_0.5644         229200.0           295900           838100</span></span>
+<span><span class="co">#&gt; 7  130  232.9989_0.5648         210700.0           278800           720600</span></span>
+<span><span class="co">#&gt; 8  200 170.05744_0.5943            455.4             1103                0</span></span>
+<span><span class="co">#&gt; 9  204 249.04509_0.6028        1091000.0          1254000          1309000</span></span>
+<span><span class="co">#&gt; 10 211  221.0419_0.6106          18610.0                0            16920</span></span></code></pre></div>
 <p>The <code>mmo</code> object can also be filtered and subsetted. This
 creates a new object and updates the linked tables together, including
 the abundance matrix, feature information, and associated annotations.
@@ -223,7 +281,9 @@ Many <code>mmo</code> functions also expose filtering arguments
 directly, so this same type of subsetting can often be applied on the
 fly without manually creating a separate object first.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co">#View the groups</span></span>
+<span><span class="co">#unique(mmo$metadata$group)</span></span>
+<span></span>
 <span><span class="va">mmo_subset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_mmo.html">filter_mmo</a></span><span class="op">(</span><span class="va">mmo</span>,group_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <p>This is the table you would inspect if you want to understand how
 intensities are organized, check whether zeros are present, or confirm
@@ -270,7 +330,8 @@ is useful when you want to see how much within-species variation exists
 among biological replicates before collapsing samples into species-level
 summaries.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sample_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">sample_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -297,7 +358,7 @@ summaries.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">Sample_Richness</span></span></code></pre></div>
-<p><img src="plot/T2_sample_richness.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="700"></p>
 <p>This plot shows the distribution of feature richness among samples
 within each species. If one species tends to have higher richness than
 another, that suggests it accumulates a broader set of detectable
@@ -314,14 +375,26 @@ richness of each species. This is useful when the goal is to compare
 species-level central tendencies rather than emphasize replicate-level
 spread.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">group_mean_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">group_mean_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  output <span class="op">=</span> <span class="st">"group_average"</span>,</span>
 <span>  ci <span class="op">=</span> <span class="fl">0.95</span>   <span class="co"># optional; controls lwr/upr quantiles in the summary</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">group_mean_richness</span></span></code></pre></div>
+<span><span class="va">group_mean_richness</span></span>
+<span><span class="co">#&gt;                       group     mean        sd n        se      lwr      upr</span></span>
+<span><span class="co">#&gt; 1             Annona RSS-85 1296.333 140.74327 6  57.45820 1115.875 1430.625</span></span>
+<span><span class="co">#&gt; 2  Beilschmiedia tovarensis 1016.600  75.61283 5  33.81509  924.600 1112.100</span></span>
+<span><span class="co">#&gt; 3           Elaeagia mariae 1165.250 120.70951 8  42.67726  955.775 1282.800</span></span>
+<span><span class="co">#&gt; 4                 Inga alba 1085.400 303.86642 5 135.89319  686.000 1421.100</span></span>
+<span><span class="co">#&gt; 5             Myrcia fallax 1141.833 222.76931 6  90.94519  814.500 1382.500</span></span>
+<span><span class="co">#&gt; 6          Myrsine coriacea  947.600 173.94913 5  77.79242  806.800 1213.000</span></span>
+<span><span class="co">#&gt; 7          Ocotea aciphylla 1481.167  81.43566 6  33.24597 1374.250 1579.375</span></span>
+<span><span class="co">#&gt; 8          Pourouma bicolor 1144.000 107.08875 5  47.89154 1000.800 1262.500</span></span>
+<span><span class="co">#&gt; 9      Schizocalyx obovatus 1020.800 125.87573 5  56.29334  876.700 1162.800</span></span>
+<span><span class="co">#&gt; 10   Weinmannia lechleriana 1077.800 136.96058 5  61.25063  879.600 1208.100</span></span></code></pre></div>
 <p>Differences in average richness among species can be interpreted as
 differences in the typical number of detectable features per sample.
 This is often a better starting point for species comparisons than
@@ -336,7 +409,8 @@ pooling observations across all of its samples. This asks a different
 question: how many distinct features have been observed for a species
 across the full set of sampled individuals?</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">group_pooled_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">group_pooled_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -344,7 +418,18 @@ across the full set of sampled individuals?</p>
 <span>  pool_method <span class="op">=</span> <span class="st">"sum"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">group_pooled_richness</span></span></code></pre></div>
+<span><span class="va">group_pooled_richness</span></span>
+<span><span class="co">#&gt;                       group value</span></span>
+<span><span class="co">#&gt; 1             Annona RSS-85  2079</span></span>
+<span><span class="co">#&gt; 2  Beilschmiedia tovarensis  1575</span></span>
+<span><span class="co">#&gt; 3           Elaeagia mariae  1880</span></span>
+<span><span class="co">#&gt; 4                 Inga alba  1723</span></span>
+<span><span class="co">#&gt; 5             Myrcia fallax  1934</span></span>
+<span><span class="co">#&gt; 6          Myrsine coriacea  1520</span></span>
+<span><span class="co">#&gt; 7          Ocotea aciphylla  2366</span></span>
+<span><span class="co">#&gt; 8          Pourouma bicolor  1669</span></span>
+<span><span class="co">#&gt; 9      Schizocalyx obovatus  1500</span></span>
+<span><span class="co">#&gt; 10   Weinmannia lechleriana  1506</span></span></code></pre></div>
 <p>Species with high cumulative richness may have either chemically
 diverse individuals or simply more opportunities to detect rare features
 across replicates. For teaching purposes, it is important to distinguish
@@ -368,7 +453,8 @@ interval. In other words, the curve shows the expected richness for a
 species if you had collected 1, 2, 3, and so on up to all available
 samples.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">group_rarefied_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">group_rarefied_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  mode <span class="op">=</span> <span class="st">"richness"</span>,</span>
 <span>  threshold <span class="op">=</span> <span class="fl">0</span>,</span>
@@ -379,9 +465,24 @@ samples.</p>
 <span>  pool_method <span class="op">=</span> <span class="st">"sum"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">raw</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">raw</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           group n_samples perm_id value</span></span>
+<span><span class="co">#&gt; 1 Annona RSS-85         1       1  1379</span></span>
+<span><span class="co">#&gt; 2 Annona RSS-85         1       2  1351</span></span>
+<span><span class="co">#&gt; 3 Annona RSS-85         1       3  1379</span></span>
+<span><span class="co">#&gt; 4 Annona RSS-85         1       4  1373</span></span>
+<span><span class="co">#&gt; 5 Annona RSS-85         1       5  1122</span></span>
+<span><span class="co">#&gt; 6 Annona RSS-85         1       6  1438</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">summary</span></span></code></pre></div>
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">summary</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           group n_samples     mean      lwr      upr n_perm_eff</span></span>
+<span><span class="co">#&gt; 1 Annona RSS-85         1 1340.333 1150.625 1430.625          6</span></span>
+<span><span class="co">#&gt; 2 Annona RSS-85         2 1625.133 1503.800 1791.650         15</span></span>
+<span><span class="co">#&gt; 3 Annona RSS-85         3 1812.900 1611.000 1953.000         20</span></span>
+<span><span class="co">#&gt; 4 Annona RSS-85         4 1931.933 1807.650 1994.200         15</span></span>
+<span><span class="co">#&gt; 5 Annona RSS-85         5 1986.167 1918.000 2053.375          6</span></span>
+<span><span class="co">#&gt; 6 Annona RSS-85         6 2079.000 2079.000 2079.000          1</span></span></code></pre></div>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">compound_accumlation_curve</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">group_rarefied_richness</span><span class="op">$</span><span class="va">summary</span>,</span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n_samples</span>, y <span class="op">=</span> <span class="va">mean</span>, color <span class="op">=</span> <span class="va">group</span>, fill <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -407,7 +508,7 @@ samples.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">compound_accumlation_curve</span></span></code></pre></div>
-<p><img src="plot/T2_accumulation_curve.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="700"></p>
 <p>These outputs summarize both the expected richness at each sampling
 depth and the underlying permutation results. Curves that begin to
 plateau suggest that sampling is approaching the detectable richness of
@@ -416,7 +517,8 @@ sampling would likely recover more features. This makes the curves
 useful for comparing species while accounting for differences in sample
 number.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">Rarefaction_AUC</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RarefactionAUC.html">RarefactionAUC</a></span><span class="op">(</span><span class="va">group_rarefied_richness</span>, n_boot <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">Rarefaction_AUC</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RarefactionAUC.html">RarefactionAUC</a></span><span class="op">(</span><span class="va">group_rarefied_richness</span>, n_boot <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
 <span></span>
 <span></span>
 <span><span class="va">Rarefaction_AUC_Plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">Rarefaction_AUC</span><span class="op">$</span><span class="va">auc_boot</span><span class="op">)</span> <span class="op">+</span></span>
@@ -424,7 +526,7 @@ number.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">Rarefaction_AUC_Plot</span></span></code></pre></div>
-<p><img src="plot/Rarefaction_AUC_Plot.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" alt="" width="700"></p>
 <p>We can also summarize this by quantifying the area under the curve
 for each species.</p>
 </div>
@@ -443,8 +545,10 @@ associated class assignments.</p>
 <p>You can also add your own custom annotations if you have an external
 table that maps features to compound identities or classes.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co">#Add SIRIUS annotation</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="co">#Add SIRIUS annotation</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot</a></span><span class="op">(</span><span class="va">mmo</span>, canopus_structuredir <span class="op">=</span> <span class="va">demo_sirius_structure</span>, canopus_formuladir <span class="op">=</span> <span class="va">demo_sirius_formula</span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="filter-canopus-annotations-by-confidence">4.1 Filter CANOPUS annotations by confidence<a class="anchor" aria-label="anchor" href="#filter-canopus-annotations-by-confidence"></a>
@@ -474,7 +578,7 @@ quality of downstream enrichment analyses.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">sirius_hist</span></span></code></pre></div>
-<p><img src="plot/T2_npc_pathway_prob.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="700"></p>
 <p>There is typically a long tail of low-confidence predictions. We can
 filter these using <code><a href="../reference/filter_canopus_annotations.html">filter_canopus_annotations()</a></code>:</p>
 <ul>
@@ -503,6 +607,7 @@ rather than applying a hard cutoff.</p>
 <span>  suffix        <span class="op">=</span> <span class="st">"NPC_pathway_0.8"</span>,</span>
 <span>  overwrite     <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
+<span></span>
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot_filtered_NPC_pathway_0.8</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -541,14 +646,16 @@ recommends</a> focusing on the highest-confidence hits (e.g., top
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">cosmic_hist</span></span></code></pre></div>
-<p><img src="plot/T2_cosmic_scores.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-20-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="find-the-threshold-for-the-top-10-of-scores">Find the threshold for the top 10% of scores<a class="anchor" aria-label="anchor" href="#find-the-threshold-for-the-top-10-of-scores"></a>
 </h2>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Cosmic_Scores</span>, probs <span class="op">=</span> <span class="fl">0.9</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Cosmic_Scores</span>, probs <span class="op">=</span> <span class="fl">0.9</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    90% </span></span>
+<span><span class="co">#&gt; 0.8371</span></span></code></pre></div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_cosmic_structure.html">filter_cosmic_structure</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
@@ -567,11 +674,15 @@ that.</p>
 directly by providing an outdir, and setting save_output = T. Otherwise
 it will return a ggplot object that can be further modified.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mmo_stacked_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PlotNPCStackedBar.html">PlotNPCStackedBar</a></span><span class="op">(</span><span class="va">mmo</span>, </span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">mmo_stacked_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PlotNPCStackedBar.html">PlotNPCStackedBar</a></span><span class="op">(</span><span class="va">mmo</span>, </span>
 <span>    group_col <span class="op">=</span> <span class="st">'Species_binomial'</span>, </span>
 <span>    outdir <span class="op">=</span> <span class="st">'NPC_stakced_bar.pdf'</span>, </span>
 <span>    width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span><span class="fl">4</span>, </span>
 <span>    save_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Group column switched to Species_binomial"</span></span>
+<span><span class="co">#&gt; [1] "10 groups in total"</span></span>
+<span><span class="co">#&gt; [1] "The list of groups are: Annona RSS-85, Beilschmiedia tovarensis, Elaeagia mariae, Inga alba, Myrcia fallax, Myrsine coriacea, Ocotea aciphylla, Pourouma bicolor, Schizocalyx obovatus, Weinmannia lechleriana"</span></span>
 <span></span>
 <span><span class="co">#Note that the plot is returned as a ggplot object so it can be easily modified by adding + to the object</span></span>
 <span><span class="va">p_stacked</span> <span class="op">&lt;-</span> <span class="va">mmo_stacked_bar</span><span class="op">$</span><span class="va">plot</span> <span class="op">+</span></span>
@@ -597,7 +708,7 @@ it will return a ggplot object that can be further modified.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">p_stacked</span></span></code></pre></div>
-<p><img src="plot/T2_npc_stacked_bar.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-23-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
 <div class="section level2">
@@ -688,6 +799,7 @@ samples, which would cause PCA to fail.</p>
 <span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MeancenterNormalization.html">MeancenterNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/LogNormalization.html">LogNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Log-normalized values were added to mmo$log"</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ZNormalization.html">ZNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
@@ -700,7 +812,7 @@ samples, which would cause PCA to fail.</p>
 <span>                   normalization <span class="op">=</span> <span class="st">"Log"</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, save_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo_pca</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="plot/T2_pca.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-25-1.png" class="r-plt" alt="" width="700"></p>
 <p>If samples from the same species cluster together in PCA space, that
 suggests species differ in their overall multivariate chemical profiles.
 However, PCA still depends on the observed feature matrix and does not
@@ -723,7 +835,8 @@ distance matrix between compounds.</p>
 <code><a href="../reference/HCplot.html">HCplot()</a></code>, which handles clustering and produces a phylogram
 with tips colored by species group.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">beta_diversity_dreams_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'bray'</span>,</span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">beta_diversity_dreams_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'bray'</span>,</span>
 <span>  normalization <span class="op">=</span> <span class="st">'Log'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">hc_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/HCplot.html">HCplot</a></span><span class="op">(</span></span>
@@ -744,7 +857,7 @@ with tips colored by species group.</p>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Sample Similarity\n(Bray-Curtis, structurally unweighted)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">hc_bray_plot</span></span></code></pre></div>
-<p><img src="plot/T2_hc_bray.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-26-1.png" class="r-plt" alt="" width="700"></p>
 <p>You can see that Bray Curtis distance is grouping species into their
 own clusters well. This is because most species do not share features
 and thus form unique clusters.</p>
@@ -772,7 +885,18 @@ tree.</p>
 <code class="sourceCode R"><span><span class="co"># Add Dreams distance</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">mmo</span><span class="op">$</span><span class="va">dreams.dissim</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
+<span><span class="va">mmo</span><span class="op">$</span><span class="va">dreams.dissim</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span>
+<span><span class="co">#&gt;         4    37    91    94   101   130   200   204   211   213</span></span>
+<span><span class="co">#&gt; 4   0.000 0.751 1.000 1.000 0.775 0.659 1.000 0.647 0.827 0.772</span></span>
+<span><span class="co">#&gt; 37  0.751 0.000 1.000 0.730 0.738 0.733 0.786 1.000 0.720 1.000</span></span>
+<span><span class="co">#&gt; 91  1.000 1.000 0.000 0.255 0.688 0.552 1.000 0.622 0.774 1.000</span></span>
+<span><span class="co">#&gt; 94  1.000 0.730 0.255 0.000 0.585 0.522 1.000 0.585 0.683 0.694</span></span>
+<span><span class="co">#&gt; 101 0.775 0.738 0.688 0.585 0.000 0.171 1.000 0.600 0.587 0.703</span></span>
+<span><span class="co">#&gt; 130 0.659 0.733 0.552 0.522 0.171 0.000 1.000 0.548 0.569 0.730</span></span>
+<span><span class="co">#&gt; 200 1.000 0.786 1.000 1.000 1.000 1.000 0.000 1.000 1.000 1.000</span></span>
+<span><span class="co">#&gt; 204 0.647 1.000 0.622 0.585 0.600 0.548 1.000 0.000 0.607 0.555</span></span>
+<span><span class="co">#&gt; 211 0.827 0.720 0.774 0.683 0.587 0.569 1.000 0.607 0.000 0.442</span></span>
+<span><span class="co">#&gt; 213 0.772 1.000 1.000 0.694 0.703 0.730 1.000 0.555 0.442 0.000</span></span></code></pre></div>
 <p>This matrix stores pairwise chemical dissimilarity among features.
 Once this information is available, later analyses can distinguish
 between features that are unrelated and features that are distinct but
@@ -855,7 +979,8 @@ dissimilarity. Two samples can therefore be considered more similar if
 they contain different features that are nonetheless chemically
 related.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">beta_diversity_dreams_CSCS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'CSCS'</span>,</span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">beta_diversity_dreams_CSCS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'CSCS'</span>,</span>
 <span>  normalization <span class="op">=</span> <span class="st">'Log'</span>, distance <span class="op">=</span> <span class="st">"dreams"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">hc_cscs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/HCplot.html">HCplot</a></span><span class="op">(</span></span>
@@ -867,7 +992,7 @@ related.</p>
 <span>  save_output   <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">hc_cscs</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="plot/T2_hc_cscs.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" alt="" width="700"></p>
 <p>Relative to Bray-Curtis, CSCS should often reduce the apparent
 distance between samples that lack shared exact features but still
 contain compounds from similar chemical neighborhoods.</p>
@@ -880,8 +1005,12 @@ differences among samples across branches of the chemical tree. Instead
 of asking only whether the same features are present, it asks how much
 chemical branch length is shared or unique across samples.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">beta_diversity_dreams_Gen.Uni</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'Gen.Uni'</span>,</span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">beta_diversity_dreams_Gen.Uni</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'Gen.Uni'</span>,</span>
 <span>  normalization <span class="op">=</span> <span class="st">'Log'</span>, distance <span class="op">=</span> <span class="st">"dreams"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Accumulate the abundance along the tree branches...</span></span>
+<span><span class="co">#&gt; Compute pairwise distances ...</span></span>
+<span><span class="co">#&gt; Completed!</span></span>
 <span><span class="co"># GetBetaDiversity() prints a message listing the three available matrices.</span></span>
 <span><span class="co"># Inspect the names:</span></span>
 <span></span>
@@ -896,7 +1025,7 @@ chemical branch length is shared or unique across samples.</p>
 <span>  save_output   <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">hc_GenUni</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="plot/T2_hc_genuni.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-29-1.png" class="r-plt" alt="" width="700"></p>
 <p>Both CSCS and Generalized UniFrac move beyond exact feature overlap.
 In an interspecific dataset, that is often the biologically appropriate
 comparison because species can produce different compounds that still
@@ -909,13 +1038,17 @@ belong to related structural classes.</p>
 such as NMDS and PCoA. These plots summarize multivariate dissimilarity
 among samples in a low-dimensional space.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
 <span><span class="va">custom_colors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu">grDevices</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grDevices/colorRamp.html" class="external-link">colorRampPalette</a></span><span class="op">(</span><span class="fu">RColorBrewer</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/RColorBrewer/man/ColorBrewer.html" class="external-link">brewer.pal</a></span><span class="op">(</span><span class="fl">12</span>, <span class="st">"Set3"</span><span class="op">)</span><span class="op">)</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">groups</span><span class="op">)</span><span class="op">)</span>, <span class="va">groups</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">NMDS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/NMDSplot.html">NMDSplot</a></span><span class="op">(</span><span class="va">mmo</span>, color<span class="op">=</span> <span class="va">custom_colors</span>,betadiv <span class="op">=</span> <span class="va">beta_diversity_dreams_CSCS</span>, outdir <span class="op">=</span> <span class="st">'output/NMDS'</span>, width <span class="op">=</span> <span class="fl">6</span>, height <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">NMDS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/NMDSplot.html">NMDSplot</a></span><span class="op">(</span><span class="va">mmo</span>, color<span class="op">=</span> <span class="va">custom_colors</span>,betadiv <span class="op">=</span> <span class="va">beta_diversity_dreams_CSCS</span>,</span>
+<span>                 outdir <span class="op">=</span> <span class="st">'output/NMDS'</span>,</span>
+<span>                 width <span class="op">=</span> <span class="fl">6</span>, height <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>                 save_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">NMDS</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="plot/T2_nmds.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-31-1.png" class="r-plt" alt="" width="700"></p>
 <p>In an NMDS plot, points that are closer together represent samples
 with more similar chemical profiles under the chosen distance metric. If
 samples from the same species cluster tightly and species separate from
@@ -926,10 +1059,13 @@ taxonomic structure.</p>
 Generalized UniFrac (d_1) to show a structure-aware ordination.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PCOA_example</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PCoAplot.html">PCoAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">custom_colors</span>,</span>
-<span>  betadiv <span class="op">=</span> <span class="va">beta_diversity_dreams_Gen.Uni</span><span class="op">[[</span><span class="st">"d_1"</span><span class="op">]</span><span class="op">]</span>, outdir <span class="op">=</span> <span class="st">"output/PCOA"</span>, width <span class="op">=</span> <span class="fl">6</span>, height <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
+<span>  betadiv <span class="op">=</span> <span class="va">beta_diversity_dreams_Gen.Uni</span><span class="op">[[</span><span class="st">"d_1"</span><span class="op">]</span><span class="op">]</span>, </span>
+<span>  outdir <span class="op">=</span> <span class="st">"output/PCOA"</span>, </span>
+<span>  width <span class="op">=</span> <span class="fl">6</span>, height <span class="op">=</span> <span class="fl">6</span>,</span>
+<span>  save_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PCOA_example</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="plot/T2_pcoa.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-33-1.png" class="r-plt" alt="" width="700"></p>
 <p>PCoA axes are derived from the distance matrix directly, so the axes
 reflect the chosen beta diversity metric. Ordinations based on
 structure-aware distances summarize chemistry after incorporating
@@ -993,7 +1129,7 @@ of points across panels, not the axis values.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">pcoa_comparison</span></span></code></pre></div>
-<p><img src="plot/T2_pcoa_comparison.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-34-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 </div>
 <div class="section level2">
@@ -1005,7 +1141,8 @@ information so that chemically similar compounds do not contribute as
 much unique diversity as chemically distant compounds. This gives a more
 functional view of chemical diversity within each sample or species.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">group_mean_functionalhill</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span></span>
+<span><span class="va">group_mean_functionalhill</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  normalization <span class="op">=</span> <span class="st">"Log"</span>,</span>
 <span>  distance <span class="op">=</span> <span class="st">"dreams"</span>,</span>
@@ -1015,10 +1152,66 @@ functional view of chemical diversity within each sample or species.</p>
 <span>  ci <span class="op">=</span> <span class="fl">0.95</span>   <span class="co"># optional; controls lwr/upr quantiles in the summary</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">group_mean_functionalhill</span></span>
-<span></span>
-<span></span>
-<span></span>
-<span><span class="va">sample_hill_number</span> <span class="op">&lt;-</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">group_mean_functionalhill</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">group</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="co">#&gt;              sample                    group     value</span></span>
+<span><span class="co">#&gt; 1  annRSS85_MDP0005            Annona RSS-85 1753206.3</span></span>
+<span><span class="co">#&gt; 2  annRSS85_MDP0091            Annona RSS-85 1753582.5</span></span>
+<span><span class="co">#&gt; 3  annRSS85_MDP0307            Annona RSS-85 1910780.5</span></span>
+<span><span class="co">#&gt; 4  annRSS85_MDP0415            Annona RSS-85 1687474.2</span></span>
+<span><span class="co">#&gt; 5  annRSS85_MDP0464            Annona RSS-85 1133026.8</span></span>
+<span><span class="co">#&gt; 6  annRSS85_MDP0636            Annona RSS-85 1104330.2</span></span>
+<span><span class="co">#&gt; 7    beitov_MDP0008 Beilschmiedia tovarensis 1145308.3</span></span>
+<span><span class="co">#&gt; 8    beitov_MDP0229 Beilschmiedia tovarensis  863457.4</span></span>
+<span><span class="co">#&gt; 9    beitov_MDP0466 Beilschmiedia tovarensis  733205.4</span></span>
+<span><span class="co">#&gt; 10   beitov_MDP0536 Beilschmiedia tovarensis  975442.8</span></span>
+<span><span class="co">#&gt; 11   beitov_MDP0638 Beilschmiedia tovarensis  898505.6</span></span>
+<span><span class="co">#&gt; 12   elamar_MDP0022          Elaeagia mariae 1335654.3</span></span>
+<span><span class="co">#&gt; 13   elamar_MDP0104          Elaeagia mariae  965135.2</span></span>
+<span><span class="co">#&gt; 14   elamar_MDP0244          Elaeagia mariae 1161497.1</span></span>
+<span><span class="co">#&gt; 15   elamar_MDP0423          Elaeagia mariae 1199102.1</span></span>
+<span><span class="co">#&gt; 16   elamar_MDP0479          Elaeagia mariae 1425507.3</span></span>
+<span><span class="co">#&gt; 17   elamar_MDP0547          Elaeagia mariae  759208.8</span></span>
+<span><span class="co">#&gt; 18   elamar_MDP0651          Elaeagia mariae 1401670.5</span></span>
+<span><span class="co">#&gt; 19   elamar_MDP0720          Elaeagia mariae 1483933.4</span></span>
+<span><span class="co">#&gt; 20   ingalb_MDP0036                Inga alba 1483835.3</span></span>
+<span><span class="co">#&gt; 21   ingalb_MDP0115                Inga alba 1919854.4</span></span>
+<span><span class="co">#&gt; 22   ingalb_MDP0260                Inga alba 1191965.2</span></span>
+<span><span class="co">#&gt; 23   ingalb_MDP0336                Inga alba  371055.3</span></span>
+<span><span class="co">#&gt; 24   ingalb_MDP0735                Inga alba  730737.8</span></span>
+<span><span class="co">#&gt; 25  myr2fal_MDP0051            Myrcia fallax 1304563.6</span></span>
+<span><span class="co">#&gt; 26  myr2fal_MDP0130            Myrcia fallax  511474.6</span></span>
+<span><span class="co">#&gt; 27  myr2fal_MDP0269            Myrcia fallax 1740573.4</span></span>
+<span><span class="co">#&gt; 28  myr2fal_MDP0360            Myrcia fallax  800080.7</span></span>
+<span><span class="co">#&gt; 29  myr2fal_MDP0569            Myrcia fallax 1530809.8</span></span>
+<span><span class="co">#&gt; 30  myr2fal_MDP0678            Myrcia fallax 1130863.6</span></span>
+<span><span class="co">#&gt; 31  myr8cor_MDP0214         Myrsine coriacea 1387676.2</span></span>
+<span><span class="co">#&gt; 32  myr8cor_MDP0444         Myrsine coriacea  664712.9</span></span>
+<span><span class="co">#&gt; 33  myr8cor_MDP0507         Myrsine coriacea  598500.2</span></span>
+<span><span class="co">#&gt; 34  myr8cor_MDP0617         Myrsine coriacea  521899.8</span></span>
+<span><span class="co">#&gt; 35  myr8cor_MDP0679         Myrsine coriacea  777342.7</span></span>
+<span><span class="co">#&gt; 36   ocoaci_MDP0057         Ocotea aciphylla 1998877.3</span></span>
+<span><span class="co">#&gt; 37   ocoaci_MDP0134         Ocotea aciphylla 2316543.2</span></span>
+<span><span class="co">#&gt; 38   ocoaci_MDP0275         Ocotea aciphylla 1713947.2</span></span>
+<span><span class="co">#&gt; 39   ocoaci_MDP0365         Ocotea aciphylla 2351181.2</span></span>
+<span><span class="co">#&gt; 40   ocoaci_MDP0576         Ocotea aciphylla 1909361.5</span></span>
+<span><span class="co">#&gt; 41   ocoaci_MDP0751         Ocotea aciphylla 1991312.3</span></span>
+<span><span class="co">#&gt; 42  pou2bic_MDP0068         Pourouma bicolor 1468636.9</span></span>
+<span><span class="co">#&gt; 43  pou2bic_MDP0144         Pourouma bicolor 1050802.0</span></span>
+<span><span class="co">#&gt; 44  pou2bic_MDP0284         Pourouma bicolor 1242546.6</span></span>
+<span><span class="co">#&gt; 45  pou2bic_MDP0375         Pourouma bicolor  856883.5</span></span>
+<span><span class="co">#&gt; 46  pou2bic_MDP0764         Pourouma bicolor 1244316.4</span></span>
+<span><span class="co">#&gt; 47  sch4obo_MDP0079     Schizocalyx obovatus  683229.4</span></span>
+<span><span class="co">#&gt; 48  sch4obo_MDP0156     Schizocalyx obovatus  734315.8</span></span>
+<span><span class="co">#&gt; 49  sch4obo_MDP0293     Schizocalyx obovatus 1230012.7</span></span>
+<span><span class="co">#&gt; 50  sch4obo_MDP0394     Schizocalyx obovatus  979810.3</span></span>
+<span><span class="co">#&gt; 51  sch4obo_MDP0772     Schizocalyx obovatus 1031886.6</span></span>
+<span><span class="co">#&gt; 52   weilec_MDP0087   Weinmannia lechleriana 1301957.8</span></span>
+<span><span class="co">#&gt; 53   weilec_MDP0160   Weinmannia lechleriana  638061.9</span></span>
+<span><span class="co">#&gt; 54   weilec_MDP0526   Weinmannia lechleriana  915838.3</span></span>
+<span><span class="co">#&gt; 55   weilec_MDP0599   Weinmannia lechleriana 1170650.2</span></span>
+<span><span class="co">#&gt; 56   weilec_MDP0703   Weinmannia lechleriana 1045505.5</span></span></code></pre></div>
+<p>Compare the structure-aware ordination from a feature only</p>
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sample_hill_number</span> <span class="op">&lt;-</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">group_mean_functionalhill</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">group</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_boxplot.html" class="external-link">geom_boxplot</a></span><span class="op">(</span>outlier.shape <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_jitter.html" class="external-link">geom_jitter</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.15</span>, height <span class="op">=</span> <span class="fl">0</span>, alpha <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
@@ -1031,7 +1224,6 @@ functional view of chemical diversity within each sample or species.</p>
 <span>  <span class="op">)</span><span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> </span>
 <span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://wilkelab.org/cowplot/" class="external-link">cowplot</a></span><span class="op">)</span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="va">Sample_Richness</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
 <span>    axis.title.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -1052,10 +1244,10 @@ functional view of chemical diversity within each sample or species.</p>
 <span>  align <span class="op">=</span> <span class="st">"v"</span>,</span>
 <span>  axis <span class="op">=</span> <span class="st">"lr"</span>,</span>
 <span>  rel_heights <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2.5</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">combined_plot</span></span></code></pre></div>
-<p><img src="plot/T2_alpha_combined.png" class="r-plt" alt="" width="100%"></p>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">combined_plot</span></span></code></pre></div>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-36-1.png" class="r-plt" alt="" width="700"></p>
 <p>If richness counts every detected feature equally, structure-aware
 diversity asks whether those features represent many different kinds of
 chemistry or many closely related variants of the same chemistry.
@@ -1077,10 +1269,25 @@ Hill diversity if one contains a broader range of chemical types.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="va">rarefied_functionalhill</span><span class="op">$</span><span class="va">summary</span></span>
-<span><span class="va">rarefied_functionalhill</span><span class="op">$</span><span class="va">raw</span></span></code></pre></div>
-<p>here we plot the functional richness accumulation curve</p>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">rarefied_functionalhill</span><span class="op">$</span><span class="va">summary</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           group n_samples    mean     lwr     upr n_perm_eff</span></span>
+<span><span class="co">#&gt; 1 Annona RSS-85         1 1618816 1166059 1836639          6</span></span>
+<span><span class="co">#&gt; 2 Annona RSS-85         2 2086032 1786714 2524320         15</span></span>
+<span><span class="co">#&gt; 3 Annona RSS-85         3 2395699 1853452 2764308         20</span></span>
+<span><span class="co">#&gt; 4 Annona RSS-85         4 2526602 2254960 2706734         15</span></span>
+<span><span class="co">#&gt; 5 Annona RSS-85         5 2552918 2436951 2730872          6</span></span>
+<span><span class="co">#&gt; 6 Annona RSS-85         6 2669040 2669040 2669040          1</span></span></code></pre></div>
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">rarefied_functionalhill</span><span class="op">$</span><span class="va">raw</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           group n_samples perm_id   value</span></span>
+<span><span class="co">#&gt; 1 Annona RSS-85         1       1 1716417</span></span>
+<span><span class="co">#&gt; 2 Annona RSS-85         1       2 1624375</span></span>
+<span><span class="co">#&gt; 3 Annona RSS-85         1       3 1716417</span></span>
+<span><span class="co">#&gt; 4 Annona RSS-85         1       4 1701286</span></span>
+<span><span class="co">#&gt; 5 Annona RSS-85         1       5 1100586</span></span>
+<span><span class="co">#&gt; 6 Annona RSS-85         1       6 1853814</span></span></code></pre></div>
+<p>here we plot the functional richness accumulation curve</p>
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">functional_hill_compound_accumlation_curve</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">rarefied_functionalhill</span><span class="op">$</span><span class="va">summary</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">n_samples</span>, y <span class="op">=</span> <span class="va">mean</span>, color <span class="op">=</span> <span class="va">group</span>, fill <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">lwr</span>, ymax <span class="op">=</span> <span class="va">upr</span><span class="op">)</span>, alpha <span class="op">=</span> <span class="fl">0.2</span>, color <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1094,7 +1301,7 @@ Hill diversity if one contains a broader range of chemical types.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">functional_hill_compound_accumlation_curve</span></span></code></pre></div>
-<p><img src="plot/T2_functional_hill_accumulation.png" class="r-plt" alt="" width="100%"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-39-1.png" class="r-plt" alt="" width="700"></p>
 <p>Rarefying the structure-aware diversity estimates can help
 distinguish species that have both high chemical diversity and broad
 structural coverage from species whose diversity saturates quickly as

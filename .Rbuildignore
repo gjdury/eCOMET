@@ -8,6 +8,7 @@
 ^doc$
 ^Meta$
 ^260320_demo$
+^tutorial_notebooks$
 ^ecoMet_Tutorials\.code-workspace$
 ^how_to_update_build_the_website\.Rmd$
 ^index\.md$

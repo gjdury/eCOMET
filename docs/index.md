@@ -121,7 +121,7 @@ eCOMET includes worked case studies covering two common study designs in
 chemical ecology:
 
 1.  [Treatment-based
-    study](https://phytoecia.github.io/eCOMET/articles/Tutorial_1_Treatment-based_study.md)
+    study](https://phytoecia.github.io/eCOMET/articles/Tutorial_1_Treatment_based_study.md)
     — comparing chemical profiles between experimental treatments;
     covers normalization, DAM analysis, volcano plots, heatmaps, and
     enrichment analysis

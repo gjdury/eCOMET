@@ -2,12 +2,12 @@ pandoc: '3.4'
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
-  contributing: contributing.html
+  articles/contributing: contributing.html
   eCOMET-intro: eCOMET-intro.html
-  Tutorial_1_Treatment-based_study: Tutorial_1_Treatment-based_study.html
-  Tutorial_2_Interspecific_Comparisons: Tutorial_2_Interspecific_Comparisons.html
-  Tutorial_3_Dendrogram_and_Molecular_Networks: Tutorial_3_Dendrogram_and_Molecular_Networks.html
-last_built: 2026-04-11T14:24Z
+  articles/Tutorial_1_Treatment_based_study: Tutorial_1_Treatment_based_study.html
+  articles/Tutorial_2_Interspecific_Comparisons: Tutorial_2_Interspecific_Comparisons.html
+  articles/Tutorial_3_Dendrogram_and_Mol_Networks: Tutorial_3_Dendrogram_and_Mol_Networks.html
+last_built: 2026-04-11T17:52Z
 urls:
   reference: https://phytoecia.github.io/eCOMET/reference
   article: https://phytoecia.github.io/eCOMET/articles

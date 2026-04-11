@@ -1,0 +1,778 @@
+# Tutorial 1: Treatment-based Metabolomics
+
+> **Download and run this tutorial:**
+> [Tutorial_1_Treatment-based_study.Rmd](https://raw.githubusercontent.com/Phytoecia/eCOMET/main/vignettes/articles/Tutorial_1_Treatment-based_study.Rmd)
+> — open in RStudio and run chunks with Ctrl+Enter.
+
+## Install eCOMET (uncomment if not installed)
+
+``` r
+# Install eCOMET (uncomment if not installed)
+# install.packages("pak")
+# pak::pkg_install("Phytoecia/eCOMET", dependencies = TRUE)
+
+library(ecomet)
+library(dplyr)
+library(stringr)
+```
+
+## Background
+
+In this tutorial, we demonstrate how to use the **eCOMET** package for
+analyzing metabolomics data from a **treatment-based study**
+
+**What is a treatment-based study?**
+
+- In a treatment-based study, we compare metabolite profiles between
+  different treatment groups (e.g., control vs. treated).
+- The main goal is to identify **differentially accumulated metabolites
+  (DAMs)** — compounds whose abundance changes significantly in response
+  to a treatment.
+- Common downstream analyses include volcano plots, heatmaps, and
+  chemical class enrichment to understand *what types* of metabolites
+  respond to treatment.
+
+**Tutorial dataset**
+
+The example data represent metabolomics analysis of *Arabidopsis
+thaliana* (Col-0) leaves attacked by two different herbivores:
+
+| Group  | Description                                  | Replicates |
+|--------|----------------------------------------------|------------|
+| `ctrl` | Undamaged control                            | 8          |
+| `sl1`  | *Spodoptera litura* (chewing herbivore)      | 8          |
+| `le1`  | *Lipaphis erysimi* (aphid, piercing-sucking) | 8          |
+
+These files are shipped with the eCOMET package and can be accessed via
+[`system.file()`](https://rdrr.io/r/base/system.file.html).
+
+------------------------------------------------------------------------
+
+## Step 1: Locate tutorial data
+
+eCOMET is distributed with a small set of example files so that
+tutorials can be run immediately without downloading additional data.
+
+``` r
+# Locate tutorial data shipped with the eCOMET package
+data_dir <- system.file(
+  "extdata/tutorials/treatment_based",
+  package = "ecomet"
+)
+stopifnot(nzchar(data_dir))  # fail loudly if package/data not installed
+
+# Define file paths
+demo_feature          <- file.path(data_dir, "feature_table_demo.csv")
+demo_metadata         <- file.path(data_dir, "metadata_demo.csv")
+demo_sirius_formula   <- file.path(data_dir, "canopus_formula_summary.tsv")
+demo_sirius_structure <- file.path(data_dir, "structure_identifications.tsv")
+demo_dreams           <- file.path(data_dir, "dreams_sim_demo.csv")
+gls_db                <- file.path(data_dir, "custom_DB_glucosinolates.csv")
+```
+
+------------------------------------------------------------------------
+
+## Step 2: Create an `mmo` object
+
+The `mmo` (mass-spectrometry metabolomics object) is the central data
+structure in eCOMET. It stores feature abundances, sample metadata,
+annotations, and analysis results as a named list.
+
+To create an `mmo` object, you need at minimum:
+
+1.  **Feature abundance table** — exported from MZmine (preferably the
+    “full feature table” format)
+2.  **Sample metadata** — a CSV identifying samples and their treatment
+    groups
+
+Optionally, you can later add:
+
+- SIRIUS/CANOPUS annotations for chemical classification
+- Chemical similarity scores (DreaMS, cosine, MS2DeepScore)
+- Custom compound database annotations
+
+### 2.1 Initialize the mmo object
+
+[`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md)
+reads your MZmine feature table and metadata, then links them together.
+
+``` r
+mmo <- GetMZmineFeature(
+  mzmine_dir   = demo_feature,
+  metadata_dir = demo_metadata,
+  group_col    = 'group',     # column in metadata defining treatment groups
+  sample_col   = 'sample'     # column in metadata with sample file names
+)
+```
+
+The newly created `mmo` object contains three main components:
+
+**1) Feature abundance matrix** — rows are features (m/z + retention
+time), columns are samples:
+
+``` r
+mmo$feature_data
+```
+
+**2) Feature information** — m/z, retention time, and other
+feature-level metadata:
+
+``` r
+mmo$feature_info
+```
+
+**3) Sample metadata** — treatment groups, sample masses, phenotype
+data:
+
+``` r
+mmo$metadata
+```
+
+------------------------------------------------------------------------
+
+## Step 3: Preprocessing and normalization
+
+Before statistical analysis, we apply several preprocessing steps. Each
+step adds a new element to the `mmo` object — the original data is never
+overwritten, so you can always go back.
+
+### 3.1 Replace zeros
+
+Mass spectrometry data often contains zeros (undetected features). These
+need to be handled before log transformation or fold-change
+calculations.
+[`ReplaceZero()`](https://phytoecia.github.io/eCOMET/reference/ReplaceZero.md)
+adds an imputed version of the feature table
+(`mmo$imputed_feature_data`).
+
+- `method = 'one'`: Replace 0 and NA values with 1 (simple,
+  conservative)
+- `method = 'half_min'`: Replace with half the minimum non-zero value
+  per feature
+
+``` r
+mmo <- ReplaceZero(mmo, method = 'one')
+head(mmo$imputed_feature_data)
+```
+
+### 3.2 Mass normalization
+
+If your metadata contains a `mass` column (tissue mass in mg),
+[`MassNormalization()`](https://phytoecia.github.io/eCOMET/reference/MassNormalization.md)
+adjusts peak areas for differences in sample mass:
+`normalized = original * mean(mass) / sample_mass`.
+
+``` r
+mmo <- MassNormalization(mmo)
+mmo$feature_data
+```
+
+### 3.3 Additional normalizations
+
+eCOMET offers several normalization methods. Each adds a new element to
+the `mmo` object:
+
+| Function | Result stored in | Description |
+|----|----|----|
+| [`LogNormalization()`](https://phytoecia.github.io/eCOMET/reference/LogNormalization.md) | `mmo$log` | log2(x + 1) transformation — stabilizes variance |
+| [`MeancenterNormalization()`](https://phytoecia.github.io/eCOMET/reference/MeancenterNormalization.md) | `mmo$meancentered` | Row-wise mean subtraction — centers features around zero |
+| [`ZNormalization()`](https://phytoecia.github.io/eCOMET/reference/ZNormalization.md) | `mmo$zscore` | Row-wise z-score — standardizes to mean=0, sd=1 |
+
+``` r
+mmo <- MeancenterNormalization(mmo)
+mmo <- LogNormalization(mmo)
+mmo <- ZNormalization(mmo)
+```
+
+### 3.4 Presence/absence matrix
+
+You can also convert the feature abundance matrix to a binary
+presence/absence matrix. Features with abundance above the threshold are
+marked as present (1), otherwise absent (0).
+
+``` r
+mmo <- FeaturePresence(mmo, threshold = 1)
+```
+
+------------------------------------------------------------------------
+
+## Step 4: Add annotations
+
+### 4.1 SIRIUS/CANOPUS annotation
+
+SIRIUS provides computational annotations including molecular formula
+predictions and compound class assignments via CANOPUS (NPC and
+ClassyFire classifications).
+
+``` r
+mmo <- AddSiriusAnnot(
+  mmo,
+  canopus_structuredir = demo_sirius_structure,
+  canopus_formuladir   = demo_sirius_formula
+)
+mmo$sirius_annot
+```
+
+> **Note on duplicates:** SIRIUS may assign multiple candidate
+> annotations to the same feature. If you see duplicate feature entries
+> in `mmo$sirius_annot`, only the top-ranked annotation per feature is
+> retained. Check `summary(mmo)` to confirm the annotation count
+> matches.
+
+### 4.2 Filter CANOPUS annotations by confidence
+
+CANOPUS assigns posterior probabilities to each compound class
+prediction. We can filter out low-confidence predictions to improve the
+quality of downstream enrichment analyses.
+
+First, let’s visualize the distribution of prediction confidence:
+
+``` r
+hist(mmo$sirius_annot$`NPC#pathway Probability`,
+     main = "Distribution of NPC Pathway Probabilities",
+     xlab = "Probability", col = "lightblue")
+```
+
+There is typically a long tail of low-confidence predictions. We can
+filter these using
+[`filter_canopus_annotations()`](https://phytoecia.github.io/eCOMET/reference/filter_canopus_annotations.md):
+
+- `pathway_level`: which classification levels to filter (e.g.,
+  `"NPC#pathway"`, `"All"`, `"All_NPC"`)
+- `threshold`: minimum probability to retain (values below are set to
+  NA)
+- `suffix`: label for the filtered result
+
+> **How to choose a threshold?** There is no universal threshold. The
+> [SIRIUS
+> documentation](https://v6.docs.sirius-ms.io/methods-background/#CANOPUS)
+> recommends using context-dependent thresholds. For statistical
+> analyses, you can sum probabilities to get expected counts rather than
+> applying a hard cutoff.
+
+``` r
+mmo <- filter_canopus_annotations(
+  mmo,
+  pathway_level = "NPC#pathway",
+  threshold     = 0.8,
+  suffix        = "NPC_pathway_0.8",
+  overwrite     = TRUE
+)
+mmo$sirius_annot_filtered_NPC_pathway_0.8
+```
+
+### 4.3 Filter structure predictions by COSMIC confidence
+
+SIRIUS structure predictions are scored by the COSMIC confidence score.
+These scores should be interpreted with caution — they are not
+probabilities. The [SIRIUS team
+recommends](https://www.nature.com/articles/s41587-021-01045-9) focusing
+on the highest-confidence hits (e.g., top 5–10%).
+
+``` r
+# Replace -Infinity values with 0
+mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate[
+  which(mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate == "-Infinity")
+] <- 0
+
+Cosmic_Scores <- as.numeric(
+  mmo$sirius_annot_filtered_NPC_pathway_0.8$ConfidenceScoreApproximate
+)
+
+hist(Cosmic_Scores, main = "COSMIC Confidence Scores for Structures",
+     xlab = "Confidence Score", col = "lightblue")
+
+# Find the threshold for the top 10% of scores
+quantile(x = Cosmic_Scores, probs = 0.9, na.rm = TRUE)
+```
+
+``` r
+mmo <- filter_cosmic_structure(
+  mmo,
+  input       = "sirius_annot_filtered_NPC_pathway_0.8",
+  cosmic_mode = "approx",
+  threshold   = 0.3892,
+  suffix      = "CANOPUS_0.8_COSMIC_Top_10"
+)
+```
+
+### 4.4 Create feature vectors from annotations
+
+Using SIRIUS annotations, you can create vectors of features belonging
+to specific compound classes. These are useful for downstream analyses
+like targeted heatmaps or PCA.
+
+``` r
+# Extract flavonoid features using ClassyFire annotation
+FLVs <- mmo$sirius_annot %>%
+  filter(str_detect(`ClassyFire#most specific class`, "Flavonoid")) %>%
+  pull(id)
+FLVs
+```
+
+### 4.5 Custom compound database annotation
+
+You can match features against an in-house compound library by m/z (ppm
+tolerance) and retention time (minute tolerance).
+
+``` r
+mmo <- AddCustomAnnot(mmo, DB = gls_db, mztol = 5, rttol = 0.2)
+
+# Extract glucosinolate features
+GLSs <- mmo$custom_annot %>%
+  filter(lengths(custom_annot) > 0) %>%
+  pull(id)
+GLSs
+```
+
+### 4.6 Add chemical distance matrix
+
+Chemical similarity scores (e.g., from DreaMS) can be used for
+chemically-informed heatmap clustering and diversity analyses.
+
+``` r
+mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+mmo$dreams.dissim[1:10, 1:10]
+```
+
+------------------------------------------------------------------------
+
+## Step 5: Dimensionality reduction plots
+
+### 5.1 PCA plot and PERMANOVA
+
+A **PCA (Principal Component Analysis)** plot visualizes the overall
+distribution of samples across groups.
+[`PCAplot()`](https://phytoecia.github.io/eCOMET/reference/PCAplot.md)
+performs PCA, generates a scatter plot with confidence ellipses, and
+runs a PERMANOVA test to check if groups are significantly different.
+
+**Key options:**
+
+- `normalization`: which normalization to use (`"None"`, `"Log"`,
+  `"Meancentered"`, `"Z"`)
+- `label`: whether to label individual sample points
+- `filter_id` / `id_list`: restrict analysis to specific features
+- `save_output`: set to `FALSE` to return the plot object without saving
+  files
+
+``` r
+# Define group colors
+colors <- c("ctrl" = "grey", "sl1" = "#fdcdac", "le1" = "#b3e2cd")
+
+# Basic PCA
+PCAplot(mmo, color = colors, outdir = '260320_demo/plot/PCA/PCA_basic',
+        save_output = TRUE)
+
+# PCA with log-normalized data, no sample labels
+PCAplot(mmo, color = colors, outdir = '260320_demo/plot/PCA/PCA_log',
+        label = FALSE, normalization = 'Log', save_output = TRUE)
+
+# PCA of flavonoids only
+PCAplot(mmo, color = colors, outdir = '260320_demo/plot/PCA/PCA_FLV',
+        label = FALSE, filter_id = TRUE, id_list = FLVs, save_output = TRUE)
+```
+
+#### Customizing PCA plots
+
+All plot-generating functions in eCOMET return a list containing the
+plot object, data frames, and statistical results. You can use these to
+create plots with your own aesthetics.
+
+``` r
+# Get PCA plot data
+pca_res <- PCAplot(mmo, color = colors, outdir = '260320_demo/plot/PCA/PCA_custom',
+                   save_output = FALSE)
+
+# Access the components
+# pca_res$plot      — the ggplot object
+# pca_res$df        — data.frame with PC1, PC2, group, sample columns
+# pca_res$permanova — PERMANOVA results
+
+# Create a custom plot
+library(ggplot2)
+custom_pca <- ggplot(pca_res$df, aes(x = PC1, y = PC2, color = group)) +
+  geom_point(size = 3) +
+  scale_color_manual(values = colors) +
+  theme_minimal() +
+  labs(title = "Custom PCA Plot")
+
+ggsave("260320_demo/plot/PCA/PCA_custom.pdf", custom_pca, width = 8, height = 6)
+```
+
+### 5.2 PLS-DA plot
+
+**PLS-DA (Partial Least Squares Discriminant Analysis)** is a supervised
+method that maximizes separation between groups. Unlike PCA, PLS-DA uses
+group labels during dimensionality reduction.
+
+``` r
+PLSDAplot(mmo, color = colors, outdir = '260320_demo/plot/PLSDA/PLSDA_basic.pdf',
+          save_output = TRUE)
+PLSDAplot(mmo, color = colors, outdir = '260320_demo/plot/PLSDA/PLSDA_meancentered.pdf',
+          normalization = 'Meancentered', save_output = TRUE)
+```
+
+------------------------------------------------------------------------
+
+## Step 6: Identify differentially accumulated metabolites (DAMs)
+
+A central goal of treatment-based studies is to find **differentially
+accumulated metabolites (DAMs)** — features whose abundance changes
+significantly between treatment and control.
+
+### 6.1 Pairwise comparison
+
+[`PairwiseComp()`](https://phytoecia.github.io/eCOMET/reference/PairwiseComp.md)
+performs a pairwise t-test between two groups and computes:
+
+- **log2 fold change** — magnitude of change (log2(group2_mean /
+  group1_mean))
+- **adjusted p-value** — significance after BH correction
+
+> **Convention:** The first group (`group1`) is the reference/control.
+> Positive log2FC means the feature is *higher* in `group2` (treatment).
+
+``` r
+# Compare each treatment to control
+mmo <- PairwiseComp(mmo, group1 = 'ctrl', group2 = 'sl1')
+mmo <- PairwiseComp(mmo, group1 = 'ctrl', group2 = 'le1')
+```
+
+### 6.2 Extract DAMs
+
+[`GetDAMs()`](https://phytoecia.github.io/eCOMET/reference/GetDAMs.md)
+extracts DAMs from all comparisons based on fold-change and p-value
+cutoffs.
+
+- `fc_cutoff = 0.5849625` corresponds to log2(1.5) — a 1.5-fold change
+- `pval_cutoff = 0.1` is used here to capture more DAMs in this small
+  demo dataset
+
+``` r
+DAMs <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.1)
+DAMs_up   <- DAMs$DAMs_up    # Features upregulated in treatment
+DAMs_down <- DAMs$DAMs_down  # Features downregulated in treatment
+head(DAMs_up)
+```
+
+------------------------------------------------------------------------
+
+## Step 7: Visualization of DAMs
+
+### 7.1 Volcano plot
+
+A volcano plot visualizes all features by their fold change (x-axis) and
+significance (y-axis). Features exceeding both thresholds are
+highlighted as DAMs.
+
+``` r
+VolcanoPlot(mmo, comp = 'ctrl_vs_sl1',
+            outdir = '260320_demo/plot/Volcano/Volcano_ctrl_vs_sl1.pdf',
+            save_output = TRUE)
+
+# Remove feature labels by setting topk = 0
+VolcanoPlot(mmo, comp = 'ctrl_vs_le1',
+            outdir = '260320_demo/plot/Volcano/Volcano_ctrl_vs_le1.pdf',
+            topk = 0, save_output = TRUE)
+```
+
+### 7.2 Venn diagram and UpSet plot
+
+These plots visualize the overlap of DAMs between comparisons — e.g.,
+which upregulated features are shared between herbivore treatments?
+
+``` r
+# Define input list for Venn/UpSet
+VennInput <- list(
+  sl1.up = DAMs_up$ctrl_vs_sl1.up,
+  le1.up = DAMs_up$ctrl_vs_le1.up
+)
+
+# Venn diagram
+library(ggvenn)
+venn_plot <- ggvenn(VennInput, stroke_size = 0.5, set_name_size = 4,
+                    show_percentage = FALSE) +
+  theme(legend.position = "none")
+ggsave("260320_demo/plot/Venn/Venn_Upreg.pdf", venn_plot, height = 5, width = 5)
+
+# UpSet plot
+library(UpSetR)
+pdf("260320_demo/plot/Upset/Upset_Upreg.pdf", 7, 5)
+upset(fromList(VennInput), nsets = 10, nintersects = 20,
+      order.by = 'freq', mainbar.y.label = 'Features in Set',
+      line.size = 1, point.size = 4, shade.color = 'white',
+      text.scale = 1, show.numbers = FALSE)
+dev.off()
+```
+
+------------------------------------------------------------------------
+
+## Step 8: Heatmap
+
+Heatmaps visualize the relative abundance of features across samples or
+groups. Features can be clustered using hierarchical clustering
+(default) or by chemical distances (e.g., DreaMS), following the concept
+of Qemistree (Tripathi et al., 2021, *Nat Chem Biol*).
+
+**Key options for
+[`GenerateHeatmapInputs()`](https://phytoecia.github.io/eCOMET/reference/GenerateHeatmapInputs.md):**
+
+| Parameter | Options | Description |
+|----|----|----|
+| `summarize` | `"fold_change"`, `"mean"` | What values to display |
+| `control_group` | group name | Reference for fold-change calculation |
+| `normalization` | `"None"`, `"Log"`, `"Z"`, `"Meancentered"` | Which normalization to use |
+| `distance` | `"dreams"`, `"cosine"`, `"m2ds"`, `NULL` | Chemical distance for row clustering |
+
+> **Important:** When using `distance`, do NOT wrap
+> [`pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html) in
+> `pdf()/dev.off()`. Instead, use `pheatmap(filename = "output.pdf")` to
+> avoid side-effect plot contamination.
+
+### 8.1 Fold-change heatmap with chemical clustering
+
+> **Note on Inf values:** Fold-change calculations can produce `Inf` or
+> `-Inf` when a feature has zero abundance in the control group (log2(x
+> / 0) = Inf). We cap these to the maximum finite fold-change value
+> before plotting.
+
+``` r
+library(pheatmap)
+
+# Generate heatmap inputs using fold change and DreaMS chemical distance
+heatmap_inputs <- GenerateHeatmapInputs(
+  mmo,
+  summarize     = 'fold_change',
+  control_group = 'ctrl',
+  normalization = 'None',
+  distance      = 'dreams'
+)
+
+# Handle Inf/NaN in fold-change matrix (from features absent in control)
+fc_mat <- as.matrix(heatmap_inputs$FC_matrix)
+finite_max <- max(abs(fc_mat[is.finite(fc_mat)]), na.rm = TRUE)
+fc_mat[is.infinite(fc_mat) & fc_mat > 0] <-  finite_max
+fc_mat[is.infinite(fc_mat) & fc_mat < 0] <- -finite_max
+fc_mat[is.nan(fc_mat)] <- 0
+
+# Plot heatmap — use filename argument to avoid PDF contamination
+pheatmap(
+  mat = fc_mat,
+  clustering_distance_rows = heatmap_inputs$dist_matrix,
+  clustering_method = "average",
+  cellwidth    = 100,
+  cellheight   = 0.3,
+  treeheight_row = 100,
+  fontsize_row = 3,
+  fontsize_col = 15,
+  scale        = 'none',
+  filename     = "260320_demo/plot/Heatmap/Heatmap_FC_dreams.pdf",
+  width = 10, height = 10
+)
+```
+
+### 8.2 Z-score heatmap with default clustering
+
+``` r
+heatmap_inputs_z <- GenerateHeatmapInputs(
+  mmo,
+  summarize     = 'mean',
+  normalization = 'Z',
+  distance      = 'dreams'
+)
+
+# Omit clustering_distance_rows to use default euclidean clustering
+pheatmap(
+  mat = heatmap_inputs_z$FC_matrix,
+  clustering_method = "average",
+  cellwidth    = 100,
+  cellheight   = 0.3,
+  treeheight_row = 100,
+  fontsize_row = 3,
+  fontsize_col = 15,
+  scale        = 'none',
+  filename     = "260320_demo/plot/Heatmap/Heatmap_Mean_Z_clustering.pdf",
+  width = 10, height = 10
+)
+```
+
+### 8.3 Targeted heatmap: glucosinolates only
+
+By filtering to specific features, you can create focused heatmaps for
+compound classes of interest. When custom annotations are available,
+compound names can be shown as row labels.
+
+``` r
+heatmap_inputs_GLS <- GenerateHeatmapInputs(
+  mmo,
+  summarize     = 'mean',
+  normalization = 'Z',
+  distance      = 'dreams',
+  filter_id     = TRUE,
+  id_list       = GLSs
+)
+
+pheatmap(
+  mat = heatmap_inputs_GLS$FC_matrix,
+  clustering_method    = "average",
+  cellwidth    = 100,
+  cellheight   = 8,
+  treeheight_row = 100,
+  fontsize_row = 8,
+  fontsize_col = 15,
+  scale        = 'none',
+  labels_row   = heatmap_inputs_GLS$row_label,
+  filename     = "260320_demo/plot/Heatmap/Heatmap_Mean_Z_GLS.pdf",
+  width = 10, height = 10
+)
+```
+
+------------------------------------------------------------------------
+
+## Step 9: CANOPUS class enrichment analysis
+
+Which chemical classes are over-represented among DAMs? This is
+analogous to Gene Ontology enrichment analysis in transcriptomics.
+eCOMET uses NPC and ClassyFire annotations from CANOPUS to test for
+enrichment via Fisher’s exact test.
+
+### 9.1 Single-list enrichment
+
+For a single set of features,
+[`CanopusListEnrichmentPlot()`](https://phytoecia.github.io/eCOMET/reference/CanopusListEnrichmentPlot.md)
+tests enrichment across all classification levels and generates a
+detailed plot.
+
+``` r
+# Detailed enrichment plot (style 1)
+CanopusListEnrichmentPlot(
+  mmo, DAMs_up$ctrl_vs_sl1.up,
+  pthr   = 0.1,
+  outdir = '260320_demo/plot/Enrichment/sl1_up_enrichment.pdf',
+  height = 6, width = 6
+)
+
+# Compact enrichment plot showing top N terms (style 2)
+CanopusListEnrichmentPlot_2(
+  mmo, DAMs_up$ctrl_vs_sl1.up,
+  pthr   = 0.1,
+  outdir = '260320_demo/plot/Enrichment/sl1_up_enrichment_top10.pdf',
+  topn   = 10,
+  height = 6, width = 6
+)
+```
+
+### 9.2 Multi-comparison enrichment
+
+When comparing enrichment across multiple DAM lists (e.g., up in sl1
+vs. up in le1), use
+[`CanopusLevelEnrichmentPlot()`](https://phytoecia.github.io/eCOMET/reference/CanopusLevelEnrichmentPlot.md)
+for a single classification level, or
+[`CanopusAllLevelEnrichmentPlot()`](https://phytoecia.github.io/eCOMET/reference/CanopusAllLevelEnrichmentPlot.md)
+for all levels.
+
+**Available classification levels:**
+
+| Level                      | Description                    |
+|----------------------------|--------------------------------|
+| `NPC_pathway`              | NPC biosynthetic pathway       |
+| `NPC_superclass`           | NPC superclass                 |
+| `NPC_class`                | NPC class                      |
+| `ClassyFire_superclass`    | ClassyFire superclass          |
+| `ClassyFire_class`         | ClassyFire class               |
+| `ClassyFire_subclass`      | ClassyFire subclass            |
+| `ClassyFire_level5`        | ClassyFire level 5             |
+| `ClassyFire_most_specific` | ClassyFire most specific class |
+
+``` r
+# Single level: NPC class
+CanopusLevelEnrichmentPlot(
+  mmo, DAMs_up,
+  term_level = 'NPC_class',
+  pthr       = 0.1,
+  outdir     = '260320_demo/plot/Enrichment/DAMs_up_NPC_class'
+)
+
+# All NPC levels
+CanopusAllLevelEnrichmentPlot(
+  mmo, DAMs_up,
+  term_level = 'NPC',
+  pthr       = 0.1,
+  outdir     = '260320_demo/plot/Enrichment/DAMs_up_all_NPC',
+  width = 8, height = 12
+)
+
+# All ClassyFire levels
+CanopusAllLevelEnrichmentPlot(
+  mmo, DAMs_up,
+  term_level = 'ClassyFire',
+  pthr       = 0.1,
+  outdir     = '260320_demo/plot/Enrichment/DAMs_up_all_ClassyFire',
+  width = 8, height = 12
+)
+```
+
+------------------------------------------------------------------------
+
+## Step 10: Correlation analysis
+
+To find metabolites linked to a phenotypic outcome (e.g., herbivore
+performance), we can screen for correlations between feature abundance
+and a phenotype variable in the metadata.
+
+In this example, we correlate each feature’s abundance with *Spodoptera
+litura* performance (`sl` column in metadata) using Spearman rank
+correlation.
+
+``` r
+sl_cor <- ScreenFeaturePhenotypeCorrelation(
+  mmo,
+  phenotype     = 'sl',
+  groups        = c('sl1'),
+  model         = 'spearman',
+  normalization = 'Z'
+)
+head(sl_cor)
+```
+
+------------------------------------------------------------------------
+
+## Step 11: Save and share the mmo object
+
+The `mmo` object can be saved to a file and shared with collaborators.
+This preserves all data, annotations, normalizations, and analysis
+results.
+
+``` r
+# Save
+SaveMMO(mmo, '260320_demo/output/mmo.RData')
+
+# Load in a future session
+# mmo <- LoadMMO('260320_demo/output/mmo.RData')
+```
+
+------------------------------------------------------------------------
+
+## Summary
+
+This tutorial covered the complete eCOMET workflow for treatment-based
+metabolomics studies:
+
+| Step | Function(s) | Purpose |
+|----|----|----|
+| 1 | [`system.file()`](https://rdrr.io/r/base/system.file.html) | Locate tutorial data |
+| 2 | [`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md) | Create mmo object |
+| 3 | [`ReplaceZero()`](https://phytoecia.github.io/eCOMET/reference/ReplaceZero.md), `*Normalization()` | Preprocessing |
+| 4 | [`AddSiriusAnnot()`](https://phytoecia.github.io/eCOMET/reference/AddSiriusAnnot.md), [`AddCustomAnnot()`](https://phytoecia.github.io/eCOMET/reference/AddCustomAnnot.md), [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md) | Annotations |
+| 5 | [`PCAplot()`](https://phytoecia.github.io/eCOMET/reference/PCAplot.md), [`PLSDAplot()`](https://phytoecia.github.io/eCOMET/reference/PLSDAplot.md) | Dimensionality reduction |
+| 6 | [`PairwiseComp()`](https://phytoecia.github.io/eCOMET/reference/PairwiseComp.md), [`GetDAMs()`](https://phytoecia.github.io/eCOMET/reference/GetDAMs.md) | Differential accumulation |
+| 7 | [`VolcanoPlot()`](https://phytoecia.github.io/eCOMET/reference/VolcanoPlot.md), Venn/UpSet | DAM visualization |
+| 8 | [`GenerateHeatmapInputs()`](https://phytoecia.github.io/eCOMET/reference/GenerateHeatmapInputs.md) + [`pheatmap()`](https://rdrr.io/pkg/pheatmap/man/pheatmap.html) | Heatmaps |
+| 9 | `Canopus*EnrichmentPlot()` | Chemical class enrichment |
+| 10 | [`ScreenFeaturePhenotypeCorrelation()`](https://phytoecia.github.io/eCOMET/reference/ScreenFeaturePhenotypeCorrelation.md) | Phenotype correlation |
+| 11 | [`SaveMMO()`](https://phytoecia.github.io/eCOMET/reference/SaveMMO.md) / [`LoadMMO()`](https://phytoecia.github.io/eCOMET/reference/LoadMMO.md) | Save/share results |
+
+For more information, see the [eCOMET
+documentation](https://phytoecia.github.io/eCOMET/) or the Interspecific
+Study Tutorial for comparing metabolomes across multiple species.

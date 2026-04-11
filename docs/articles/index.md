@@ -3,11 +3,12 @@
 ### Tutorials
 
 - [eCOMET-intro](https://phytoecia.github.io/eCOMET/articles/eCOMET-intro.md):
-- [Tutorial_1_Treatment-based_study](https://phytoecia.github.io/eCOMET/articles/Tutorial_1_Treatment-based_study.md):
+- [Tutorial 1: Treatment-based
+  Metabolomics](https://phytoecia.github.io/eCOMET/articles/Tutorial_1_Treatment_based_study.md):
 - [Tutorial 2: Interspecific
   Ecometabolomics](https://phytoecia.github.io/eCOMET/articles/Tutorial_2_Interspecific_Comparisons.md):
-- [UNKNOWN
-  TITLE](https://phytoecia.github.io/eCOMET/articles/Tutorial_3_Dendrogram_and_Molecular_Networks.md):
+- [Tutorial 3: Compound Dendrograms and Molecular
+  Networks](https://phytoecia.github.io/eCOMET/articles/Tutorial_3_Dendrogram_and_Mol_Networks.md):
 
 ### Contributing
 
