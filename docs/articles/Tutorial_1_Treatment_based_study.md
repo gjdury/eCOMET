@@ -1,7 +1,7 @@
 # Tutorial 1: Treatment-based Metabolomics
 
 > **Download and run this tutorial:**
-> [Tutorial_1_Treatment-based_study.Rmd](https://raw.githubusercontent.com/Phytoecia/eCOMET/main/vignettes/articles/Tutorial_1_Treatment-based_study.Rmd)
+> [Tutorial_1_Treatment-based_study.Rmd](https://github.com/Phytoecia/eCOMET/blob/main/vignettes/articles/Tutorial_1_Treatment_based_study.Rmd)
 > — open in RStudio and run chunks with Ctrl+Enter.
 
 ## Install eCOMET (uncomment if not installed)

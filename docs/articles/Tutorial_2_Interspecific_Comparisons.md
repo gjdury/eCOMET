@@ -1,7 +1,7 @@
 # Tutorial 2: Interspecific Ecometabolomics
 
 > **Download and run this tutorial:**
-> [Tutorial_2_Interspecific_Comparisons.Rmd](https://raw.githubusercontent.com/Phytoecia/eCOMET/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd)
+> [Tutorial_2_Interspecific_Comparisons.Rmd](https://github.com/Phytoecia/eCOMET/blob/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd)
 > — open in RStudio and run chunks with Ctrl+Enter.
 
 ## Overview

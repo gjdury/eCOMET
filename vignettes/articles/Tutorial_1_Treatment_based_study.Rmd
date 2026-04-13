@@ -4,7 +4,7 @@ authors: "Dale L. Forrister & Min-Soo Choi"
 output: html_document
 ---
 
-> **Download and run this tutorial:** [Tutorial_1_Treatment-based_study.Rmd](https://raw.githubusercontent.com/Phytoecia/eCOMET/main/vignettes/articles/Tutorial_1_Treatment-based_study.Rmd) — open in RStudio and run chunks with Ctrl+Enter.
+> **Download and run this tutorial:** [Tutorial_1_Treatment-based_study.Rmd](https://github.com/Phytoecia/eCOMET/blob/main/vignettes/articles/Tutorial_1_Treatment_based_study.Rmd) — open in RStudio and run chunks with Ctrl+Enter.
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
