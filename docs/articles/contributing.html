@@ -48,8 +48,7 @@
 
 
 
-
-<div class="row">
+<script src="contributing_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>How to Contribute</h1>
@@ -64,37 +63,21 @@
 <div class="section level2">
 <h2 id="contributing-to-ecomet">Contributing to eCOMET<a class="anchor" aria-label="anchor" href="#contributing-to-ecomet"></a>
 </h2>
-<p>eCOMET is a community-driven tool built by ecologists for ecologists.
-The package grows most usefully when the people using it in real
-workflows contribute ideas, report problems, and share new methods. This
-page explains how to do that.</p>
+<p>eCOMET is a community-driven tool built by ecologists for ecologists. The package grows most usefully when the people using it in real workflows contribute ideas, report problems, and share new methods. This page explains how to do that.</p>
 <hr>
 <div class="section level3">
 <h3 id="design-philosophy">Design philosophy<a class="anchor" aria-label="anchor" href="#design-philosophy"></a>
 </h3>
-<p>Before contributing, it helps to understand what eCOMET is trying to
-be:</p>
+<p>Before contributing, it helps to understand what eCOMET is trying to be:</p>
 <ul>
 <li>
-<strong>The <code>mmo</code> object is the center of
-everything.</strong> Every function should accept an <code>mmo</code>
-object as its primary input and either return a modified
-<code>mmo</code> or a plot/data.frame. This keeps workflows composable
-and readable.</li>
+<strong>The <code>mmo</code> object is the center of everything.</strong> Every function should accept an <code>mmo</code> object as its primary input and either return a modified <code>mmo</code> or a plot/data.frame. This keeps workflows composable and readable.</li>
 <li>
-<strong>Ecology first.</strong> Unlike biomedical metabolomics
-tools, eCOMET is designed for comparative analyses across species,
-habitats, and treatments. New functions should be motivated by
-ecological or evolutionary questions, not just cheminformatics.</li>
+<strong>Ecology first.</strong> Unlike biomedical metabolomics tools, eCOMET is designed for comparative analyses across species, habitats, and treatments. New functions should be motivated by ecological or evolutionary questions, not just cheminformatics.</li>
 <li>
-<strong>Reproducibility over interactivity.</strong> Functions
-should work in scripts, vignettes, and automated pipelines — not just
-interactively in RStudio.</li>
+<strong>Reproducibility over interactivity.</strong> Functions should work in scripts, vignettes, and automated pipelines — not just interactively in RStudio.</li>
 <li>
-<strong>ggplot2 for visualization.</strong> All new plot functions
-should return a <code>ggplot</code>/<code>ggtree</code> object so users
-can layer modifications with <code>+</code> without rewriting the
-function.</li>
+<strong>ggplot2 for visualization.</strong> All new plot functions should return a <code>ggplot</code>/<code>ggtree</code> object so users can layer modifications with <code>+</code> without rewriting the function.</li>
 </ul>
 <hr>
 </div>
@@ -104,24 +87,18 @@ function.</li>
 <div class="section level4">
 <h4 id="report-a-bug">Report a bug<a class="anchor" aria-label="anchor" href="#report-a-bug"></a>
 </h4>
-<p>If something produces an error, a warning that shouldn’t be there, or
-a result that looks wrong:</p>
+<p>If something produces an error, a warning that shouldn’t be there, or a result that looks wrong:</p>
 <ol style="list-style-type: decimal">
-<li>Go to the <a href="https://github.com/Phytoecia/eCOMET/issues" class="external-link">eCOMET GitHub Issues
-page</a>
+<li>Go to the <a href="https://github.com/Phytoecia/eCOMET/issues" class="external-link">eCOMET GitHub Issues page</a>
 </li>
-<li>Click <strong>New Issue</strong> and select <strong>Bug
-Report</strong>
+<li>Click <strong>New Issue</strong> and select <strong>Bug Report</strong>
 </li>
 <li>Include:
 <ul>
 <li>The function name and the arguments you passed</li>
-<li>A minimal reproducible example — ideally using the built-in demo
-data
-(<code>system.file("extdata/tutorials/treatment_based", package = "ecomet")</code>)</li>
+<li>A minimal reproducible example — ideally using the built-in demo data (<code>system.file("extdata/tutorials/treatment_based", package = "ecomet")</code>)</li>
 <li>The full error message or unexpected output</li>
-<li>Your R version (<code>R.version.string</code>) and eCOMET version
-(<code>packageVersion("ecomet")</code>)</li>
+<li>Your R version (<code>R.version.string</code>) and eCOMET version (<code>packageVersion("ecomet")</code>)</li>
 </ul>
 </li>
 </ol>
@@ -129,45 +106,34 @@ data
 <div class="section level4">
 <h4 id="request-a-new-feature">Request a new feature<a class="anchor" aria-label="anchor" href="#request-a-new-feature"></a>
 </h4>
-<p>If you have a workflow step that eCOMET doesn’t support yet — a new
-diversity metric, a visualization, a different output format — open a
-feature request:</p>
+<p>If you have a workflow step that eCOMET doesn’t support yet — a new diversity metric, a visualization, a different output format — open a feature request:</p>
 <ol style="list-style-type: decimal">
-<li>Go to the <a href="https://github.com/Phytoecia/eCOMET/issues" class="external-link">eCOMET GitHub Issues
-page</a>
+<li>Go to the <a href="https://github.com/Phytoecia/eCOMET/issues" class="external-link">eCOMET GitHub Issues page</a>
 </li>
-<li>Click <strong>New Issue</strong> and select <strong>Feature
-Request</strong>
+<li>Click <strong>New Issue</strong> and select <strong>Feature Request</strong>
 </li>
 <li>Describe:
 <ul>
 <li>The ecological or analytical question the feature addresses</li>
-<li>What inputs you would expect (ideally from the <code>mmo</code>
-object)</li>
+<li>What inputs you would expect (ideally from the <code>mmo</code> object)</li>
 <li>What the output should look like</li>
-<li>Whether you have a reference or existing implementation you are
-aware of</li>
+<li>Whether you have a reference or existing implementation you are aware of</li>
 </ul>
 </li>
 </ol>
-<p>Even if you cannot write the code yourself, a well-described feature
-request is valuable and may be picked up by another contributor.</p>
+<p>Even if you cannot write the code yourself, a well-described feature request is valuable and may be picked up by another contributor.</p>
 </div>
 <div class="section level4">
 <h4 id="contribute-code">Contribute code<a class="anchor" aria-label="anchor" href="#contribute-code"></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li>
-<a href="https://github.com/Phytoecia/eCOMET/fork" class="external-link">Fork the
-repository</a> on GitHub</li>
-<li>Create a new branch for your change:
-<code>git checkout -b my-new-feature</code>
+<a href="https://github.com/Phytoecia/eCOMET/fork" class="external-link">Fork the repository</a> on GitHub</li>
+<li>Create a new branch for your change: <code>git checkout -b my-new-feature</code>
 </li>
 <li>Make your changes (see conventions below)</li>
-<li>Push to your fork and open a <strong>Pull Request</strong> against
-the <code>main</code> branch</li>
-<li>In the PR description, explain what the function does and link any
-relevant Issue</li>
+<li>Push to your fork and open a <strong>Pull Request</strong> against the <code>main</code> branch</li>
+<li>In the PR description, explain what the function does and link any relevant Issue</li>
 </ol>
 <hr>
 </div>
@@ -178,8 +144,7 @@ relevant Issue</li>
 <div class="section level4">
 <h4 id="function-structure">Function structure<a class="anchor" aria-label="anchor" href="#function-structure"></a>
 </h4>
-<p>All new analysis or visualization functions should follow this
-pattern:</p>
+<p>All new analysis or visualization functions should follow this pattern:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">MyNewFunction</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">mmo</span>, <span class="va">...</span>, <span class="va">group_col</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="co"># validate inputs</span></span>
@@ -187,15 +152,10 @@ pattern:</p>
 <span>  <span class="co"># return modified mmo OR a ggplot object OR a data.frame</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <ul>
-<li>Functions that add new results to the dataset should store them
-inside the <code>mmo</code> object and return the updated
-<code>mmo</code>
+<li>Functions that add new results to the dataset should store them inside the <code>mmo</code> object and return the updated <code>mmo</code>
 </li>
-<li>Functions that produce a plot should return a <code>ggplot</code> or
-<code>ggtree</code> object — never call <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> or open a
-graphics device inside the function</li>
-<li>Functions that produce a summary table should return a plain
-<code>data.frame</code>
+<li>Functions that produce a plot should return a <code>ggplot</code> or <code>ggtree</code> object — never call <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> or open a graphics device inside the function</li>
+<li>Functions that produce a summary table should return a plain <code>data.frame</code>
 </li>
 </ul>
 </div>
@@ -203,15 +163,11 @@ graphics device inside the function</li>
 <h4 id="plot-functions">Plot functions<a class="anchor" aria-label="anchor" href="#plot-functions"></a>
 </h4>
 <ul>
-<li>Use <code>ggplot2</code> (or <code>ggtree</code> for tree layouts)
-as the base</li>
-<li>Accept a <code>palette</code> argument using
-<code><a href="https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html" class="external-link">colorspace::qualitative_hcl()</a></code> for color scales</li>
-<li>Return the plot object so users can modify it with
-<code>+</code>
+<li>Use <code>ggplot2</code> (or <code>ggtree</code> for tree layouts) as the base</li>
+<li>Accept a <code>palette</code> argument using <code><a href="https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html" class="external-link">colorspace::qualitative_hcl()</a></code> for color scales</li>
+<li>Return the plot object so users can modify it with <code>+</code>
 </li>
-<li>Default to showing group-level information derived from
-<code>mmo$metadata</code>
+<li>Default to showing group-level information derived from <code>mmo$metadata</code>
 </li>
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -222,8 +178,7 @@ as the base</li>
 <div class="section level4">
 <h4 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h4>
-<p>Every exported function needs roxygen2 documentation with at
-minimum:</p>
+<p>Every exported function needs roxygen2 documentation with at minimum:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#' Short one-line title</span></span>
 <span><span class="co">#'</span></span>
@@ -235,22 +190,14 @@ minimum:</p>
 <span><span class="co">#' @export</span></span>
 <span><span class="co">#' @examplesIf FALSE</span></span>
 <span><span class="co">#' result &lt;- MyNewFunction(mmo)</span></span></code></pre></div>
-<p>Use <code>@examplesIf FALSE</code> rather than <code>@examples</code>
-unless the example can run in under a few seconds using only built-in
-demo data.</p>
+<p>Use <code>@examplesIf FALSE</code> rather than <code>@examples</code> unless the example can run in under a few seconds using only built-in demo data.</p>
 </div>
 <div class="section level4">
 <h4 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
 </h4>
 <ul>
-<li>Before adding a new package dependency, check whether the
-functionality already exists in a package eCOMET already imports (see
-<code>DESCRIPTION</code>)</li>
-<li>Heavy or specialized packages (e.g. those requiring system libraries
-or Bioconductor) should go in <code>Suggests</code>, not
-<code>Imports</code>, and be loaded with
-<code>.require_pkg("pkgname")</code> inside the function so they are
-only required when actually called</li>
+<li>Before adding a new package dependency, check whether the functionality already exists in a package eCOMET already imports (see <code>DESCRIPTION</code>)</li>
+<li>Heavy or specialized packages (e.g. those requiring system libraries or Bioconductor) should go in <code>Suggests</code>, not <code>Imports</code>, and be loaded with <code>.require_pkg("pkgname")</code> inside the function so they are only required when actually called</li>
 </ul>
 <hr>
 </div>
@@ -258,32 +205,20 @@ only required when actually called</li>
 <div class="section level3">
 <h3 id="sharing-a-complete-new-workflow">Sharing a complete new workflow<a class="anchor" aria-label="anchor" href="#sharing-a-complete-new-workflow"></a>
 </h3>
-<p>If you have developed a full analysis workflow using eCOMET — a new
-type of study design, a combination of functions for a specific
-ecological question, or an integration with another tool — consider
-contributing it as a tutorial vignette.</p>
-<p>Vignettes live in <code>vignettes/</code> and are built into the
-website. A good tutorial vignette:</p>
+<p>If you have developed a full analysis workflow using eCOMET — a new type of study design, a combination of functions for a specific ecological question, or an integration with another tool — consider contributing it as a tutorial vignette.</p>
+<p>Vignettes live in <code>vignettes/</code> and are built into the website. A good tutorial vignette:</p>
 <ul>
-<li>Loads data using
-<code>system.file("extdata/...", package = "ecomet")</code> so it is
-portable</li>
-<li>Walks through a complete, realistic analysis from raw data to
-interpretation</li>
-<li>Explains the ecological motivation for each step, not just the
-code</li>
-<li>Uses demo data small enough to be bundled in the package (target
-&lt; 5 MB total per tutorial)</li>
+<li>Loads data using <code>system.file("extdata/...", package = "ecomet")</code> so it is portable</li>
+<li>Walks through a complete, realistic analysis from raw data to interpretation</li>
+<li>Explains the ecological motivation for each step, not just the code</li>
+<li>Uses demo data small enough to be bundled in the package (target &lt; 5 MB total per tutorial)</li>
 </ul>
 <hr>
 </div>
 <div class="section level3">
 <h3 id="questions">Questions<a class="anchor" aria-label="anchor" href="#questions"></a>
 </h3>
-<p>If you are unsure whether an idea fits, or want to discuss an
-approach before writing code, open a <a href="https://github.com/Phytoecia/eCOMET/discussions" class="external-link">Discussion</a> on
-GitHub. This is the best place for open-ended questions about directions
-for the package.</p>
+<p>If you are unsure whether an idea fits, or want to discuss an approach before writing code, open a <a href="https://github.com/Phytoecia/eCOMET/discussions" class="external-link">Discussion</a> on GitHub. This is the best place for open-ended questions about directions for the package.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -297,7 +232,7 @@ for the package.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

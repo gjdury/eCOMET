@@ -48,8 +48,7 @@
 
 
 
-
-<div class="row">
+<script src="Tutorial_2_Interspecific_Comparisons_files/accessible-code-block-0.0.1/empty-anchor.js"></script><div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Tutorial 2: Interspecific Ecometabolomics</h1>
@@ -62,58 +61,25 @@
     
     
 <blockquote>
-<p><strong>Download and run this tutorial:</strong> <a href="https://github.com/Phytoecia/eCOMET/blob/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd" class="external-link">Tutorial_2_Interspecific_Comparisons.Rmd</a>
-— open in RStudio and run chunks with Ctrl+Enter.</p>
+<p><strong>Download and run this tutorial:</strong> <a href="https://github.com/Phytoecia/eCOMET/blob/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd" class="external-link">Tutorial_2_Interspecific_Comparisons.Rmd</a> — open in RStudio and run chunks with Ctrl+Enter.</p>
 </blockquote>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This tutorial introduces an interspecific ecometabolomics workflow
-using the <code>eCOMET</code> package to analyze multiple tree species
-that co-occur across a network of forest plots. We begin by comparing
-chemical richness and diversity across samples, then examine differences
-in overall composition using multivariate approaches such as
-hierarchical clustering, PCA, NMDS, and PCoA.</p>
-<p>The first half of the tutorial uses feature-based methods, which
-treat each detected MZ-RT feature as an independent unit. These
-approaches are useful for summarizing the number of detected features
-and for comparing samples based on shared compound signals. However,
-this assumption is often imperfect in untargeted metabolomics because
-multiple detected features can arise from the same underlying metabolite
-through adducts, isotopes, or in-source fragments.</p>
-<p>This limitation becomes especially important in interspecific
-datasets. Unlike treatment-based studies, where many compounds are
-shared among groups and the goal is to identify differential
-metabolites, species-level comparisons frequently involve samples that
-share relatively few exact features. As a result, similarity metrics
-based only on feature overlap can underestimate biologically meaningful
-relationships among samples.</p>
-<p>To address this, the second half of the tutorial introduces
-structure-aware approaches that account for associations among features.
-These methods incorporate information from feature grouping, ion
-identity relationships, molecular networking, and chemical similarity so
-that samples can be compared not only by exact shared features, but also
-by the relatedness of the compounds they contain. This provides a more
-biologically realistic framework for interspecific metabolomic
-comparisons.</p>
+<p>This tutorial introduces an interspecific ecometabolomics workflow using the <code>eCOMET</code> package to analyze multiple tree species that co-occur across a network of forest plots. We begin by comparing chemical richness and diversity across samples, then examine differences in overall composition using multivariate approaches such as hierarchical clustering, PCA, NMDS, and PCoA.</p>
+<p>The first half of the tutorial uses feature-based methods, which treat each detected MZ-RT feature as an independent unit. These approaches are useful for summarizing the number of detected features and for comparing samples based on shared compound signals. However, this assumption is often imperfect in untargeted metabolomics because multiple detected features can arise from the same underlying metabolite through adducts, isotopes, or in-source fragments.</p>
+<p>This limitation becomes especially important in interspecific datasets. Unlike treatment-based studies, where many compounds are shared among groups and the goal is to identify differential metabolites, species-level comparisons frequently involve samples that share relatively few exact features. As a result, similarity metrics based only on feature overlap can underestimate biologically meaningful relationships among samples.</p>
+<p>To address this, the second half of the tutorial introduces structure-aware approaches that account for associations among features. These methods incorporate information from feature grouping, ion identity relationships, molecular networking, and chemical similarity so that samples can be compared not only by exact shared features, but also by the relatedness of the compounds they contain. This provides a more biologically realistic framework for interspecific metabolomic comparisons.</p>
 <p>This tutorial is organized into the following sections:</p>
 <ul>
-<li><a href="#id_1-load-input-data-and-build-the-mmo-object">1. Load
-input data and build the MMO object</a></li>
-<li><a href="#id_2-inspect-the-core-data-tables">2. Inspect the core
-data tables</a></li>
-<li><a href="#id_3-compare-feature-richness-across-samples-and-species">3.
-Compare feature richness across samples and species</a></li>
-<li><a href="#id_4-add-sirius-annotations-and-inspect-class-composition">4. Add
-SIRIUS annotations and inspect class composition</a></li>
-<li><a href="#id_5-compare-samples-with-feature-based-multivariate-methods">5.
-Compare samples with feature-based multivariate methods</a></li>
-<li><a href="#id_6-add-structural-relationships-among-features">6. Add
-structural relationships among features</a></li>
-<li><a href="#id_7-recalculate-beta-diversity-using-chemical-distances">7.
-Recalculate beta diversity using chemical distances</a></li>
-<li><a href="#id_8-revisit-alpha-diversity-with-structure-aware-metrics">8.
-Revisit alpha diversity with structure-aware metrics</a></li>
+<li><a href="#1-load-input-data-and-build-the-mmo-object">1. Load input data and build the MMO object</a></li>
+<li><a href="#2-inspect-the-core-data-tables">2. Inspect the core data tables</a></li>
+<li><a href="#3-compare-feature-richness-across-samples-and-species">3. Compare feature richness across samples and species</a></li>
+<li><a href="#4-add-sirius-annotations-and-inspect-class-composition">4. Add SIRIUS annotations and inspect class composition</a></li>
+<li><a href="#5-compare-samples-with-feature-based-multivariate-methods">5. Compare samples with feature-based multivariate methods</a></li>
+<li><a href="#6-add-structural-relationships-among-features">6. Add structural relationships among features</a></li>
+<li><a href="#7-recalculate-beta-diversity-using-chemical-distances">7. Recalculate beta diversity using chemical distances</a></li>
+<li><a href="#8-revisit-alpha-diversity-with-structure-aware-metrics">8. Revisit alpha diversity with structure-aware metrics</a></li>
 <li><a href="#key-takeaways">Key takeaways</a></li>
 </ul>
 <p>The package can be installed or updated as needed using Pak:</p>
@@ -135,18 +101,8 @@ Revisit alpha diversity with structure-aware metrics</a></li>
 <div class="section level2">
 <h2 id="load-input-data-and-build-the-mmo-object">1. Load input data and build the MMO object<a class="anchor" aria-label="anchor" href="#load-input-data-and-build-the-mmo-object"></a>
 </h2>
-<p>The first step is to point <code>eCOMET</code> to the processed
-feature table, the sample metadata, and any optional annotation files
-that will be used later in the workflow.</p>
-<p>Before calling <code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code>, it is useful to
-understand what the <code>mmo</code> object is. In <code>eCOMET</code>,
-the <code>mmo</code> object is a container that keeps the feature
-matrix, feature metadata, sample metadata, and later annotation and
-distance information together in one place. This matters because most
-downstream functions expect these pieces to stay aligned. By storing
-them in a single object, we reduce the chance of mixing up sample order,
-dropping feature identifiers, or applying annotations to the wrong
-feature table.</p>
+<p>The first step is to point <code>eCOMET</code> to the processed feature table, the sample metadata, and any optional annotation files that will be used later in the workflow.</p>
+<p>Before calling <code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code>, it is useful to understand what the <code>mmo</code> object is. In <code>eCOMET</code>, the <code>mmo</code> object is a container that keeps the feature matrix, feature metadata, sample metadata, and later annotation and distance information together in one place. This matters because most downstream functions expect these pieces to stay aligned. By storing them in a single object, we reduce the chance of mixing up sample order, dropping feature identifiers, or applying annotations to the wrong feature table.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span></span>
 <span> <span class="st">"extdata/tutorials/interspecific"</span>,</span>
@@ -172,27 +128,17 @@ feature table.</p>
 <span><span class="co">#&gt;   Feature number: 3760</span></span>
 <span><span class="co">#&gt;   56 samples in 10 groups</span></span>
 <span><span class="co">#&gt;   MMO object contains: feature_data, feature_info, pairwise, metadata, feature_presence</span></span></code></pre></div>
-<p>After this step, <code>mmo</code> becomes the main object passed
-through the rest of the tutorial. As you add normalization results,
-structural annotations, or chemical distances, they are stored within
-the same object and can be reused by later functions.</p>
+<p>After this step, <code>mmo</code> becomes the main object passed through the rest of the tutorial. As you add normalization results, structural annotations, or chemical distances, they are stored within the same object and can be reused by later functions.</p>
 </div>
 <div class="section level2">
 <h2 id="inspect-the-core-data-tables">2. Inspect the core data tables<a class="anchor" aria-label="anchor" href="#inspect-the-core-data-tables"></a>
 </h2>
-<p>Building the <code>mmo</code> object creates several linked
-components. It is good practice to inspect these early so you know what
-information is available and can catch formatting problems before
-starting analysis.</p>
+<p>Building the <code>mmo</code> object creates several linked components. It is good practice to inspect these early so you know what information is available and can catch formatting problems before starting analysis.</p>
 <div class="section level3">
 <h3 id="sample-metadata">2.1 Sample metadata<a class="anchor" aria-label="anchor" href="#sample-metadata"></a>
 </h3>
-<p>The sample metadata table describes each sample and records the
-grouping variables used in the analysis. This is the table to inspect
-when you want to confirm sample names, group assignments, replicate
-structure, or any additional sample-level covariates.</p>
-<p>We are working with a dataset containing 10 species of tropical trees
-with 5-8 replicate samples for each species.</p>
+<p>The sample metadata table describes each sample and records the grouping variables used in the analysis. This is the table to inspect when you want to confirm sample names, group assignments, replicate structure, or any additional sample-level covariates.</p>
+<p>We are working with a dataset containing 10 species of tropical trees with 5-8 replicate samples for each species.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">)</span></span>
@@ -210,21 +156,12 @@ with 5-8 replicate samples for each species.</p>
 <span><span class="co">#&gt; 4 Annonaceae annRSS85_MDP0415 annRSS85_MDP0415.mzXML Annona RSS-85</span></span>
 <span><span class="co">#&gt; 5 Annonaceae annRSS85_MDP0464 annRSS85_MDP0464.mzXML Annona RSS-85</span></span>
 <span><span class="co">#&gt; 6 Annonaceae annRSS85_MDP0636 annRSS85_MDP0636.mzXML Annona RSS-85</span></span></code></pre></div>
-<p>When <code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code> is called,
-<code>group_col = "Species_binomial"</code> tells <code>eCOMET</code>
-which metadata column should define the biological groups used
-throughout the analysis, and <code>sample_col = "filename"</code> tells
-it which metadata column matches the sample columns in the feature
-table. Those two mappings are what allow <code>eCOMET</code> to connect
-sample abundances to the correct species labels.</p>
+<p>When <code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code> is called, <code>group_col = "Species_binomial"</code> tells <code>eCOMET</code> which metadata column should define the biological groups used throughout the analysis, and <code>sample_col = "filename"</code> tells it which metadata column matches the sample columns in the feature table. Those two mappings are what allow <code>eCOMET</code> to connect sample abundances to the correct species labels.</p>
 </div>
 <div class="section level3">
 <h3 id="feature-information">2.2 Feature information<a class="anchor" aria-label="anchor" href="#feature-information"></a>
 </h3>
-<p>The feature information table stores identifiers and per-feature
-descriptors. This is the table to inspect when you need to trace a
-feature back to its measured properties, match features across steps, or
-merge in annotation data.</p>
+<p>The feature information table stores identifiers and per-feature descriptors. This is the table to inspect when you need to trace a feature back to its measured properties, match features across steps, or merge in annotation data.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_info</span><span class="op">)</span></span>
@@ -249,16 +186,12 @@ merge in annotation data.</p>
 <span><span class="co">#&gt; 4                          &lt;NA&gt;</span></span>
 <span><span class="co">#&gt; 5                          &lt;NA&gt;</span></span>
 <span><span class="co">#&gt; 6                          &lt;NA&gt;</span></span></code></pre></div>
-<p>This table is especially useful when you are troubleshooting missing
-annotations, checking ion identity groupings, or tracking how individual
-features behave across analysis steps.</p>
+<p>This table is especially useful when you are troubleshooting missing annotations, checking ion identity groupings, or tracking how individual features behave across analysis steps.</p>
 </div>
 <div class="section level3">
 <h3 id="feature-abundance-matrix">2.3 Feature abundance matrix<a class="anchor" aria-label="anchor" href="#feature-abundance-matrix"></a>
 </h3>
-<p>The feature abundance matrix is the core quantitative table used for
-most diversity and ordination analyses. Each row is a detected feature,
-and each sample column contains its measured abundance.</p>
+<p>The feature abundance matrix is the core quantitative table used for most diversity and ordination analyses. Each row is a detected feature, and each sample column contains its measured abundance.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>,<span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span></span>
 <span><span class="co">#&gt;     id          feature annRSS85_MDP0005 annRSS85_MDP0091 annRSS85_MDP0307</span></span>
@@ -272,63 +205,29 @@ and each sample column contains its measured abundance.</p>
 <span><span class="co">#&gt; 8  200 170.05744_0.5943            455.4             1103                0</span></span>
 <span><span class="co">#&gt; 9  204 249.04509_0.6028        1091000.0          1254000          1309000</span></span>
 <span><span class="co">#&gt; 10 211  221.0419_0.6106          18610.0                0            16920</span></span></code></pre></div>
-<p>The <code>mmo</code> object can also be filtered and subsetted. This
-creates a new object and updates the linked tables together, including
-the abundance matrix, feature information, and associated annotations.
-In practice, this is useful when you want to focus on a subset of
-species, samples, or features before plotting or calculating diversity.
-Many <code>mmo</code> functions also expose filtering arguments
-directly, so this same type of subsetting can often be applied on the
-fly without manually creating a separate object first.</p>
+<p>The <code>mmo</code> object can also be filtered and subsetted. This creates a new object and updates the linked tables together, including the abundance matrix, feature information, and associated annotations. In practice, this is useful when you want to focus on a subset of species, samples, or features before plotting or calculating diversity. Many <code>mmo</code> functions also expose filtering arguments directly, so this same type of subsetting can often be applied on the fly without manually creating a separate object first.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#View the groups</span></span>
 <span><span class="co">#unique(mmo$metadata$group)</span></span>
 <span></span>
 <span><span class="va">mmo_subset</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_mmo.html">filter_mmo</a></span><span class="op">(</span><span class="va">mmo</span>,group_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<p>This is the table you would inspect if you want to understand how
-intensities are organized, check whether zeros are present, or confirm
-that sample columns are aligned with the metadata.</p>
+<p>This is the table you would inspect if you want to understand how intensities are organized, check whether zeros are present, or confirm that sample columns are aligned with the metadata.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="compare-feature-richness-across-samples-and-species">3. Compare feature richness across samples and species<a class="anchor" aria-label="anchor" href="#compare-feature-richness-across-samples-and-species"></a>
 </h2>
-<p>We begin with the most direct question: how many metabolite features
-are observed in each sample and in each species? This is an alpha
-diversity question because we are summarizing chemical diversity within
-samples or groups rather than comparing composition between them.</p>
-<p>We can use <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> to calculate several
-diversity indices from the data. This function is based on the
-functional Hill framework, which means it can represent simple richness
-as well as measures that incorporate feature abundances and structural
-relationships among compounds.</p>
-<p>There are three parts of <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> that are
-especially important to understand.</p>
-<p>First, the <code>mode</code> argument controls which diversity metric
-is calculated. <code>mode = "richness"</code> counts detected features,
-<code>mode = "unweighted"</code> calculates Hill diversity without
-structural weighting, <code>mode = "weighted"</code> calculates
-functional Hill diversity using a distance matrix, and
-<code>mode = "faith"</code> calculates a Faith-style diversity measure
-using the supplied feature relationship matrix.</p>
-<p>Second, the <code>output</code> argument controls the level at which
-results are summarized. In this tutorial we use sample-level values,
-group averages, group-cumulative richness, and rarefied sample-based
-summaries.</p>
-<p>Third, the <code>normalization</code> argument tells the function
-which abundance table stored in the <code>mmo</code> object should be
-used for the calculation.</p>
-<p>For simple richness, we are effectively asking: how many distinct
-features are present? In this setting, the analysis ignores structural
-similarity among compounds and focuses only on whether a feature is
-detected in a sample.</p>
+<p>We begin with the most direct question: how many metabolite features are observed in each sample and in each species? This is an alpha diversity question because we are summarizing chemical diversity within samples or groups rather than comparing composition between them.</p>
+<p>We can use <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> to calculate several diversity indices from the data. This function is based on the functional Hill framework, which means it can represent simple richness as well as measures that incorporate feature abundances and structural relationships among compounds.</p>
+<p>There are three parts of <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> that are especially important to understand.</p>
+<p>First, the <code>mode</code> argument controls which diversity metric is calculated. <code>mode = "richness"</code> counts detected features, <code>mode = "unweighted"</code> calculates Hill diversity without structural weighting, <code>mode = "weighted"</code> calculates functional Hill diversity using a distance matrix, and <code>mode = "faith"</code> calculates a Faith-style diversity measure using the supplied feature relationship matrix.</p>
+<p>Second, the <code>output</code> argument controls the level at which results are summarized. In this tutorial we use sample-level values, group averages, group-cumulative richness, and rarefied sample-based summaries.</p>
+<p>Third, the <code>normalization</code> argument tells the function which abundance table stored in the <code>mmo</code> object should be used for the calculation.</p>
+<p>For simple richness, we are effectively asking: how many distinct features are present? In this setting, the analysis ignores structural similarity among compounds and focuses only on whether a feature is detected in a sample.</p>
 <div class="section level3">
 <h3 id="sample-level-richness">3.1 Sample-level richness<a class="anchor" aria-label="anchor" href="#sample-level-richness"></a>
 </h3>
-<p>This first call calculates richness for each individual sample. This
-is useful when you want to see how much within-species variation exists
-among biological replicates before collapsing samples into species-level
-summaries.</p>
+<p>This first call calculates richness for each individual sample. This is useful when you want to see how much within-species variation exists among biological replicates before collapsing samples into species-level summaries.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">sample_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
@@ -358,22 +257,13 @@ summaries.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">Sample_Richness</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-10-1.png" class="r-plt" alt="" width="700"></p>
-<p>This plot shows the distribution of feature richness among samples
-within each species. If one species tends to have higher richness than
-another, that suggests it accumulates a broader set of detectable
-metabolites under the sampling conditions used here. Wide spread within
-a species indicates substantial among-sample variation, which can
-reflect biological heterogeneity, environmental effects, or analytical
-noise.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p>This plot shows the distribution of feature richness among samples within each species. If one species tends to have higher richness than another, that suggests it accumulates a broader set of detectable metabolites under the sampling conditions used here. Wide spread within a species indicates substantial among-sample variation, which can reflect biological heterogeneity, environmental effects, or analytical noise.</p>
 </div>
 <div class="section level3">
 <h3 id="group-average-richness">3.2 Group-average richness<a class="anchor" aria-label="anchor" href="#group-average-richness"></a>
 </h3>
-<p>The next summary moves from individual samples to the average
-richness of each species. This is useful when the goal is to compare
-species-level central tendencies rather than emphasize replicate-level
-spread.</p>
+<p>The next summary moves from individual samples to the average richness of each species. This is useful when the goal is to compare species-level central tendencies rather than emphasize replicate-level spread.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">group_mean_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
@@ -395,19 +285,12 @@ spread.</p>
 <span><span class="co">#&gt; 8          Pourouma bicolor 1144.000 107.08875 5  47.89154 1000.800 1262.500</span></span>
 <span><span class="co">#&gt; 9      Schizocalyx obovatus 1020.800 125.87573 5  56.29334  876.700 1162.800</span></span>
 <span><span class="co">#&gt; 10   Weinmannia lechleriana 1077.800 136.96058 5  61.25063  879.600 1208.100</span></span></code></pre></div>
-<p>Differences in average richness among species can be interpreted as
-differences in the typical number of detectable features per sample.
-This is often a better starting point for species comparisons than
-pooled richness because it does not automatically reward species with
-more replicate samples.</p>
+<p>Differences in average richness among species can be interpreted as differences in the typical number of detectable features per sample. This is often a better starting point for species comparisons than pooled richness because it does not automatically reward species with more replicate samples.</p>
 </div>
 <div class="section level3">
 <h3 id="group-cumulative-richness">3.3 Group-cumulative richness<a class="anchor" aria-label="anchor" href="#group-cumulative-richness"></a>
 </h3>
-<p>We can also calculate cumulative richness within each species by
-pooling observations across all of its samples. This asks a different
-question: how many distinct features have been observed for a species
-across the full set of sampled individuals?</p>
+<p>We can also calculate cumulative richness within each species by pooling observations across all of its samples. This asks a different question: how many distinct features have been observed for a species across the full set of sampled individuals?</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">group_pooled_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
@@ -430,28 +313,13 @@ across the full set of sampled individuals?</p>
 <span><span class="co">#&gt; 8          Pourouma bicolor  1669</span></span>
 <span><span class="co">#&gt; 9      Schizocalyx obovatus  1500</span></span>
 <span><span class="co">#&gt; 10   Weinmannia lechleriana  1506</span></span></code></pre></div>
-<p>Species with high cumulative richness may have either chemically
-diverse individuals or simply more opportunities to detect rare features
-across replicates. For teaching purposes, it is important to distinguish
-cumulative richness from average per-sample richness because they answer
-different biological questions.</p>
+<p>Species with high cumulative richness may have either chemically diverse individuals or simply more opportunities to detect rare features across replicates. For teaching purposes, it is important to distinguish cumulative richness from average per-sample richness because they answer different biological questions.</p>
 </div>
 <div class="section level3">
 <h3 id="rarefied-richness-and-accumulation-curves">3.4 Rarefied richness and accumulation curves<a class="anchor" aria-label="anchor" href="#rarefied-richness-and-accumulation-curves"></a>
 </h3>
-<p>Finally, we can estimate accumulation curves by rarefying samples
-within each species. This shows how richness increases as more
-individuals are added and helps assess whether sampling is approaching
-saturation.</p>
-<p>When <code>output = "rarefied_sample"</code>,
-<code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> works within each group separately. For
-each sampling depth <code>k</code>, it repeatedly draws <code>k</code>
-samples from that species without replacement, pools those samples, and
-recalculates the chosen alpha-diversity metric. It then summarizes the
-resulting distribution across permutations with a mean and confidence
-interval. In other words, the curve shows the expected richness for a
-species if you had collected 1, 2, 3, and so on up to all available
-samples.</p>
+<p>Finally, we can estimate accumulation curves by rarefying samples within each species. This shows how richness increases as more individuals are added and helps assess whether sampling is approaching saturation.</p>
+<p>When <code>output = "rarefied_sample"</code>, <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> works within each group separately. For each sampling depth <code>k</code>, it repeatedly draws <code>k</code> samples from that species without replacement, pools those samples, and recalculates the chosen alpha-diversity metric. It then summarizes the resulting distribution across permutations with a mean and confidence interval. In other words, the curve shows the expected richness for a species if you had collected 1, 2, 3, and so on up to all available samples.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">group_rarefied_richness</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
@@ -508,14 +376,8 @@ samples.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">compound_accumlation_curve</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-15-1.png" class="r-plt" alt="" width="700"></p>
-<p>These outputs summarize both the expected richness at each sampling
-depth and the underlying permutation results. Curves that begin to
-plateau suggest that sampling is approaching the detectable richness of
-that species, whereas steeply increasing curves suggest that additional
-sampling would likely recover more features. This makes the curves
-useful for comparing species while accounting for differences in sample
-number.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-15-1.png" width="700"></p>
+<p>These outputs summarize both the expected richness at each sampling depth and the underlying permutation results. Curves that begin to plateau suggest that sampling is approaching the detectable richness of that species, whereas steeply increasing curves suggest that additional sampling would likely recover more features. This makes the curves useful for comparing species while accounting for differences in sample number.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">Rarefaction_AUC</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/RarefactionAUC.html">RarefactionAUC</a></span><span class="op">(</span><span class="va">group_rarefied_richness</span>, n_boot <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
@@ -526,24 +388,16 @@ number.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">Rarefaction_AUC_Plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-16-1.png" class="r-plt" alt="" width="700"></p>
-<p>We can also summarize this by quantifying the area under the curve
-for each species.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
+<p>We can also summarize this by quantifying the area under the curve for each species.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="add-sirius-annotations-and-inspect-class-composition">4. Add SIRIUS annotations and inspect class composition<a class="anchor" aria-label="anchor" href="#add-sirius-annotations-and-inspect-class-composition"></a>
 </h2>
-<p>Richness tells us how many features are present, but it does not tell
-us what kinds of compounds those features may represent. The next step
-brings in SIRIUS-based annotations so we can begin summarizing chemical
-composition at a broader class level.</p>
-<p>The main built-in annotation workflow is to load the outputs from
-SIRIUS. This allows us to import CANOPUS-predicted chemical classes for
-each feature, along with in silico structure predictions and their
-associated class assignments.</p>
-<p>You can also add your own custom annotations if you have an external
-table that maps features to compound identities or classes.</p>
+<p>Richness tells us how many features are present, but it does not tell us what kinds of compounds those features may represent. The next step brings in SIRIUS-based annotations so we can begin summarizing chemical composition at a broader class level.</p>
+<p>The main built-in annotation workflow is to load the outputs from SIRIUS. This allows us to import CANOPUS-predicted chemical classes for each feature, along with in silico structure predictions and their associated class assignments.</p>
+<p>You can also add your own custom annotations if you have an external table that maps features to compound identities or classes.</p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">#Add SIRIUS annotation</span></span>
@@ -553,9 +407,7 @@ table that maps features to compound identities or classes.</p>
 <div class="section level3">
 <h3 id="filter-canopus-annotations-by-confidence">4.1 Filter CANOPUS annotations by confidence<a class="anchor" aria-label="anchor" href="#filter-canopus-annotations-by-confidence"></a>
 </h3>
-<p>CANOPUS assigns posterior probabilities to each compound class
-prediction. We can filter out low-confidence predictions to improve the
-quality of downstream enrichment analyses.</p>
+<p>CANOPUS assigns posterior probabilities to each compound class prediction. We can filter out low-confidence predictions to improve the quality of downstream enrichment analyses.</p>
 <p>First, let’s visualize the distribution of prediction confidence:</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sirius_hist</span> <span class="op">&lt;-</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span></span>
@@ -578,26 +430,18 @@ quality of downstream enrichment analyses.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">sirius_hist</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-18-1.png" class="r-plt" alt="" width="700"></p>
-<p>There is typically a long tail of low-confidence predictions. We can
-filter these using <code><a href="../reference/filter_canopus_annotations.html">filter_canopus_annotations()</a></code>:</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<p>There is typically a long tail of low-confidence predictions. We can filter these using <code><a href="../reference/filter_canopus_annotations.html">filter_canopus_annotations()</a></code>:</p>
 <ul>
 <li>
-<code>pathway_level</code>: which classification levels to filter
-(e.g., <code>"NPC#pathway"</code>, <code>"All"</code>,
-<code>"All_NPC"</code>)</li>
+<code>pathway_level</code>: which classification levels to filter (e.g., <code>"NPC#pathway"</code>, <code>"All"</code>, <code>"All_NPC"</code>)</li>
 <li>
-<code>threshold</code>: minimum probability to retain (values below
-are set to NA)</li>
+<code>threshold</code>: minimum probability to retain (values below are set to NA)</li>
 <li>
 <code>suffix</code>: label for the filtered result</li>
 </ul>
 <blockquote>
-<p><strong>How to choose a threshold?</strong> There is no universal
-threshold. The <a href="https://v6.docs.sirius-ms.io/methods-background/#CANOPUS" class="external-link">SIRIUS
-documentation</a> recommends using context-dependent thresholds. For
-statistical analyses, you can sum probabilities to get expected counts
-rather than applying a hard cutoff.</p>
+<p><strong>How to choose a threshold?</strong> There is no universal threshold. The <a href="https://v6.docs.sirius-ms.io/methods-background/#CANOPUS" class="external-link">SIRIUS documentation</a> recommends using context-dependent thresholds. For statistical analyses, you can sum probabilities to get expected counts rather than applying a hard cutoff.</p>
 </blockquote>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_canopus_annotations.html">filter_canopus_annotations</a></span><span class="op">(</span></span>
@@ -613,11 +457,7 @@ rather than applying a hard cutoff.</p>
 <div class="section level3">
 <h3 id="filter-structure-predictions-by-cosmic-confidence">4.2 Filter structure predictions by COSMIC confidence<a class="anchor" aria-label="anchor" href="#filter-structure-predictions-by-cosmic-confidence"></a>
 </h3>
-<p>SIRIUS structure predictions are scored by the COSMIC confidence
-score. These scores should be interpreted with caution — they are not
-probabilities. The <a href="https://www.nature.com/articles/s41587-021-01045-9" class="external-link">SIRIUS team
-recommends</a> focusing on the highest-confidence hits (e.g., top
-5–10%).</p>
+<p>SIRIUS structure predictions are scored by the COSMIC confidence score. These scores should be interpreted with caution — they are not probabilities. The <a href="https://www.nature.com/articles/s41587-021-01045-9" class="external-link">SIRIUS team recommends</a> focusing on the highest-confidence hits (e.g., top 5–10%).</p>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Replace -Infinity values with 0</span></span>
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot_filtered_NPC_pathway_0.8</span><span class="op">$</span><span class="va">ConfidenceScoreApproximate</span><span class="op">[</span></span>
@@ -646,7 +486,7 @@ recommends</a> focusing on the highest-confidence hits (e.g., top
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">cosmic_hist</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-20-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-20-1.png" width="700"></p>
 </div>
 </div>
 <div class="section level2">
@@ -664,15 +504,11 @@ recommends</a> focusing on the highest-confidence hits (e.g., top
 <span>  threshold   <span class="op">=</span> <span class="fl">0.3892</span>,</span>
 <span>  suffix      <span class="op">=</span> <span class="st">"CANOPUS_0.8_COSMIC_Top_10"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>Now that we have annotations we can calculate the richness per
-compound class. The PlotNPCStackedBar will generate a plot to do just
-that.</p>
+<p>Now that we have annotations we can calculate the richness per compound class. The PlotNPCStackedBar will generate a plot to do just that.</p>
 <div class="section level3">
 <h3 id="generate-a-npclassifier-based-stacked-barplot">4.3 Generate a NPClassifier based stacked barplot<a class="anchor" aria-label="anchor" href="#generate-a-npclassifier-based-stacked-barplot"></a>
 </h3>
-<p>For functions plotting functions we give the option to save the plot
-directly by providing an outdir, and setting save_output = T. Otherwise
-it will return a ggplot object that can be further modified.</p>
+<p>For functions plotting functions we give the option to save the plot directly by providing an outdir, and setting save_output = T. Otherwise it will return a ggplot object that can be further modified.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">mmo_stacked_bar</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PlotNPCStackedBar.html">PlotNPCStackedBar</a></span><span class="op">(</span><span class="va">mmo</span>, </span>
@@ -708,37 +544,22 @@ it will return a ggplot object that can be further modified.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">p_stacked</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-23-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-23-1.png" width="700"></p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="compare-samples-with-feature-based-multivariate-methods">5. Compare samples with feature-based multivariate methods<a class="anchor" aria-label="anchor" href="#compare-samples-with-feature-based-multivariate-methods"></a>
 </h2>
-<p>Before introducing structure-aware methods, it is helpful to start
-with standard multivariate approaches that treat each feature as an
-independent variable. These methods mainly reward exact overlap in
-detected features or their abundances. That is a useful baseline, but it
-can be limiting in interspecific metabolomics because different species
-may produce different features that are nevertheless chemically
-related.</p>
+<p>Before introducing structure-aware methods, it is helpful to start with standard multivariate approaches that treat each feature as an independent variable. These methods mainly reward exact overlap in detected features or their abundances. That is a useful baseline, but it can be limiting in interspecific metabolomics because different species may produce different features that are nevertheless chemically related.</p>
 <div class="section level3">
 <h3 id="pca">5.1 PCA<a class="anchor" aria-label="anchor" href="#pca"></a>
 </h3>
-<p>PCA is a feature-based ordination method that reduces the
-dimensionality of the abundance matrix. Here it provides a first look at
-whether samples from the same species cluster together when each
-detected feature is treated as an independent variable.</p>
+<p>PCA is a feature-based ordination method that reduces the dimensionality of the abundance matrix. Here it provides a first look at whether samples from the same species cluster together when each detected feature is treated as an independent variable.</p>
 <div class="section level4">
 <h4 id="choosing-a-normalization-for-pca">Choosing a normalization for PCA<a class="anchor" aria-label="anchor" href="#choosing-a-normalization-for-pca"></a>
 </h4>
-<p>PCA is sensitive to differences in feature magnitude — in LC-MS data,
-peak areas routinely span four to six orders of magnitude. Without
-scaling, a single highly abundant compound can dominate the first
-principal component, and the ordination ends up summarizing little more
-than “how much of that one compound is there.”</p>
-<p><code><a href="../reference/PCAplot.html">PCAplot()</a></code> accepts a <code>normalization</code> argument
-that controls how the feature table is scaled before PCA is run. The
-main options are:</p>
+<p>PCA is sensitive to differences in feature magnitude — in LC-MS data, peak areas routinely span four to six orders of magnitude. Without scaling, a single highly abundant compound can dominate the first principal component, and the ordination ends up summarizing little more than “how much of that one compound is there.”</p>
+<p><code><a href="../reference/PCAplot.html">PCAplot()</a></code> accepts a <code>normalization</code> argument that controls how the feature table is scaled before PCA is run. The main options are:</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -754,14 +575,12 @@ main options are:</p>
 <tr class="odd">
 <td><code>"Z"</code></td>
 <td>Z-score: mean = 0, SD = 1 per feature</td>
-<td>Equal weight to all features; good for detecting subtle variation in
-rare compounds</td>
+<td>Equal weight to all features; good for detecting subtle variation in rare compounds</td>
 </tr>
 <tr class="even">
 <td><code>"Log"</code></td>
 <td>Log10 transformation</td>
-<td>Compresses dynamic range while preserving relative abundance
-differences</td>
+<td>Compresses dynamic range while preserving relative abundance differences</td>
 </tr>
 <tr class="odd">
 <td><code>"PA"</code></td>
@@ -775,20 +594,9 @@ differences</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Z-score</strong> is the most aggressive equalizer. Every
-feature — abundant or trace — contributes equally to the PCA. The
-tradeoff is that noisy low-abundance features are up-weighted alongside
-well-measured ones.</p>
-<p><strong>Log transformation</strong> compresses the dynamic range
-without fully equalizing features. Compounds that are genuinely more
-abundant still have proportionally more influence, which is often more
-ecologically meaningful when dominant compounds drive a species’
-chemistry.</p>
-<p>For this interspecific comparison, we use
-<code>normalization = "Log"</code> to preserve relative abundance
-information while bringing outlier features closer to the range of the
-rest of the matrix. We also remove features with zero variance across
-samples, which would cause PCA to fail.</p>
+<p><strong>Z-score</strong> is the most aggressive equalizer. Every feature — abundant or trace — contributes equally to the PCA. The tradeoff is that noisy low-abundance features are up-weighted alongside well-measured ones.</p>
+<p><strong>Log transformation</strong> compresses the dynamic range without fully equalizing features. Compounds that are genuinely more abundant still have proportionally more influence, which is often more ecologically meaningful when dominant compounds drive a species’ chemistry.</p>
+<p>For this interspecific comparison, we use <code>normalization = "Log"</code> to preserve relative abundance information while bringing outlier features closer to the range of the rest of the matrix. We also remove features with zero variance across samples, which would cause PCA to fail.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Remove zero-variance features (cause PCA to fail regardless of normalization)</span></span>
 <span><span class="va">zero_variance</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span><span class="op">[</span>, <span class="op">-</span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span><span class="op">]</span>, <span class="fl">1</span>, <span class="va">var</span><span class="op">)</span> <span class="op">==</span> <span class="fl">0</span></span>
@@ -812,28 +620,16 @@ samples, which would cause PCA to fail.</p>
 <span>                   normalization <span class="op">=</span> <span class="st">"Log"</span>, label <span class="op">=</span> <span class="cn">FALSE</span>, save_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo_pca</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-25-1.png" class="r-plt" alt="" width="700"></p>
-<p>If samples from the same species cluster together in PCA space, that
-suggests species differ in their overall multivariate chemical profiles.
-However, PCA still depends on the observed feature matrix and does not
-account for structural relatedness among unshared compounds.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-25-1.png" width="700"></p>
+<p>If samples from the same species cluster together in PCA space, that suggests species differ in their overall multivariate chemical profiles. However, PCA still depends on the observed feature matrix and does not account for structural relatedness among unshared compounds.</p>
 </div>
 </div>
 <div class="section level3">
 <h3 id="bray-curtis-hierarchical-clustering">5.2 Bray-Curtis hierarchical clustering<a class="anchor" aria-label="anchor" href="#bray-curtis-hierarchical-clustering"></a>
 </h3>
-<p>Bray-Curtis is another feature-based approach, but here it is used as
-a distance measure for hierarchical clustering. Like PCA, it is based on
-the abundance matrix and emphasizes observed overlap and abundance
-differences among detected features.</p>
-<p>We use <code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code>, which like
-<code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> can calculate several different
-diversity measures through a common interface. Here we apply
-<code>"bray"</code>, which is feature-based and does not require a
-distance matrix between compounds.</p>
-<p>We generate a distance matrix and pass it directly to
-<code><a href="../reference/HCplot.html">HCplot()</a></code>, which handles clustering and produces a phylogram
-with tips colored by species group.</p>
+<p>Bray-Curtis is another feature-based approach, but here it is used as a distance measure for hierarchical clustering. Like PCA, it is based on the abundance matrix and emphasizes observed overlap and abundance differences among detected features.</p>
+<p>We use <code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code>, which like <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> can calculate several different diversity measures through a common interface. Here we apply <code>"bray"</code>, which is feature-based and does not require a distance matrix between compounds.</p>
+<p>We generate a distance matrix and pass it directly to <code><a href="../reference/HCplot.html">HCplot()</a></code>, which handles clustering and produces a phylogram with tips colored by species group.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">beta_diversity_dreams_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'bray'</span>,</span>
@@ -857,30 +653,16 @@ with tips colored by species group.</p>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Sample Similarity\n(Bray-Curtis, structurally unweighted)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">hc_bray_plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-26-1.png" class="r-plt" alt="" width="700"></p>
-<p>You can see that Bray Curtis distance is grouping species into their
-own clusters well. This is because most species do not share features
-and thus form unique clusters.</p>
-<p>This is an important teaching moment. Strong species-level clustering
-under Bray-Curtis can reflect real chemical differentiation, but it can
-also be driven by the fact that many species do not share exact features
-at all. In that situation, feature-overlap methods may exaggerate
-separation even when species produce structurally related
-metabolites.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-26-1.png" width="700"></p>
+<p>You can see that Bray Curtis distance is grouping species into their own clusters well. This is because most species do not share features and thus form unique clusters.</p>
+<p>This is an important teaching moment. Strong species-level clustering under Bray-Curtis can reflect real chemical differentiation, but it can also be driven by the fact that many species do not share exact features at all. In that situation, feature-overlap methods may exaggerate separation even when species produce structurally related metabolites.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="add-structural-relationships-among-features">6. Add structural relationships among features<a class="anchor" aria-label="anchor" href="#add-structural-relationships-among-features"></a>
 </h2>
-<p>Feature-overlap metrics become limited when most compounds are unique
-to one species. Two species may appear completely dissimilar even if
-they produce related compounds from the same biosynthetic pathways. To
-address that limitation, we next add chemical distance information
-derived from DREAMS so that similarity can be evaluated among compounds,
-not just among exact matching features.</p>
-<p>We introduce feature-based molecular networking and compound
-dendrograms that group mz-features into structurally similar groups on a
-tree.</p>
+<p>Feature-overlap metrics become limited when most compounds are unique to one species. Two species may appear completely dissimilar even if they produce related compounds from the same biosynthetic pathways. To address that limitation, we next add chemical distance information derived from DREAMS so that similarity can be evaluated among compounds, not just among exact matching features.</p>
+<p>We introduce feature-based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.</p>
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Add Dreams distance</span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
@@ -897,75 +679,29 @@ tree.</p>
 <span><span class="co">#&gt; 204 0.647 1.000 0.622 0.585 0.600 0.548 1.000 0.000 0.607 0.555</span></span>
 <span><span class="co">#&gt; 211 0.827 0.720 0.774 0.683 0.587 0.569 1.000 0.607 0.000 0.442</span></span>
 <span><span class="co">#&gt; 213 0.772 1.000 1.000 0.694 0.703 0.730 1.000 0.555 0.442 0.000</span></span></code></pre></div>
-<p>This matrix stores pairwise chemical dissimilarity among features.
-Once this information is available, later analyses can distinguish
-between features that are unrelated and features that are distinct but
-still structurally similar.</p>
+<p>This matrix stores pairwise chemical dissimilarity among features. Once this information is available, later analyses can distinguish between features that are unrelated and features that are distinct but still structurally similar.</p>
 </div>
 <div class="section level2">
 <h2 id="recalculate-beta-diversity-using-chemical-distances">7. Recalculate beta diversity using chemical distances<a class="anchor" aria-label="anchor" href="#recalculate-beta-diversity-using-chemical-distances"></a>
 </h2>
-<p>Now that we have a matrix describing relationships among compounds,
-we can recalculate sample-to-sample dissimilarity in a way that uses
-chemical relatedness among unshared features. This is the key conceptual
-shift in the tutorial: samples no longer need to share the exact same
-detected feature to be considered chemically similar.</p>
+<p>Now that we have a matrix describing relationships among compounds, we can recalculate sample-to-sample dissimilarity in a way that uses chemical relatedness among unshared features. This is the key conceptual shift in the tutorial: samples no longer need to share the exact same detected feature to be considered chemically similar.</p>
 <div class="section level3">
-<h3 id="a-note-on-controlling-feature-abundance-in-getbetadiversity">A note on controlling feature abundance in
-<code>GetBetaDiversity()</code><a class="anchor" aria-label="anchor" href="#a-note-on-controlling-feature-abundance-in-getbetadiversity"></a>
+<h3 id="a-note-on-controlling-feature-abundance-in-getbetadiversity">A note on controlling feature abundance in <code>GetBetaDiversity()</code><a class="anchor" aria-label="anchor" href="#a-note-on-controlling-feature-abundance-in-getbetadiversity"></a>
 </h3>
-<p>Each method in <code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code> treats feature
-abundance differently, and the levers available to you depend on which
-method you are using.</p>
+<p>Each method in <code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code> treats feature abundance differently, and the levers available to you depend on which method you are using.</p>
 <ul>
-<li><p><strong>Bray-Curtis (<code>method = "bray"</code>)</strong>:
-Abundance is used directly in the dissimilarity formula. You control how
-much influence high-abundance features have through the
-<code>normalization</code> argument. <code>normalization = "None"</code>
-uses raw peak areas, <code>normalization = "Log"</code> compresses the
-dynamic range so that very abundant features have less outsized
-influence, and <code>normalization = "PA"</code> converts everything to
-presence/absence so abundance is ignored entirely.</p></li>
-<li><p><strong>Jaccard (<code>method = "jaccard"</code>)</strong>:
-Jaccard is a presence/absence measure by definition. The
-<code>normalization</code> argument is ignored — the function always
-uses the presence/absence table internally and will issue a warning if
-you supply anything else. This means Jaccard answers the question: do
-these two samples detect the same compounds at all, regardless of how
-much of each compound is present?</p></li>
-<li><p><strong>CSCS (<code>method = "CSCS"</code>)</strong>: Like
-Bray-Curtis, CSCS is sensitive to abundance by default and you control
-that sensitivity through <code>normalization</code>. The key difference
-from Bray-Curtis is that CSCS also uses the compound distance matrix, so
-structurally related features that are not identical can still
-contribute to similarity. <code>normalization = "None"</code> makes
-highly abundant features drive the CSCS score;
-<code>normalization = "PA"</code> makes it a purely structural
-comparison based on which chemical neighborhoods are
-represented.</p></li>
+<li><p><strong>Bray-Curtis (<code>method = "bray"</code>)</strong>: Abundance is used directly in the dissimilarity formula. You control how much influence high-abundance features have through the <code>normalization</code> argument. <code>normalization = "None"</code> uses raw peak areas, <code>normalization = "Log"</code> compresses the dynamic range so that very abundant features have less outsized influence, and <code>normalization = "PA"</code> converts everything to presence/absence so abundance is ignored entirely.</p></li>
+<li><p><strong>Jaccard (<code>method = "jaccard"</code>)</strong>: Jaccard is a presence/absence measure by definition. The <code>normalization</code> argument is ignored — the function always uses the presence/absence table internally and will issue a warning if you supply anything else. This means Jaccard answers the question: do these two samples detect the same compounds at all, regardless of how much of each compound is present?</p></li>
+<li><p><strong>CSCS (<code>method = "CSCS"</code>)</strong>: Like Bray-Curtis, CSCS is sensitive to abundance by default and you control that sensitivity through <code>normalization</code>. The key difference from Bray-Curtis is that CSCS also uses the compound distance matrix, so structurally related features that are not identical can still contribute to similarity. <code>normalization = "None"</code> makes highly abundant features drive the CSCS score; <code>normalization = "PA"</code> makes it a purely structural comparison based on which chemical neighborhoods are represented.</p></li>
 <li>
-<p><strong>Generalized UniFrac
-(<code>method = "Gen.Uni"</code>)</strong>: This method computes three
-distance matrices in a single pass, each with a different
-abundance-weighting level controlled by an internal <code>alpha</code>
-parameter. Rather than choosing one upfront,
-<code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code> returns all three as a named list so you
-can compare or choose the most appropriate one:</p>
+<p><strong>Generalized UniFrac (<code>method = "Gen.Uni"</code>)</strong>: This method computes three distance matrices in a single pass, each with a different abundance-weighting level controlled by an internal <code>alpha</code> parameter. Rather than choosing one upfront, <code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code> returns all three as a named list so you can compare or choose the most appropriate one:</p>
 <ul>
 <li>
-<code>d_0</code>: presence/absence only — equivalent to unweighted
-UniFrac. Use this when you want to know whether the same chemical
-branches are represented, regardless of how much of each compound is
-present.</li>
+<code>d_0</code>: presence/absence only — equivalent to unweighted UniFrac. Use this when you want to know whether the same chemical branches are represented, regardless of how much of each compound is present.</li>
 <li>
-<code>d_0.5</code>: balanced weighting (recommended starting point).
-Moderates the influence of highly abundant features without ignoring
-abundance entirely.</li>
+<code>d_0.5</code>: balanced weighting (recommended starting point). Moderates the influence of highly abundant features without ignoring abundance entirely.</li>
 <li>
-<code>d_1</code>: fully abundance-weighted. Dominant features drive
-the distance. Use this when peak intensity is a reliable biological
-signal and you want the most abundant compounds to have the most
-influence.</li>
+<code>d_1</code>: fully abundance-weighted. Dominant features drive the distance. Use this when peak intensity is a reliable biological signal and you want the most abundant compounds to have the most influence.</li>
 </ul>
 </li>
 </ul>
@@ -974,10 +710,7 @@ influence.</li>
 <div class="section level3">
 <h3 id="chemical-structural-and-compositional-similarity-cscs">7.1 Chemical structural and compositional similarity (CSCS)<a class="anchor" aria-label="anchor" href="#chemical-structural-and-compositional-similarity-cscs"></a>
 </h3>
-<p>CSCS incorporates relationships among compounds when calculating
-dissimilarity. Two samples can therefore be considered more similar if
-they contain different features that are nonetheless chemically
-related.</p>
+<p>CSCS incorporates relationships among compounds when calculating dissimilarity. Two samples can therefore be considered more similar if they contain different features that are nonetheless chemically related.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">beta_diversity_dreams_CSCS</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'CSCS'</span>,</span>
@@ -992,18 +725,13 @@ related.</p>
 <span>  save_output   <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">hc_cscs</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-28-1.png" class="r-plt" alt="" width="700"></p>
-<p>Relative to Bray-Curtis, CSCS should often reduce the apparent
-distance between samples that lack shared exact features but still
-contain compounds from similar chemical neighborhoods.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-28-1.png" width="700"></p>
+<p>Relative to Bray-Curtis, CSCS should often reduce the apparent distance between samples that lack shared exact features but still contain compounds from similar chemical neighborhoods.</p>
 </div>
 <div class="section level3">
 <h3 id="generalized-unifrac">7.2 Generalized UniFrac<a class="anchor" aria-label="anchor" href="#generalized-unifrac"></a>
 </h3>
-<p>Generalized UniFrac uses the feature dendrogram to partition
-differences among samples across branches of the chemical tree. Instead
-of asking only whether the same features are present, it asks how much
-chemical branch length is shared or unique across samples.</p>
+<p>Generalized UniFrac uses the feature dendrogram to partition differences among samples across branches of the chemical tree. Instead of asking only whether the same features are present, it asks how much chemical branch length is shared or unique across samples.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">beta_diversity_dreams_Gen.Uni</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'Gen.Uni'</span>,</span>
@@ -1025,18 +753,13 @@ chemical branch length is shared or unique across samples.</p>
 <span>  save_output   <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">hc_GenUni</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-29-1.png" class="r-plt" alt="" width="700"></p>
-<p>Both CSCS and Generalized UniFrac move beyond exact feature overlap.
-In an interspecific dataset, that is often the biologically appropriate
-comparison because species can produce different compounds that still
-belong to related structural classes.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-29-1.png" width="700"></p>
+<p>Both CSCS and Generalized UniFrac move beyond exact feature overlap. In an interspecific dataset, that is often the biologically appropriate comparison because species can produce different compounds that still belong to related structural classes.</p>
 </div>
 <div class="section level3">
 <h3 id="ordination-using-structure-aware-distances">7.3 Ordination using structure-aware distances<a class="anchor" aria-label="anchor" href="#ordination-using-structure-aware-distances"></a>
 </h3>
-<p>We can use these distance matrices directly in ordination methods
-such as NMDS and PCoA. These plots summarize multivariate dissimilarity
-among samples in a low-dimensional space.</p>
+<p>We can use these distance matrices directly in ordination methods such as NMDS and PCoA. These plots summarize multivariate dissimilarity among samples in a low-dimensional space.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">groups</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
@@ -1048,15 +771,9 @@ among samples in a low-dimensional space.</p>
 <span>                 save_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">NMDS</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-31-1.png" class="r-plt" alt="" width="700"></p>
-<p>In an NMDS plot, points that are closer together represent samples
-with more similar chemical profiles under the chosen distance metric. If
-samples from the same species cluster tightly and species separate from
-one another, that suggests consistent species-level differences in
-chemistry. Overlap among species indicates greater similarity or weaker
-taxonomic structure.</p>
-<p>We can also visualize beta diversity in a PCoA plot. Here we use
-Generalized UniFrac (d_1) to show a structure-aware ordination.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-31-1.png" width="700"></p>
+<p>In an NMDS plot, points that are closer together represent samples with more similar chemical profiles under the chosen distance metric. If samples from the same species cluster tightly and species separate from one another, that suggests consistent species-level differences in chemistry. Overlap among species indicates greater similarity or weaker taxonomic structure.</p>
+<p>We can also visualize beta diversity in a PCoA plot. Here we use Generalized UniFrac (d_1) to show a structure-aware ordination.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PCOA_example</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PCoAplot.html">PCoAplot</a></span><span class="op">(</span><span class="va">mmo</span>, color <span class="op">=</span> <span class="va">custom_colors</span>,</span>
 <span>  betadiv <span class="op">=</span> <span class="va">beta_diversity_dreams_Gen.Uni</span><span class="op">[[</span><span class="st">"d_1"</span><span class="op">]</span><span class="op">]</span>, </span>
@@ -1065,19 +782,9 @@ Generalized UniFrac (d_1) to show a structure-aware ordination.</p>
 <span>  save_output <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PCOA_example</span><span class="op">$</span><span class="va">plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-33-1.png" class="r-plt" alt="" width="700"></p>
-<p>PCoA axes are derived from the distance matrix directly, so the axes
-reflect the chosen beta diversity metric. Ordinations based on
-structure-aware distances summarize chemistry after incorporating
-relationships among compounds, not just exact shared features.</p>
-<p>To compare how clusters differ when we incorporate structurally
-weighted beta distances, we place Bray-Curtis and CSCS PCoAs side by
-side. CSCS is the more informative contrast with Bray-Curtis because it
-uses the same abundance framework but adds chemical structure — so any
-shift in clustering reflects structural weighting rather than a change
-in diversity metric. Because the two distance matrices are on different
-scales, each panel has free axes — interpret only the relative grouping
-of points across panels, not the axis values.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-33-1.png" width="700"></p>
+<p>PCoA axes are derived from the distance matrix directly, so the axes reflect the chosen beta diversity metric. Ordinations based on structure-aware distances summarize chemistry after incorporating relationships among compounds, not just exact shared features.</p>
+<p>To compare how clusters differ when we incorporate structurally weighted beta distances, we place Bray-Curtis and CSCS PCoAs side by side. CSCS is the more informative contrast with Bray-Curtis because it uses the same abundance framework but adds chemical structure — so any shift in clustering reflects structural weighting rather than a change in diversity metric. Because the two distance matrices are on different scales, each panel has free axes — interpret only the relative grouping of points across panels, not the axis values.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PCOA_example_bray</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/PCoAplot.html">PCoAplot</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
@@ -1129,17 +836,13 @@ of points across panels, not the axis values.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="va">pcoa_comparison</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-34-1.png" class="r-plt" alt="" width="700"></p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-34-1.png" width="700"></p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="structure-aware-alpha-diversity">8. structure-aware alpha diversity<a class="anchor" aria-label="anchor" href="#structure-aware-alpha-diversity"></a>
 </h2>
-<p>So far, our alpha diversity summaries have treated each feature as
-equally distinct. We now revisit alpha diversity using structure-aware
-information so that chemically similar compounds do not contribute as
-much unique diversity as chemically distant compounds. This gives a more
-functional view of chemical diversity within each sample or species.</p>
+<p>So far, our alpha diversity summaries have treated each feature as equally distinct. We now revisit alpha diversity using structure-aware information so that chemically similar compounds do not contribute as much unique diversity as chemically distant compounds. This gives a more functional view of chemical diversity within each sample or species.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">group_mean_functionalhill</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
@@ -1247,12 +950,8 @@ functional view of chemical diversity within each sample or species.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">combined_plot</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-36-1.png" class="r-plt" alt="" width="700"></p>
-<p>If richness counts every detected feature equally, structure-aware
-diversity asks whether those features represent many different kinds of
-chemistry or many closely related variants of the same chemistry.
-Species with similar raw richness can therefore differ in functional
-Hill diversity if one contains a broader range of chemical types.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-36-1.png" width="700"></p>
+<p>If richness counts every detected feature equally, structure-aware diversity asks whether those features represent many different kinds of chemistry or many closely related variants of the same chemistry. Species with similar raw richness can therefore differ in functional Hill diversity if one contains a broader range of chemical types.</p>
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rarefied_functionalhill</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
@@ -1301,26 +1000,14 @@ Hill diversity if one contains a broader range of chemical types.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">functional_hill_compound_accumlation_curve</span></span></code></pre></div>
-<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-39-1.png" class="r-plt" alt="" width="700"></p>
-<p>Rarefying the structure-aware diversity estimates can help
-distinguish species that have both high chemical diversity and broad
-structural coverage from species whose diversity saturates quickly as
-more samples are added.</p>
+<p><img src="Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-39-1.png" width="700"></p>
+<p>Rarefying the structure-aware diversity estimates can help distinguish species that have both high chemical diversity and broad structural coverage from species whose diversity saturates quickly as more samples are added.</p>
 </div>
 <div class="section level2">
 <h2 id="key-takeaways">Key takeaways<a class="anchor" aria-label="anchor" href="#key-takeaways"></a>
 </h2>
-<p>This workflow begins with standard feature-based summaries and then
-extends them by introducing information about structural similarity
-among compounds. That progression is especially important in
-interspecific studies, where exact feature overlap is often low even
-when samples are chemically related at the pathway or structural-class
-level.</p>
-<p>In practice, it is often useful to compare both feature-based and
-structure-aware results side by side. When the two approaches agree,
-that strengthens the biological interpretation. When they differ, the
-discrepancy can reveal that species are producing different but related
-compounds.</p>
+<p>This workflow begins with standard feature-based summaries and then extends them by introducing information about structural similarity among compounds. That progression is especially important in interspecific studies, where exact feature overlap is often low even when samples are chemically related at the pathway or structural-class level.</p>
+<p>In practice, it is often useful to compare both feature-based and structure-aware results side by side. When the two approaches agree, that strengthens the biological interpretation. When they differ, the discrepancy can reveal that species are producing different but related compounds.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -1333,7 +1020,7 @@ compounds.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
