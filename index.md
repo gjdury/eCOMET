@@ -54,7 +54,7 @@ It has two core goals:
 
 ---
 
-<img width="1921" height="1080" alt="eCOMET workflow overview" src="https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c" />
+<img width="2450" height="3500" alt="eCOMET workflow overview" src="./images/workflows/ecomet_workflow_total.png" />
 
 ---
 
