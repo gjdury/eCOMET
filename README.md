@@ -17,7 +17,8 @@ stars](https://img.shields.io/github/stars/phytoecia/eCOMET)](https://github.com
 
 The eCOMET package provides tools for processing and analyzing mass spectrometry–based metabolomics data in ecological and evolutionary contexts. It establishes a standardized pipeline that integrates MS1 feature-abundance tables with MS2 spectral similarity to generate common data products, including principal component analyses (PCA), chemical dendrograms where tips represent compounds, principal coordinates analyses (PCoA), and differential expression analyses. Unlike existing metabolomics toolkits that focus primarily on biomedical or cheminformatics applications, eCOMET is designed explicitly for ecometabolomics. It emphasizes workflows that link metabolomic variation to ecological data, making it easier to move from raw mass spectrometry files to reproducible, comparative analyses of plant chemical diversity.
 
-Please refer to [our webpage](https://phytoecia.github.io/eCOMET/) for tutorials and documentations. A chatbot for Questions & Answers (Q&A) about the package is available at [eCOMET chatbot](https://ecomet-chatbot.web.app/).
+Please refer to [our webpage](https://phytoecia.github.io/eCOMET/) for tutorials and documentations. 
+A chatbot for Questions & Answers (Q&A) about the package is available at [eCOMET chatbot](https://ecomet-chatbot.web.app/).
 
 ## Installation
 
@@ -32,4 +33,4 @@ pak::pak("phytoecia/eCOMET")
 
   - Paper (preprint) :
   - Webpage : <https://phytoecia.github.io/eCOMET/>
-  - Chatbot : <https://ecomet-chatbot.web.app/>
+  - Q&A Chatbot : <https://ecomet-chatbot.web.app/>
