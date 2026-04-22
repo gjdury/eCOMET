@@ -67,8 +67,7 @@ Heatmaps with flexible normalization and annotation tracks;
 
 ------------------------------------------------------------------------
 
-![eCOMET workflow
-overview](https://github-production-user-asset-6210df.s3.amazonaws.com/69034982/470237776-517b33f9-7b66-4067-bda8-a66ae0a1d99c.png)
+![eCOMET workflow overview](/images/workflows/ecomet_workflow_total.png)
 
 ------------------------------------------------------------------------
 
