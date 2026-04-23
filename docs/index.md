@@ -103,14 +103,14 @@ eCOMET includes worked case studies covering two common study designs in chemica
 
 1. [Treatment-based study](https://phytoecia.github.io/eCOMET/articles/Tutorial_1_Treatment_based_study.md):
    comparing chemical profiles between experimental treatments; covers
-   normalization, DAM analysis, volcano plots, heatmaps, and enrichment analysis
+   normalization, DAM analysis, volcano plots, heatmaps, and enrichment analysis.
 
 2. [Interspecific comparisons](https://phytoecia.github.io/eCOMET/articles/Tutorial_2_Interspecific_Comparisons.md):
    comparing chemical diversity across co-occurring species; covers feature-based
-   and structure-aware beta diversity, NMDS, PCoA, and hierarchical clustering
+   and structure-aware beta diversity, NMDS, PCoA, and hierarchical clustering.
 
 3. [Compound dendrograms and molecular networks](https://phytoecia.github.io/eCOMET/articles/Tutorial_3_Dendrogram_and_Molecular_Networks.md):
-   building and exporting chemical similarity trees and networks for iTOL and Cytoscape
+   building and exporting chemical similarity trees and networks for iTOL and Cytoscape.
 
 ------------------------------------------------------------------------
 
