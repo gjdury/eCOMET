@@ -7,7 +7,7 @@ Nevertheless, the goal of the package is to help ecologists and evolutionary bio
 It has two core goals:
 
 1.  **Standardize ecometabolomics workflows** by introducing the `mmo`
-    object, a unified data container that keeps feature abundances,
+    object (mass-spectrometry metabolomics object), a unified data container that keeps feature abundances,
     sample metadata, compound annotations, and chemical similarity
     matrices aligned throughout an analysis. eCOMET integrates directly
     with the outputs of leading metabolomics tools —
