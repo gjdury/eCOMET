@@ -6,7 +6,7 @@ library(ecomet)
 
 ## The `mmo` object
 
-The `mmo` object is a central data structure in the **eCOMET**
+The `mmo` object is the central data structure in the **eCOMET**
 package.  
 It is created by the
 [`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md)
@@ -17,7 +17,7 @@ function and contains:
 - **feature_info**: A data frame of feature identifiers including mz range,
   rt range, and grouping information if feature grouping was applied in
   mzmine.
-- **metadata**: Sample metadata, including grouping information.
+- **metadata**: A data frame of sample metadata, including grouping information.
 - **sirius_annot**: (optional) SIRIUS/CANOPUS class annotations. Added
   by
   [`AddSiriusAnnot()`](https://phytoecia.github.io/eCOMET/reference/AddSiriusAnnot.md).
@@ -50,7 +50,7 @@ The mendatory input files for creating an `mmo` object are:
     as input for MZmine);
     * `mass` (the sample mass which will be used
     for normalization, use 1 for all samples if not needed); and
-    * at least one grouping info column (the experimental group for each sample), to be used
+    * at least one column with grouping information (e.g., the experimental group for each sample), to be used
     as input for the ‘`group_col`’ argument of
     [`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md);
 
@@ -63,7 +63,7 @@ You can create an `mmo` object like this:
 `mmo <- GetMZmineFeature(mzmine_dir = “path/to/mzmine_feature.csv”, metadata_dir = “path/to/metadata.csv”, group_col = “treatment” )`
 
 Here we load demo data that is downloaded when eCOMET is installed and
-create an `mmo` object
+create an `mmo` object:
 
 ``` r
 
@@ -97,7 +97,7 @@ The raw peak area values are processed by following steps:
 1.  Replacing missing values (NA) with half of the minimum value for
     each feature or 1.
 
-2.  Normalizing by sample mass (provided in metadata).
+2.  Normalizing by sample mass (which is provided in the metadata).
 
 3.  Transform the data using Log, Mean-centering, and Z-score scaling.
 
@@ -106,7 +106,7 @@ mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
 mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
 mmo <- MeancenterNormalization(mmo) # Add mean-centered area
 mmo <- LogNormalization(mmo) # Add log-transformed area
-mmo <- ZNormalization(mmo) # Add Zscore
+mmo <- ZNormalization(mmo) # Add Z-score
 ```
 
 ## Adding Sirius/CANOPUS annotations
@@ -158,7 +158,7 @@ mmo <- AddChemDist(mmo,
 ```
 
 ``` r
-# Add Dreams distance from demo data
+# Adds DreaMS distance for the demo data
 mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 mmo$dreams.dissim[1:10, 1:10]
 ```
@@ -172,7 +172,7 @@ alpha <- GetAlphaDiversity(mmo, mode = "weighted", distance = "dreams")
 
 ### Custom distance matrices: `AddCustomDist()`
 
-If you have a feature dissimilarity matrix from another tool (e.g.
+If you have a feature dissimilarity matrix from another tool (e.g.,
 Tanimoto structural similarity, NPC-based distances, or any other
 pairwise metric), use
 [`AddCustomDist()`](https://phytoecia.github.io/eCOMET/reference/AddCustomDist.md)
@@ -185,11 +185,12 @@ to add it under a name of your choice.
 - Values must be **dissimilarities** in `[0, 1]`: 0 = identical, 1 =
   maximally different. If your source is a similarity matrix, convert it
   first with `dist_matrix <- 1 - sim_matrix`.
-- Diagonal should be 0. Matrix should be symmetric.
+- Diagonal should be 0.
+- Matrix should be symmetric.
 
 ``` r
 # Example: Tanimoto structural similarity from an external tool
-tanimoto_dist <- 1 - tanimoto_sim_matrix  # convert similarity → dissimilarity
+tanimoto_dist <- 1 - tanimoto_sim_matrix  # convert similarity to dissimilarity
 
 mmo <- AddCustomDist(mmo, dist_matrix = tanimoto_dist, name = "tanimoto")
 
@@ -206,8 +207,10 @@ can be passed as the `distance` argument throughout the package.
 You can add your own custom compound annotations to the `mmo` object as
 **`mmo\$custom_annot`**. This is useful for adding known compound names or
 classes from other databases. The custom annotation file should be a CSV
-with three columns: 1. compound: Name of the compound 2. mz: m/z value
-3. rt: Retention time (in minutes)
+with three columns: 
+1. `compound`: Name of the compound
+2. `mz`: m/z value
+3. `rt`: Retention time (in minutes)
 
 ``` r
 mmo <- AddCustomAnnot(
@@ -218,25 +221,25 @@ mmo <- AddCustomAnnot(
 )
 ```
 
-## Filtering MMO Objectes based on feature list or sample list
+## Filtering `mmo` Objects based on feature list or sample list
 
 You can provide either a list of species or features to filter the
-object. This will iterate over all sets of
+object. This will iterate over all sets of non-control samples.
 
 ``` r
 
-#Create a new mmo object containing only control samples
+# Create a new mmo object containing only control samples
 samples_ctrl <- mmo$metadata$sample[mmo$metadata$group == "ctrl"]
 
 mmo_ctrl <- filter_mmo(mmo,
                        sample_list  = samples_ctrl,
-                       drop_empty_feat = TRUE #This will remove any features not observed in samples
+                       drop_empty_feat = TRUE # This will remove any features not observed in the samples
                        )
 ```
 
 ``` r
 
-#create a new mmo object only containing Flavonoid based on sirius annotations
+# Create a new mmo object only containing Flavonoid based on sirius annotations
 FLVs <- mmo$sirius_annot %>% 
   filter(grepl("Flavonoid", .data[['ClassyFire#most specific class']])
   ) %>% pull(id)
@@ -245,15 +248,15 @@ mmo_FLVs <- filter_mmo(mmo,
                        feature_list = FLVs)
 ```
 
-## Match and Filter an associated mgf file to based on the feature list
-in an MMO object.
+## Match and Filter an associated mgf file based on the feature list 
+in an `mmo` object.
 
-Once an dataset has been filtered you may want to update the associated
+Once a dataset has been filtered you may want to update the associated
 .mgf file containing ms2 spectra prior to processing with Sirius, GNPS
-ect.
+etc.
 
-1.  Match spectra present in an MGF against a feature list and update
-    the mmo\$feature_info
+1.  The function `annotate_feature_info_ms2_from_mgf()` matches spectra present in an mgf file against a feature list and updates
+    the `mmo\$feature_info`:
 
 ``` r
 
@@ -263,9 +266,9 @@ mmo <- annotate_feature_info_ms2_from_mgf(mmo,
 mmo$feature_info
 ```
 
-2.  Given a feature list in an mmo object defined by
-    mmo$`feature_data$id` read through an associated mgf file and remove
-    features not in the list
+2.  Given a feature list in an `mmo` object defined by
+    `mmo$feature_data$id`, the function `filter_mgf_to_mmo()` reads through an associated mgf file and removes
+    features not in the list:
 
 ``` r
 filter_mgf_to_mmo(mmo, 
