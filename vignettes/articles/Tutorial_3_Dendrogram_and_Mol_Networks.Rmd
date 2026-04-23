@@ -38,7 +38,7 @@ data_dir <- system.file("extdata/tutorials/interspecific", package = "ecomet")
 stopifnot(nzchar(data_dir))  # fail loudly if package data is missing
 
 demo_feature          <- file.path(data_dir, "Ecomet_Interspecific_Demo_full_feature_table.csv")
-demo_metadata         <- file.path(data_dir, "Ecomet_Interspecific_Demo_metadata_no_blanks.csv")
+demo_metadata         <- file.path(data_dir, "Ecomet_Interspecific_Demo_metadata_no_blank.csv")
 demo_sirius_formula   <- file.path(data_dir, "canopus_formula_summary.tsv")
 demo_sirius_structure <- file.path(data_dir, "structure_identifications.tsv")
 demo_dreams           <- file.path(data_dir, "Ecomet_Interspecific_Demo_dreams_sim_dreams.csv")
