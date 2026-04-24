@@ -2267,7 +2267,6 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
   } else {
     stop("Invalid mode for adonis2. Please use 'data' or 'distance'")
   }
-  dist_mat <- dist(data)
   metadata <- metadata[match(rownames(data), metadata$sample), ]
   if (filter_group == TRUE){
     metadata <- metadata |> filter(.data$group %in% group_list)
