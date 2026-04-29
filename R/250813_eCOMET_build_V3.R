@@ -2267,7 +2267,6 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
   } else {
     stop("Invalid mode for adonis2. Please use 'data' or 'distance'")
   }
-  dist_mat <- dist(data)
   metadata <- metadata[match(rownames(data), metadata$sample), ]
   if (filter_group == TRUE){
     metadata <- metadata |> filter(.data$group %in% group_list)
@@ -2969,7 +2968,7 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
     term = names(enrichment_results),
     subsetcount = as.numeric(subset_term_counts[names(enrichment_results)]),
     totalcount = as.numeric(total_term_counts[names(enrichment_results)]),
-    foldenrichment = (as.numeric(subset_term_counts[names(enrichment_results)]) / length(subset_feature))/(as.numeric(total_term_counts[names(enrichment_results)]) / nrow(all_feature)),
+    foldenrichment = (as.numeric(subset_term_counts[names(enrichment_results)]) / nrow(subset_feature))/(as.numeric(total_term_counts[names(enrichment_results)]) / nrow(all_feature)),
     pval = enrichment_results,
     fdr = adjusted_pvalues
   )
