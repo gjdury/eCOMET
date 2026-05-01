@@ -512,7 +512,7 @@ mmo_pca <- PCAplot(mmo, color = custom_colors,
 mmo_pca$plot
 ```
 
-If samples from the same species cluster together in PCA space, that suggests species differ in their overall multivariate chemical profiles. However, PCA still depends on the observed feature matrix and does not account for structural relatedness among unshared compounds.
+If samples from the same species cluster together in PCA space, that suggests species differ in their overall multivariate chemical profiles. However, PCA still depends on the observed feature matrix and does not account for structural relatedness among compounds that are not shared.
 
 ## 5.2 Bray-Curtis hierarchical clustering
 

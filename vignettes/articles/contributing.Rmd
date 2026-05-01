@@ -33,10 +33,10 @@ If something produces an error, a warning that shouldn't be there, or a result t
 1. Go to the [eCOMET GitHub Issues page](https://github.com/Phytoecia/eCOMET/issues)
 2. Click **New Issue** and select **Bug Report**
 3. Include:
-   - The function name and the arguments you passed
-   - A minimal reproducible example — ideally using the built-in demo data (`system.file("extdata/tutorials/treatment_based", package = "ecomet")`)
-   - The full error message or unexpected output
-   - Your R version (`R.version.string`) and eCOMET version (`packageVersion("ecomet")`)
+   - The function name and the arguments you passed.
+   - A minimal reproducible example — ideally using the built-in demo data (`system.file("extdata/tutorials/treatment_based", package = "ecomet")`).
+   - The full error message or unexpected output.
+   - Your R version (`R.version.string`) and eCOMET version (`packageVersion("ecomet")`).
 
 ### Request a new feature
 
@@ -45,20 +45,20 @@ If you have a workflow step that eCOMET doesn't support yet — a new diversity 
 1. Go to the [eCOMET GitHub Issues page](https://github.com/Phytoecia/eCOMET/issues)
 2. Click **New Issue** and select **Feature Request**
 3. Describe:
-   - The ecological or analytical question the feature addresses
-   - What inputs you would expect (ideally from the `mmo` object)
-   - What the output should look like
-   - Whether you have a reference or existing implementation you are aware of
+   - The ecological or analytical question the feature addresses.
+   - What inputs you would expect (ideally from the `mmo` object).
+   - What the output should look like.
+   - Whether you have a reference or existing implementation you are aware of.
 
 Even if you cannot write the code yourself, a well-described feature request is valuable and may be picked up by another contributor.
 
 ### Contribute code
 
-1. [Fork the repository](https://github.com/Phytoecia/eCOMET/fork) on GitHub
-2. Create a new branch for your change: `git checkout -b my-new-feature`
-3. Make your changes (see conventions below)
-4. Push to your fork and open a **Pull Request** against the `main` branch
-5. In the PR description, explain what the function does and link any relevant Issue
+1. [Fork the repository](https://github.com/Phytoecia/eCOMET/fork) on GitHub.
+2. Create a new branch for your changes: `git checkout -b my-new-feature`.
+3. Make your changes (see conventions below).
+4. Push to your fork and open a **Pull Request** against the `main` branch.
+5. In the description of the Pull Request, explain what the function does and link any relevant Issue.
 
 ---
 
@@ -76,16 +76,16 @@ MyNewFunction <- function(mmo, ..., group_col = NULL) {
 }
 ```
 
-- Functions that add new results to the dataset should store them inside the `mmo` object and return the updated `mmo`
-- Functions that produce a plot should return a `ggplot` or `ggtree` object — never call `print()` or open a graphics device inside the function
-- Functions that produce a summary table should return a plain `data.frame`
+- Functions that add new results to the dataset should store them inside the `mmo` object and return the updated `mmo`.
+- Functions that produce a plot should return a `ggplot` or `ggtree` object — never call `print()` or open a graphics device inside the function.
+- Functions that produce a summary table should return a plain `data.frame`.
 
 ### Plot functions
 
-- Use `ggplot2` (or `ggtree` for tree layouts) as the base
-- Accept a `palette` argument using `colorspace::qualitative_hcl()` for color scales
-- Return the plot object so users can modify it with `+`
-- Default to showing group-level information derived from `mmo$metadata`
+- Use `ggplot2` (or `ggtree` for tree layouts) as the base.
+- Accept a `palette` argument using `colorspace::qualitative_hcl()` for color scales.
+- Return the plot object so users can modify it with `+`.
+- Default to showing group-level information derived from `mmo$metadata`.
 
 ```r
 # Good — user can keep layering
@@ -114,8 +114,8 @@ Use `@examplesIf FALSE` rather than `@examples` unless the example can run in un
 
 ### Dependencies
 
-- Before adding a new package dependency, check whether the functionality already exists in a package eCOMET already imports (see `DESCRIPTION`)
-- Heavy or specialized packages (e.g. those requiring system libraries or Bioconductor) should go in `Suggests`, not `Imports`, and be loaded with `.require_pkg("pkgname")` inside the function so they are only required when actually called
+- Before adding a new package dependency, check whether the functionality already exists in a package eCOMET already imports (see `DESCRIPTION`).
+- Heavy or specialized packages (e.g. those requiring system libraries or Bioconductor) should go in `Suggests`, not `Imports`, and be loaded with `.require_pkg("pkgname")` inside the function so they are only required when actually called.
 
 ---
 
@@ -125,10 +125,10 @@ If you have developed a full analysis workflow using eCOMET — a new type of st
 
 Vignettes live in `vignettes/` and are built into the website. A good tutorial vignette:
 
-- Loads data using `system.file("extdata/...", package = "ecomet")` so it is portable
-- Walks through a complete, realistic analysis from raw data to interpretation
-- Explains the ecological motivation for each step, not just the code
-- Uses demo data small enough to be bundled in the package (target < 5 MB total per tutorial)
+- Loads data using `system.file("extdata/...", package = "ecomet")` so it is portable.
+- Walks through a complete, realistic analysis from raw data to interpretation.
+- Explains the ecological motivation for each step, not just the code.
+- Uses demo data small enough to be bundled in the package (target < 5 MB total per tutorial).
 
 ---
 

@@ -28,7 +28,7 @@ library(stringr)
 
 # Background
 
-In this tutorial, we demonstrate how to use the **eCOMET** package for analyzing metabolomics data from a **treatment-based study**
+In this tutorial, we demonstrate how to use the **eCOMET** package for analyzing metabolomics data from a **treatment-based study**.
 
 **What is a treatment-based study?**
 
@@ -46,7 +46,7 @@ The example data represent metabolomics analysis of *Arabidopsis thaliana* (Col-
 | `sl1`  | *Spodoptera litura* (chewing herbivore)      | 8          |
 | `le1`  | *Lipaphis erysimi* (aphid, piercing-sucking) | 8          |
 
-These files are shipped with the eCOMET package and can be accessed via `system.file()`.
+These files are included with the eCOMET package and can be accessed via `system.file()`.
 
 ------------------------------------------------------------------------
 
@@ -55,12 +55,12 @@ These files are shipped with the eCOMET package and can be accessed via `system.
 eCOMET is distributed with a small set of example files so that tutorials can be run immediately without downloading additional data.
 
 ```{r, eval=FALSE}
-# Locate tutorial data shipped with the eCOMET package
+# Locate tutorial data included with the eCOMET package
 data_dir <- system.file(
   "extdata/tutorials/treatment_based",
   package = "ecomet"
 )
-stopifnot(nzchar(data_dir))  # fail loudly if package/data not installed
+stopifnot(nzchar(data_dir))  # Fail loudly if package or data are not installed
 
 # Define file paths
 demo_feature          <- file.path(data_dir, "feature_table_demo.csv")
@@ -79,16 +79,16 @@ The `mmo` (mass-spectrometry metabolomics object) is the central data structure 
 
 To create an `mmo` object, you need at minimum:
 
-1.  **Feature abundance table** — exported from MZmine (preferably the "full feature table" format)
-2.  **Sample metadata** — a CSV identifying samples and their treatment groups
+1.  **Feature abundance table** — exported from MZmine (preferably the "full feature table" format).
+2.  **Sample metadata** — a CSV identifying samples and their treatment groups.
 
 Optionally, you can later add:
 
--   SIRIUS/CANOPUS annotations for chemical classification
--   Chemical similarity scores (DreaMS, cosine, MS2DeepScore)
--   Custom compound database annotations
+-   SIRIUS/CANOPUS annotations for chemical classification.
+-   Chemical dissimilarity scores (DreaMS, cosine, MS2DeepScore, etc.).
+-   Custom compound database annotations.
 
-## 2.1 Initialize the mmo object
+## 2.1 Initialize the `mmo` object
 
 `GetMZmineFeature()` reads your MZmine feature table and metadata, then links them together.
 
@@ -97,7 +97,7 @@ mmo <- GetMZmineFeature(
   mzmine_dir   = demo_feature,
   metadata_dir = demo_metadata,
   group_col    = 'group',     # column in metadata defining treatment groups
-  sample_col   = 'sample'     # column in metadata with sample file names
+  sample_col   = 'sample'     # column in metadata with sample filenames used as input in MZmine
 )
 ```
 
@@ -131,8 +131,8 @@ Before statistical analysis, we apply several preprocessing steps. Each step add
 
 Mass spectrometry data often contains zeros (undetected features). These need to be handled before log transformation or fold-change calculations. `ReplaceZero()` adds an imputed version of the feature table (`mmo$imputed_feature_data`).
 
--   `method = 'one'`: Replace 0 and NA values with 1 (simple, conservative)
--   `method = 'half_min'`: Replace with half the minimum non-zero value per feature
+-   `method = 'one'`: Replace 0 and NA values with 1 (simple, conservative).
+-   `method = 'half_min'`: Replace with half the minimum non-zero value per feature.
 
 ```{r, eval=FALSE}
 mmo <- ReplaceZero(mmo, method = 'one')
@@ -141,7 +141,7 @@ head(mmo$imputed_feature_data)
 
 ## 3.2 Mass normalization
 
-If your metadata contains a `mass` column (tissue mass in mg), `MassNormalization()` adjusts peak areas for differences in sample mass: `normalized = original * mean(mass) / sample_mass`.
+If your metadata contains a `mass` column (tissue mass in mg), then `MassNormalization()` adjusts peak areas for differences in sample mass: `normalized = original * mean(mass) / sample_mass`.
 
 ```{r, eval=FALSE}
 mmo <- MassNormalization(mmo)
@@ -178,7 +178,7 @@ mmo <- FeaturePresence(mmo, threshold = 1)
 
 ## 4.1 SIRIUS/CANOPUS annotation
 
-SIRIUS provides computational annotations including molecular formula predictions and compound class assignments via CANOPUS (NPC and ClassyFire classifications).
+SIRIUS provides computational annotations including molecular formula predictions and compound class assignments via CANOPUS (NPClassifier and ClassyFire classifications).
 
 ```{r, eval=FALSE}
 mmo <- AddSiriusAnnot(
@@ -222,7 +222,7 @@ mmo <- filter_canopus_annotations(
 mmo$sirius_annot_filtered_NPC_pathway_0.8
 ```
 
-## 4.3 Filter structure predictions by COSMIC confidence
+## 4.3 Filter structure predictions by COSMIC confidence scores
 
 SIRIUS structure predictions are scored by the COSMIC confidence score. These scores should be interpreted with caution — they are not probabilities. The [SIRIUS team recommends](https://www.nature.com/articles/s41587-021-01045-9) focusing on the highest-confidence hits (e.g., top 5--10%).
 
@@ -298,10 +298,10 @@ A **PCA (Principal Component Analysis)** plot visualizes the overall distributio
 
 **Key options:**
 
--   `normalization`: which normalization to use (`"None"`, `"Log"`, `"Meancentered"`, `"Z"`)
--   `label`: whether to label individual sample points
--   `filter_id` / `id_list`: restrict analysis to specific features
--   `save_output`: set to `FALSE` to return the plot object without saving files
+-   `normalization`: which normalization to use (`"None"`, `"Log"`, `"Meancentered"`, `"Z"`).
+-   `label`: whether to label individual sample points.
+-   `filter_id` / `id_list`: restrict analysis to specific features.
+-   `save_output`: set to `FALSE` to return the plot object without saving files.
 
 ```{r, eval=FALSE}
 # Define group colors
@@ -364,8 +364,8 @@ A central goal of treatment-based studies is to find **differentially accumulate
 
 `PairwiseComp()` performs a pairwise t-test between two groups and computes:
 
--   **log2 fold change** — magnitude of change (log2(group2_mean / group1_mean))
--   **adjusted p-value** — significance after BH correction
+-   **log2 fold change** — magnitude of change (log2(group2_mean / group1_mean)).
+-   **adjusted p-value** — significance after BH correction.
 
 > **Convention:** The first group (`group1`) is the reference/control. Positive log2FC means the feature is *higher* in `group2` (treatment).
 
@@ -379,8 +379,8 @@ mmo <- PairwiseComp(mmo, group1 = 'ctrl', group2 = 'le1')
 
 `GetDAMs()` extracts DAMs from all comparisons based on fold-change and p-value cutoffs.
 
--   `fc_cutoff = 0.5849625` corresponds to log2(1.5) — a 1.5-fold change
--   `pval_cutoff = 0.1` is used here to capture more DAMs in this small demo dataset
+-   `fc_cutoff = 0.5849625` corresponds to log2(1.5) — a 1.5-fold change.
+-   `pval_cutoff = 0.1` is used here to capture more DAMs in this small demo dataset.
 
 ```{r, eval=FALSE}
 DAMs <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.1)
@@ -632,7 +632,7 @@ head(sl_cor)
 
 ------------------------------------------------------------------------
 
-# Step 11: Save and share the mmo object
+# Step 11: Save and share the `mmo` object
 
 The `mmo` object can be saved to a file and shared with collaborators. This preserves all data, annotations, normalizations, and analysis results.
 
@@ -654,13 +654,13 @@ This tutorial covered the complete eCOMET workflow for treatment-based metabolom
 |----|----|----|
 | 1 | `system.file()` | Locate tutorial data |
 | 2 | `GetMZmineFeature()` | Create mmo object |
-| 3 | `ReplaceZero()`, `*Normalization()` | Preprocessing |
+| 3 | `ReplaceZero()`, `MassNormalization(mmo)`, `ZNormalization(mmo)`, `LogNormalization(mmo)`, `MeancenterNormalization()` | Preprocessing |
 | 4 | `AddSiriusAnnot()`, `AddCustomAnnot()`, `AddChemDist()` | Annotations |
 | 5 | `PCAplot()`, `PLSDAplot()` | Dimensionality reduction |
 | 6 | `PairwiseComp()`, `GetDAMs()` | Differential accumulation |
 | 7 | `VolcanoPlot()`, Venn/UpSet | DAM visualization |
 | 8 | `GenerateHeatmapInputs()` + `pheatmap()` | Heatmaps |
-| 9 | `Canopus*EnrichmentPlot()` | Chemical class enrichment |
+| 9 | `CanopusListEnrichmentPlot()`, `CanopusLevelEnrichmentPlot()`, `CanopusAllLevelEnrichmentPlot()` | Chemical class enrichment |
 | 10 | `ScreenFeaturePhenotypeCorrelation()` | Phenotype correlation |
 | 11 | `SaveMMO()` / `LoadMMO()` | Save/share results |
 
