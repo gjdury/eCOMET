@@ -24,7 +24,7 @@ navbar:
       text: Tutorials
       href: articles/index.html
     contributing:
-      text: Contributing
+      text: Contribute
       href: articles/contributing.html
 
 
@@ -146,7 +146,7 @@ articles:
       - articles/Tutorial_1_Treatment_based_study
       - articles/Tutorial_2_Interspecific_Comparisons
       - articles/Tutorial_3_Dendrogram_and_Mol_Networks
-  - title: "Contributing"
+  - title: "Contribute"
     contents:
       - articles/contributing
 

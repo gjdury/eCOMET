@@ -12,18 +12,6 @@ vignette: >
 eCOMET is a community-driven tool built by ecologists for ecologists. The package grows most usefully when the people using it in real workflows contribute ideas, report problems, and share new methods. This page explains how to do that.
 
 ---
-
-## Design philosophy
-
-Before contributing, it helps to understand what eCOMET is trying to be:
-
-- **The `mmo` object is the center of everything.** Every function should accept an `mmo` object as its primary input and either return a modified `mmo` or a plot/data.frame. This keeps workflows composable and readable.
-- **Ecology first.** Unlike biomedical metabolomics tools, eCOMET is designed for comparative analyses across species, habitats, and treatments. New functions should be motivated by ecological or evolutionary questions, not just cheminformatics.
-- **Reproducibility over interactivity.** Functions should work in scripts, vignettes, and automated pipelines — not just interactively in RStudio.
-- **ggplot2 for visualization.** All new plot functions should return a `ggplot`/`ggtree` object so users can layer modifications with `+` without rewriting the function.
-
----
-
 ## Ways to contribute
 
 ### Report a bug
@@ -62,6 +50,18 @@ Even if you cannot write the code yourself, a well-described feature request is 
 
 ---
 
+## Design philosophy
+
+Before contributing, it helps to understand what eCOMET is trying to be:
+
+- **The `mmo`, the S3 Class Object, is the center of everything in the eCOMET package** All contributed functions should work with an `mmo`  as its primary input and either return a modified `mmo` or a plot/data.frame or list. This keeps workflows composable and readable.
+- **Reproducibility over interactivity.** Functions should work in scripts, vignettes, and automated pipelines — not just interactively in RStudio.
+- **ggplot2 for visualization.** We designed eCOMET around ggplot so that users could use ggplot conventions to keep modifying plots after they are produced by eCOMET functions. New plot functions should return a `ggplot`/`ggtree` object so users can layer modifications with `+` without rewriting the function.
+
+---
+
+
+
 ## Conventions for new functions
 
 ### Function structure
@@ -77,7 +77,7 @@ MyNewFunction <- function(mmo, ..., group_col = NULL) {
 ```
 
 - Functions that add new results to the dataset should store them inside the `mmo` object and return the updated `mmo`.
-- Functions that produce a plot should return a `ggplot` or `ggtree` object — never call `print()` or open a graphics device inside the function.
+- Functions that produce a plot should return a `ggplot` or `ggtree` object — never call `print()` or open a graphics device inside the function. You can however save the plot as an output.
 - Functions that produce a summary table should return a plain `data.frame`.
 
 ### Plot functions
