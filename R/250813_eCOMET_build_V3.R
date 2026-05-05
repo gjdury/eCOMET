@@ -11,10 +11,10 @@ if (!exists(".require_pkg", mode = "function")) {
   }
 }
 
-#' Import MZmine feature table and metadata to create a mmo object
+#' Import MZmine feature table and metadata to create a mmo (mass-spectrometry metabolomics object)
 #' @description
 #' Reads an MZmine exported feature table (typically the full feature table) and a sample metadata table
-#' to initialize an mmo object containing:
+#' to initialize a mmo containing:
 #' \itemize{
 #'   \item \code{mmo$feature_data}: feature-by-sample abundance matrix (peak areas)
 #'   \item \code{mmo$feature_info}: feature-level annotations (e.g., mz, rt, ranges, IDs)
@@ -35,7 +35,7 @@ if (!exists(".require_pkg", mode = "function")) {
 #' @param feature_info_cols Character vector of feature-level columns to retain in \code{mmo$feature_info}.
 #' Columns not present in the MZmine table are skipped with a warning.
 #' @param pa_threshold Minimum peak area threshold for a feature to be considered present in a sample.
-#' @return A mmo object
+#' @return A mmo
 #' @export
 GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
                              drop_missing_samples = FALSE,
@@ -246,7 +246,7 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
   # Generate presence/absence table using set threshold
   mmo <- FeaturePresence(mmo, threshold = pa_threshold)
 
-  message("MMO object created.")
+  message("Mass-spectrometry Metabolomics Object (mmo) created.")
   message(paste0("Feature number: ", nrow(mmo$feature_data)))
   message(paste0(nrow(mmo$metadata), " samples in ", length(unique(mmo$metadata$group)), " groups"))
   message(paste0("Presence/absence table generated with threshold: ", pa_threshold, " (PA)"))
@@ -257,14 +257,14 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 
 
 
-#' Switch the group column in the mmo object
+#' Switch the group column in the \code{mmo}
 #'
 #' @description
-#' This function switches the group column in the metadata of the mmo object to a new specified column.
+#' This function switches the group column in the metadata of the \code{mmo} to a new specified column.
 #' The new group column must exist in the metadata file.
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param new_group_col The name of the new group column in the metadata file
-#' @return The mmo object with the updated group column
+#' @return The \code{mmo} with the updated group column
 #' @export
 #' @examplesIf FALSE
 #' mmo <- SwitchGroup(mmo, new_group_col = "genotype")
@@ -279,17 +279,17 @@ SwitchGroup <- function(mmo, new_group_col) {
   return(mmo)
 }
 
-#' Adding annotation from SIRIUS to the mmo object
+#' Adding annotation from SIRIUS to the \code{mmo}
 #'
 #' @description
 #' This function reads SIRIUS structure identification and formula summary files,
-#' and adds the annotations to the mmo object.
-#' @param mmo The mmo object
+#' and adds the annotations to the \code{mmo}.
+#' @param mmo The \code{mmo}
 #' @param canopus_structuredir Path to the SIRIUS structure_identification.tsv file
 #' @param canopus_formuladir Path to the SIRIUS canopus_formula_summary.tsv file
 #' @param filter_annot Logical. If TRUE, filter the annotations by probability threshold in CANOPUS.
 #' @param filter_threshold Numeric between 0 and 1. The probability threshold for filtering annotations.
-#' @return The mmo object with SIRIUS annotations added
+#' @return The \code{mmo} with SIRIUS annotations added
 #' @export
 #' @examplesIf FALSE
 #' mmo <- AddSiriusAnnot(mmo,
@@ -333,10 +333,10 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir, filter
     return(mmo)
 }
 
-#' Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold
+#' Filter CANOPUS / SIRIUS annotations in an eCOMET \code{mmo} by probability threshold
 #'
 #' Applies a minimum-probability cutoff to selected CANOPUS (NPClassifier / ClassyFire)
-#' annotation levels inside an ecomet \code{mmo} object. The function reads a chosen
+#' annotation levels inside an eCOMET \code{mmo}. The function reads a chosen
 #' annotation table from \code{mmo[[input]]} (default \code{"sirius_annot"}), flags
 #' annotations below \code{threshold} by setting them to \code{NA}, and stores the result
 #' as a new element on \code{mmo} named \code{"sirius_annot_filtered_<suffix>"}.
@@ -352,7 +352,7 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir, filter
 #'   \item \code{"<header>Probability"}
 #' }
 #'
-#' @param mmo An ecomet mmo object containing \code{mmo[[input]]} (a data.frame).
+#' @param mmo An eCOMET \code{mmo} containing \code{mmo[[input]]} (a data.frame).
 #' @param input Character. Name of the element on \code{mmo} to filter. Defaults to \code{"sirius_annot"}.
 #'
 #' @param pathway_level Character vector of one or more annotation header(s) to filter.
@@ -389,7 +389,7 @@ AddSiriusAnnot <- function(mmo, canopus_structuredir, canopus_formuladir, filter
 #' @param verbose Logical. If \code{TRUE}, prints a concise summary including counts of
 #'   non-missing annotations before and after filtering.
 #'
-#' @return The updated \code{mmo} object, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
+#' @return The updated \code{mmo}, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
 #'
 #' @examples
 #' \dontrun{
@@ -568,7 +568,7 @@ filter_canopus_annotations <- function(
 #' Filter SIRIUS structure (CSI:FingerID) annotations by COSMIC confidence score
 #'
 #' Applies a minimum COSMIC confidence cutoff to SIRIUS structure predictions inside an
-#' ecomet \code{mmo} object. The function reads a chosen annotation table from
+#' ecomet \code{mmo}. The function reads a chosen annotation table from
 #' \code{mmo[[input]]} (default \code{"sirius_annot"}), flags structure annotations below
 #' \code{threshold} by setting selected structure-identification fields to \code{NA},
 #' and stores the result as a new element on \code{mmo} named
@@ -577,7 +577,7 @@ filter_canopus_annotations <- function(
 #' Rows are never dropped. "Removing" a structure means setting selected fields
 #' (e.g., SMILES/InChI/name/InChIkey2D) to \code{NA}.
 #'
-#' @param mmo An ecomet mmo object containing \code{mmo[[input]]} (a data.frame).
+#' @param mmo An eCOMET \code{mmo} object containing \code{mmo[[input]]} (a data.frame).
 #' @param input Character. Name of the element on \code{mmo} to filter. Defaults to \code{"sirius_annot"}.
 #'
 #' @param cosmic_mode Which COSMIC column to use. One of \code{"exact"} or \code{"approx"}.
@@ -593,7 +593,7 @@ filter_canopus_annotations <- function(
 #' @param overwrite Logical. If \code{FALSE} (default) and the target element already exists, error.
 #' @param verbose Logical. If \code{TRUE}, prints a concise summary.
 #'
-#' @return The updated \code{mmo} object, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
+#' @return The updated \code{mmo}, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
 #'
 #' @examples
 #' \dontrun{
@@ -749,17 +749,17 @@ filter_cosmic_structure <- function(
 
 
 
-#' Add custom annotations to an mmo object
+#' Add custom annotations to an \code{mmo}
 #'
 #' @description
 #' Match features to a custom DB by m/z (ppm) and RT (minutes) tolerances and
 #' attach a list-column of candidate compound IDs per feature.
 #'
-#' @param mmo An `mmo` object created by `GetMZmineFeature()`.
+#' @param mmo An \code{mmo} object created by `GetMZmineFeature()`.
 #' @param DB_file CSV path with at least columns `compound`, `mz`, `rt`.
 #' @param mztol m/z tolerance in ppm (default 5).
 #' @param rttol RT tolerance in minutes (default 0.5).
-#' @return The same `mmo` object with `mmo$custom_annot` (id, feature, custom_annot).
+#' @return The same `mmo` with `mmo$custom_annot` (id, feature, custom_annot).
 #' @export
 #' @examplesIf FALSE
 #' mmo <- AddCustomAnnot(mmo, DB_file = "path/to/custom_db.csv", mztol = 5, rttol = 0.5)
@@ -804,21 +804,21 @@ AddCustomAnnot <- function(mmo, DB_file, mztol = 5, rttol = 0.5) {
 
 
 
-#' #' Replace zero and NA values in the mmo object
+#' #' Replace zero and NA values in the \code{mmo}
 #'
-#' This function replaces zero values in the feature table of an mmo object.
+#' This function replaces zero values in the feature table of a \code{mmo}.
 #' Imputed data are stored in mmo$imputed_feature_data, to be used for
 #' downsteam analyses including PairwiseComp().
 #' Note that imputation affects normalizations (Log-transformation, etc.),
 #' as well as chemical diversity calculations that uses presence/absence.
 #'
-#' @param mmo An mmo object containing `feature_data`
+#' @param mmo A \code{mmo} containing `feature_data`
 #' @param method Replacement method:
 #'   - "one": replace zeros and NA values with 1
 #'   - "half_min": replace zeros and NA values with half of the smallest
 #'     non-zero value in each feature (row)
 #'
-#' @return The updated mmo object
+#' @return The updated \code{mmo}
 #' @export
 ReplaceZero <- function(mmo, method = c("one", "half_min")) {
   df <- mmo$feature_data
@@ -859,21 +859,21 @@ ReplaceZero <- function(mmo, method = c("one", "half_min")) {
 
 #' Convert feature abundances to presence / absence
 #'
-#' This function converts the feature abundance matrix in an mmo object
+#' This function converts the feature abundance matrix in a \code{mmo}
 #' into a binary presence/absence matrix and stores it as a new component
-#' of the mmo object (mmo$feature_presence).
+#' of the \code{mmo} (\code{mmo$feature_presence}).
 #'
 #' A feature is considered present (1) if its abundance is greater than
 #' a specified threshold, and absent (0) otherwise.
 #'
-#' This function does NOT overwrite mmo$feature_data.
+#' This function does NOT overwrite \code{mmo$feature_data}.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param threshold Numeric threshold for presence (default = 1).
 #'   Values > threshold are set to 1, values <= threshold or NA are set to 0.
 #'
-#' @return The mmo object with a new presence/absence table
-#'   stored in mmo$feature_presence
+#' @return The \code{mmo} with a new presence/absence table
+#'   stored in \code{mmo$feature_presence}
 #'
 #' @export
 #'
@@ -916,11 +916,11 @@ FeaturePresence <- function(mmo, threshold = 1) {
 
 #' Use sample mass in the metadata file to normalize the peak area
 #'
-#' This function normalizes the peak area in the feature data of the mmo object by the mass of each sample, provided in the metadata.
+#' This function normalizes the peak area in the feature data of the \code{mmo} by the mass of each sample, provided in the metadata.
 #' The feature data is replaced by (original value * mean mass) / sample mass.
 #'
-#' @param mmo The mmo object
-#' @return The mmo object with normalized feature data (mmo$feature_data)
+#' @param mmo The \code{mmo}
+#' @return The \code{mmo} with normalized feature data (mmo$feature_data)
 #' @export
 #' @examplesIf FALSE
 #' mmo <- MassNormalization(mmo)
@@ -938,14 +938,14 @@ MassNormalization <- function(mmo){
   return(mmo)
 }
 
-#' Log-normalize the peak area in the mmo object
+#' Log-normalize the peak area in the \code{mmo}
 #'
-#' This function applies log2 transformation to the peak area in the feature data of the mmo object.
+#' This function applies log2 transformation to the peak area in the feature data of the \code{mmo}.
 #' Run ReplaceZero() before this function to avoid -Inf values.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param imputed_data Whether to use imputed feature data (default = FALSE)
-#' @return The mmo object with log-normalized feature data (mmo$log)
+#' @return The \code{mmo} with log-normalized feature data (mmo$log)
 #' @export
 #' @examplesIf FALSE
 #' mmo <- LogNormalization(mmo)
@@ -964,15 +964,15 @@ LogNormalization <- function(mmo, imputed_data = FALSE){
   return(mmo)
 }
 
-#' Mean-center the peak area in the mmo object
+#' Mean-center the peak area in the \code{mmo}
 #'
 #' This function applies mean-centering to the peak area in the feature data
-#' of the mmo object. Mean-centering is performed per feature (row) across samples.
+#' of the \code{mmo}. Mean-centering is performed per feature (row) across samples.
 #' Features with zero variance are returned as all zeros and are reported in a warning.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param imputed_data Whether to use imputed feature data (default = FALSE)
-#' @return The mmo object with mean-centered feature data stored in `mmo$meancentered`
+#' @return The \code{mmo} with mean-centered feature data stored in `mmo$meancentered`
 #' @export
 MeancenterNormalization <- function(mmo, imputed_data = FALSE){
   if (imputed_data == FALSE){
@@ -1007,15 +1007,15 @@ MeancenterNormalization <- function(mmo, imputed_data = FALSE){
   return(mmo)
 }
 
-#' Z-normalize the peak area in the mmo object
+#' Z-normalize the peak area in the \code{mmo}
 #'
 #' This function applies Z-score normalization to the peak area in the feature data
-#' of the mmo object. Z-scores are calculated per feature (row) across samples.
+#' of the \code{mmo}. Z-scores are calculated per feature (row) across samples.
 #' Features with zero variance cannot be Z-normalized and are returned as NA.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param imputed_data Whether to use imputed feature data (default = FALSE)
-#' @return The mmo object with Z-normalized feature data stored in `mmo$zscore`
+#' @return The \code{mmo} with Z-normalized feature data stored in `mmo$zscore`
 #' @export
 ZNormalization <- function(mmo, imputed_data = FALSE) {
   if (imputed_data == FALSE){
@@ -1058,16 +1058,16 @@ ZNormalization <- function(mmo, imputed_data = FALSE) {
 }
 
 
-#' Add chemical distance matrices to the mmo object
+#' Add chemical distance matrices to the \code{mmo}
 #'
 #' This function reads cosine, DREAMS, and MS2DeepScore molecular networking outputs from MZmine,
-#' then transform the similarity to distance and adds the dissimilarity matrices to the mmo object.
+#' then transform the similarity to distance and adds the dissimilarity matrices to the \code{mmo}.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param cos_dir Path to the cosine similarity CSV file from MZMine (molecular networking)
 #' @param dreams_dir Path to the DREAMS similarity CSV file from MZMine (molecular networking)
 #' @param m2ds_dir Path to the MS2DeepScore similarity CSV file from MZMine (molecular networking)
-#' @return The mmo object with dissimilarity matrices added (mmo$cos.dissim, mmo$dreams.dissim, mmo$m2ds.dissim)
+#' @return The \code{mmo} with dissimilarity matrices added (mmo$cos.dissim, mmo$dreams.dissim, mmo$m2ds.dissim)
 #' @export
 #' @examplesIf FALSE
 #' mmo <- AddChemDist(mmo,
@@ -1132,9 +1132,9 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
 }
 
 
-#' Add a custom feature distance matrix to the mmo object
+#' Add a custom feature distance matrix to the \code{mmo}
 #'
-#' Stores any user-supplied pairwise feature distance matrix in the mmo object
+#' Stores any user-supplied pairwise feature distance matrix in the \code{mmo}
 #' so it can be used by \code{GetBetaDiversity()}, \code{GetAlphaDiversity()},
 #' and \code{HeatmapPlot()} via the \code{distance} argument.
 #'
@@ -1159,7 +1159,7 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
 #'         excluded from structure-aware calculations.
 #' }
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param dist_matrix A square numeric matrix of pairwise feature dissimilarities
 #'   (see Details for format requirements).
 #' @param name A short string used to identify this distance in downstream
@@ -1168,7 +1168,7 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
 #'   to \code{GetBetaDiversity()}, \code{GetAlphaDiversity()}, etc.
 #'   Must not conflict with existing names: \code{"dreams"}, \code{"cosine"},
 #'   \code{"m2ds"}.
-#' @return The mmo object with the new distance matrix stored in
+#' @return The \code{mmo} with the new distance matrix stored in
 #'   \code{mmo$<name>.dissim}.
 #' @export
 #' @examplesIf FALSE
@@ -1204,15 +1204,15 @@ AddCustomDist <- function(mmo, dist_matrix, name) {
 }
 
 
-#' Reorder samples in the mmo object based on group order
+#' Reorder samples in the \code{mmo} based on group order
 #'
-#' This function reorders the samples in the mmo object based on a specified group order.
+#' This function reorders the samples in the \code{mmo} based on a specified group order.
 #' The function updates the order of samples in the feature data, log-normalized data, z-score data, and mean-centered data.
 #' Use this function before plotting heatmaps or other visualizations to ensure consistent group ordering.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param group_order A vector specifying the desired order of groups
-#' @return The mmo object with reordered samples
+#' @return The \code{mmo} with reordered samples
 #' @export
 #' @examplesIf FALSE
 #' mmo <- ReorderGroups(mmo, group_order = c("Control", "Treatment1", "Treatment2"))
@@ -1232,19 +1232,19 @@ ReorderGroups <- function(mmo, group_order) {
   return(mmo)
 }
 
-#' Filter an MGF file to keep only spectra for features present in mmo$feature_data$id
+#' Filter an MGF file to keep only spectra for features present in \code{mmo$feature_data$id}
 #'
 #' Create a new \code{.mgf} file that contains only spectra (ION blocks) whose
 #' \code{FEATURE_ID} occurs in \code{mmo$feature_data$id}. This is useful for keeping
-#' your spectral library in sync with the features currently stored in an \code{mmo}
-#' object (e.g., after subsetting, filtering, or rebuilding an \code{mmo}).
+#' your spectral library in sync with the features currently stored in an \code{mmo} 
+#' (e.g., after subsetting, filtering, or rebuilding a \code{mmo}).
 #'
 #' Each spectrum in an MGF is represented by a \code{BEGIN IONS ... END IONS} block.
 #' This function keeps or discards entire blocks based on the integer value in the
 #' \code{FEATURE_ID=} header line. All blocks (MS1 and MS2) are kept for a retained
 #' feature, including multiple MS2 blocks if present.
 #'
-#' @param mmo An ecomet \code{mmo} object containing a required \code{feature_data}
+#' @param mmo An eCOMET \code{mmo} containing a required \code{feature_data}
 #'   table with an \code{id} column (\code{mmo$feature_data$id}).
 #'
 #' @param mgf_path Character. Path to the input \code{.mgf} file.
@@ -1423,7 +1423,7 @@ filter_mgf_to_mmo <- function(
 
 
 
-#' Annotate mmo$feature_info with MS2 presence and MS2 block counts from an MGF
+#' Annotate \code{mmo$feature_info} with MS2 presence and MS2 block counts from an MGF
 #'
 #' Scan an \code{.mgf} file and summarize MS/MS availability for each feature in
 #' \code{mmo$feature_info}. The function adds two columns:
@@ -1437,7 +1437,7 @@ filter_mgf_to_mmo <- function(
 #' (and how many replicate MS2 spectra exist) before downstream annotation, networking,
 #' or library-building steps.
 #'
-#' @param mmo An ecomet \code{mmo} object containing a required \code{feature_info}
+#' @param mmo An eCOMET \code{mmo} containing a required \code{feature_info}
 #'   table with an \code{id} column (\code{mmo$feature_info$id}).
 #'
 #' @param mgf_path Character. Path to the input \code{.mgf} file.
@@ -1452,7 +1452,7 @@ filter_mgf_to_mmo <- function(
 #' @param verbose Logical. If \code{TRUE} (default), prints a brief summary of how many
 #'   MS2 blocks were found and how many features have MS2.
 #'
-#' @return The updated \code{mmo} object with \code{mmo$feature_info$ms2} and
+#' @return The updated \code{mmo} with \code{mmo$feature_info$ms2} and
 #'   \code{mmo$feature_info$count_ms2} added (or overwritten if \code{overwrite = TRUE}).
 #'
 #' @examples
@@ -1645,10 +1645,10 @@ annotate_feature_info_ms2_from_mgf <- function(
 
 
 
-#' Filter an mmo object by samples, groups, and/or features
+#' Filter a \code{mmo} by samples, groups, and/or features
 #'
 #' @description
-#' Subset all components of an mmo object (feature tables, metadata, distance
+#' Subset all components of a \code{mmo} (feature tables, metadata, distance
 #' matrices, and annotations) to a given set of samples, groups, and/or
 #' feature IDs. Filtering is applied consistently across all slots present
 #' in \code{mmo}.
@@ -1656,7 +1656,7 @@ annotate_feature_info_ms2_from_mgf <- function(
 #' Optionally, if an \code{mgf_path} is provided, a filtered MGF is written
 #' containing only spectra for the retained features (using \code{filter_mgf_to_mmo()}).
 #'
-#' @param mmo A list-like mmo object as returned by \code{GetMZmineFeature()}.
+#' @param mmo A list-like \code{mmo} as returned by \code{GetMZmineFeature()}.
 #' @param sample_list Optional character vector of sample IDs (matching
 #'   \code{sample_col} in \code{mmo$metadata}) to retain.
 #' @param group_list Optional character vector of group labels (matching
@@ -1681,7 +1681,7 @@ annotate_feature_info_ms2_from_mgf <- function(
 #' @param output_path Character or NULL. Passed to \code{filter_mgf_to_mmo()}.
 #'   If \code{NULL} (default), output is \code{"<input>_filtered.mgf"}.
 #'
-#' @return A filtered mmo object with the same structure as \code{mmo}, but
+#' @return A filtered \code{mmo} with the same structure as \code{mmo}, but
 #'   restricted to the requested samples / groups / features. If \code{mgf_path}
 #'   is provided, the returned object also includes \code{mmo_filtered$mgf_filtered_path}.
 #' @export
@@ -1911,11 +1911,11 @@ filter_mmo <- function(mmo,
 #'
 #' Pools sample columns within each group into one pseudo-sample per group.
 #' Feature rows are preserved (no filtering of features).
-#' Keeps all other slots of the mmo object unchanged by copying mmo first.
+#' Keeps all other slots of the \code{mmo} unchanged by copying the \code{mmo} first.
 #'
-#' @param mmo mmo object
-#' @param group_col column in mmo$metadata used for grouping (default: "group")
-#' @return mmo object with feature_data containing one column per group and metadata updated accordingly
+#' @param mmo A \code{mmo}
+#' @param group_col column in \code{mmo$metadata} used for grouping (default: "group")
+#' @return \code{mmo} with feature_data containing one column per group and metadata updated accordingly
 #' @export
 pool_mmo_by_group <- function(mmo, group_col = "group") {
   if (is.null(mmo$feature_data) || is.null(mmo$metadata)) {
@@ -1979,11 +1979,11 @@ pool_mmo_by_group <- function(mmo, group_col = "group") {
 # Define functions for supporting analysis
 ########################################################################################
 
-#' Retrieve feature data from the mmo object, with normalization options
+#' Retrieve feature data from the \code{mmo}, with normalization options
 #'
-#' This function retrieves the feature data from the mmo object based on the specified normalization method.
+#' This function retrieves the feature data from the \code{mmo} based on the specified normalization method.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param normalization The normalization method to use. Options are 'None','PA', 'Log', 'Meancentered', 'Z', or 'Imputed'
 #' @return The feature data corresponding to the specified normalization method
 #' @export
@@ -2009,15 +2009,15 @@ GetNormFeature <- function(mmo, normalization){
 }
 
 
-#' Get the distance matrix from the mmo object based on the specified distance metric
+#' Get the distance matrix from the \code{mmo} based on the specified distance metric
 #'
-#' Retrieve a feature distance matrix from the mmo object
+#' Retrieve a feature distance matrix from the \code{mmo}
 #'
-#' Looks up a dissimilarity matrix stored in the mmo object by name. Works with
+#' Looks up a dissimilarity matrix stored in the \code{mmo} by name. Works with
 #' the three built-in matrices added by \code{AddChemDist()} as well as any
 #' custom matrix added via \code{AddCustomDist()}.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param distance Name of the distance matrix to retrieve. Built-in options are
 #'   \code{'dreams'}, \code{'cosine'}, and \code{'m2ds'}. Any name passed to
 #'   \code{AddCustomDist(mmo, name = ...)} is also valid.
@@ -2039,9 +2039,9 @@ GetDistanceMat <- function(mmo, distance = 'dreams'){
   return(distance_matrix)
 }
 
-#' Convert feature names to IDs in the mmo object
+#' Convert feature names to IDs in the \code{mmo}
 #'
-#' This function converts feature names to their corresponding IDs in the mmo object.
+#' This function converts feature names to their corresponding IDs in the \code{mmo}.
 #'
 #' @param mmo The mmo object
 #' @param feature_names A vector of feature names to convert
