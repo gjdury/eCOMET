@@ -577,7 +577,7 @@ filter_canopus_annotations <- function(
 #' Rows are never dropped. "Removing" a structure means setting selected fields
 #' (e.g., SMILES/InChI/name/InChIkey2D) to \code{NA}.
 #'
-#' @param mmo An eCOMET \code{mmo} object containing \code{mmo[[input]]} (a data.frame).
+#' @param mmo An eCOMET \code{mmo} containing \code{mmo[[input]]} (a data.frame).
 #' @param input Character. Name of the element on \code{mmo} to filter. Defaults to \code{"sirius_annot"}.
 #'
 #' @param cosmic_mode Which COSMIC column to use. One of \code{"exact"} or \code{"approx"}.
@@ -749,13 +749,13 @@ filter_cosmic_structure <- function(
 
 
 
-#' Add custom annotations to an \code{mmo}
+#' Add custom annotations to a \code{mmo}
 #'
 #' @description
 #' Match features to a custom DB by m/z (ppm) and RT (minutes) tolerances and
 #' attach a list-column of candidate compound IDs per feature.
 #'
-#' @param mmo An \code{mmo} object created by `GetMZmineFeature()`.
+#' @param mmo A \code{mmo} created by `GetMZmineFeature()`.
 #' @param DB_file CSV path with at least columns `compound`, `mz`, `rt`.
 #' @param mztol m/z tolerance in ppm (default 5).
 #' @param rttol RT tolerance in minutes (default 0.5).
@@ -1236,7 +1236,7 @@ ReorderGroups <- function(mmo, group_order) {
 #'
 #' Create a new \code{.mgf} file that contains only spectra (ION blocks) whose
 #' \code{FEATURE_ID} occurs in \code{mmo$feature_data$id}. This is useful for keeping
-#' your spectral library in sync with the features currently stored in an \code{mmo} 
+#' your spectral library in sync with the features currently stored in a \code{mmo} 
 #' (e.g., after subsetting, filtering, or rebuilding a \code{mmo}).
 #'
 #' Each spectrum in an MGF is represented by a \code{BEGIN IONS ... END IONS} block.
@@ -1732,7 +1732,7 @@ filter_mmo <- function(mmo,
   if (!is.null(sample_list)) {
     keep_samples <- intersect(all_samples, as.character(sample_list))
     if (length(keep_samples) == 0L) {
-      stop("None of the supplied sample IDs in 'sample_list' are present in the mmo object.", call. = FALSE)
+      stop("None of the supplied sample IDs in 'sample_list' are present in the mmo.", call. = FALSE)
     }
   } else if (!is.null(group_list)) {
     idx <- meta[[group_col]] %in% group_list
@@ -1897,7 +1897,7 @@ filter_mmo <- function(mmo,
     mmo_filtered$mgf_filtered_path <- mgf_res$output_path
   }
 
-  message("MMO object was subset")
+  message("mmo was subset")
   message(paste0("Feature number: ", nrow(mmo_filtered$feature_data)))
   message(paste0(nrow(mmo_filtered$metadata), " samples in ",
                  length(unique(mmo_filtered$metadata[[group_col]])), " groups"))
@@ -2043,7 +2043,7 @@ GetDistanceMat <- function(mmo, distance = 'dreams'){
 #'
 #' This function converts feature names to their corresponding IDs in the \code{mmo}.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param feature_names A vector of feature names to convert
 #' @return A vector of feature IDs corresponding to the input feature names
 #' @export
@@ -2063,11 +2063,11 @@ FeatureToID <- function(mmo, feature_names) {
   return(feature_ids)
 }
 
-#' Convert feature IDs to names in the mmo object
+#' Convert feature IDs to names in the \code{mmo}
 #'
-#' This function converts feature IDs to their corresponding names in the mmo object.
+#' This function converts feature IDs to their corresponding names in the \code{mmo}.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param feature_ids A vector of feature IDs to convert
 #' @return A vector of feature names corresponding to the input feature IDs
 #' @export
@@ -2087,12 +2087,12 @@ IDToFeature <- function(mmo, feature_ids) {
   return(feature_names)
 }
 
-#' Calculate group means from the mmo object
+#' Calculate group means from the \code{mmo}
 #'
-#' This function calculates and returns a dataframe of mean feature values for each group in the mmo object, with options for normalization and filtering.
+#' This function calculates and returns a dataframe of mean feature values for each group in the \code{mmo}, with options for normalization and filtering.
 #' Use SwitchGroup() to change the grouping variable before running this function.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param normalization The normalization method to use. Options are 'None', 'Log', 'Meancentered', or 'Z'
 #' @param filter_id Boolean to filter features based on a provided list (default: FALSE)
 #' @param id_list A vector of feature names to filter (default: NULL)
@@ -2171,9 +2171,9 @@ GetLog2FoldChange <- function(group_means, control_group) {
 }
 
 
-#' Perform ANOVA and Tukey's HSD test on the mmo object
+#' Perform ANOVA and Tukey's HSD test on the \code{mmo}
 #'
-#' This function performs ANOVA and Tukey's HSD test on the feature data of the mmo object,
+#' This function performs ANOVA and Tukey's HSD test on the feature data of the \code{mmo},
 #' Returns a list of ANOVA results, Tukey's HSD results, Tukey's significance letters, and Dunnett's test results.
 #'
 #' @param df The data frame containing the feature data and metadata
@@ -2319,17 +2319,17 @@ permanova_stat <- function(data, metadata, mode, filter_group = FALSE, group_lis
 # Define functions for pairwise comparison and visualization
 ########################################################################################
 
-#' Perform pairwise comparison between two groups in the mmo object
+#' Perform pairwise comparison between two groups in the \code{mmo}
 #'
-#' This function performs pairwise comparison between two groups in the mmo object,
+#' This function performs pairwise comparison between two groups in the \code{mmo},
 #' calculating log2 fold change and adjusted p-values for given comparison of two groups.
-#' The function adds the results to the mmo$pairwise data frame.
+#' The function adds the results to the \code{mmo$pairwise} data frame.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param group1 The name of the nominator group
 #' @param group2 The name of the denominator group
 #' @param correction The method for multiple comparison correction. Options are 'BH', 'holm', 'bonferroni', etc. Inherits from p.adjust() (default: 'BH')
-#' @return The mmo object with pairwise comparison results added to mmo$pairwise
+#' @return The \code{mmo} with pairwise comparison results added to \code{mmo$pairwise}
 #' @export
 #' @examplesIf FALSE
 #' mmo <- PairwiseComp(mmo, group1 = 'Control', group2 = 'Treatment1')
@@ -2382,20 +2382,20 @@ PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
     pval = pval
   )
   names(results) <- c(paste(group1, "vs", group2, "log2FC", sep = "_"), paste(group1, "vs", group2, "padj", sep = "_"), paste(group1, "vs", group2, "pval", sep = "_"))
-  #Add pairwise results to the mmo object
+  #Add pairwise results to the mmo
   mmo$pairwise <- cbind(mmo$pairwise, results)
   print(paste(group2, '/', group1, 'comparison was completed'))
   return(mmo)
 }
 
 
-#' Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the mmo object
+#' Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the \code{mmo}
 #'
-#' This function generates lists of upregulated and downregulated DAMs for each pairwise comparison in the mmo object.
+#' This function generates lists of upregulated and downregulated DAMs for each pairwise comparison in the \code{mmo}.
 #' It uses log2 fold change and adjusted p-value thresholds to determine significance.
 #' Make sure to run PairwiseComp() for all desired comparisons before using this function.
 #'
-#' @param mmo The mmo object with pairwise comparison matrix
+#' @param mmo The \code{mmo} with pairwise comparison matrix
 #' @param fc_cutoff The threshold of log2 fold change to be considered significant (default: 0.5849625, which is log2(1.5))
 #' @param pval_cutoff The threshold of adjusted p-value to be considered significant (default: 0.05)
 #' @param use_padj Boolean value indicating whether to use adjusted p-value (default: TRUE)
@@ -2434,10 +2434,10 @@ GetDAMs <- function(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05, use_padj = T
 
 #' Volcano plot for visualizing differential metabolite analysis results
 #'
-#' This function generates a volcano plot using data from mmo$pairwise (PairwiseComp(mmo, 'group1', 'group2') should be precended),
+#' This function generates a volcano plot using data from \code{mmo$pairwise} (\code{PairwiseComp(mmo, 'group1', 'group2')} should be specified),
 #' highlighting upregulated and downregulated features based on log2 fold change and adjusted p-value
 #'
-#' @param mmo The mmo object with pairwise comparison matrix
+#' @param mmo The \code{mmo} with pairwise comparison matrix
 #' @param comp The comparison to visualize, e.g., 'group1_vs_group2
 #' @param topk The number of top features to label in the plot (default: 10)
 #' @param log2FC_thr The threshold of log2 fold change to be considered significant (default: 1)
@@ -2544,7 +2544,7 @@ VolcanoPlot <- function(mmo, comp, topk = 10, log2FC_thr = 1,pthr = 0.05, outdir
 #' This function performs PCA analysis and generates a PCA plot with optional filtering of features and groups.
 #' It also conducts PERMANOVA and saves the results to CSV files.
 #'
-#' @param mmo The mmo object with feature data and metadata
+#' @param mmo The \code{mmo} with feature data and metadata
 #' @param color A vector of colors for the groups in the plot. Make sure the names correspond to the group names in metadata
 #' @param outdir The output file path for the PCA plot (default: 'PCA')
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
@@ -2636,7 +2636,7 @@ PCAplot <- function(mmo, color = NULL, outdir = 'PCA', normalization = 'Z', filt
 #'
 # This function performs PLS-DA analysis and generates a PLS-DA plot with feature loadings.
 #'
-#' @param mmo The mmo object with feature data and metadata
+#' @param mmo The \code{mmo} with feature data and metadata
 #' @param color A vector of colors for the groups in the plot. Make sure the names correspond to the group names in metadata
 #' @param topk The number of top features to display in the plot (default: 10)
 #' @param outdir The output file path for the PLS-DA plot
@@ -2723,12 +2723,12 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
   return(list(plot = plot, df = plsda_df, loadings = loadings_df))
 }
 
-#' Generate input files to be used for pheatmap from the mmo object
+#' Generate input files to be used for pheatmap from the \code{mmo}
 #'
-#' This function generates heatmap inputs from the mmo object, including fold change or mean values,
+#' This function generates heatmap inputs from the \code{mmo}, including fold change or mean values,
 #' distance matrix, and row labels for custom-annotated features.
 #'
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param filter_id Boolean to filter features by id_list (default: FALSE)
 #' @param id_list A vector of feature names to filter (default: NULL)
 #' @param filter_group Boolean to filter groups by group_list (default: FALSE)
@@ -2814,10 +2814,10 @@ GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
 #' PlotNPCStackedBar
 #'
 #' This function generates a stacked bar plot showing the count of features in each group categorized by NPC_pathway.
-#' It uses the mmo object with sirius annotation and normalized data.
+#' It uses the \code{mmo} with sirius annotation and normalized data.
 #' Make sure you don't run ReplaceZero() before using this function, as it may remove presence/absence information.
 #'
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param group_col The column name in metadata to use for grouping samples
 #' @param outdir The output file path for the stacked bar plot (e.g., 'NPC_stacked_bar.png')
 #' @param width The width of the output plot
@@ -2887,7 +2887,7 @@ PlotNPCStackedBar <- function(mmo, group_col, outdir, width = 6, height = 3, sav
 #'
 #' This function performs enrichment analysis for Canopus-predicted terms on a given list of features.
 #'
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param list_test A vector containing ids of features to analyze
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.1)
 #' @param sig A logical value indicating whether to return only significant terms (default: TRUE)
@@ -2997,7 +2997,7 @@ CanopusLevelEnrichmentAnal <- function(mmo,list_test, pthr = 0.1, sig=TRUE, term
 #' This function generates a plot for enrichment analysis of Canopus-predicted terms,
 #' showing fold enrichment, p-value, and subset count for each term level.
 #'
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param id_list A vector containing names of features to analyze
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.05)
 #' @param outdir The output file path for the enrichment plot
@@ -3042,7 +3042,7 @@ CanopusListEnrichmentPlot <- function(mmo, id_list, pthr = 0.05, outdir, height 
 #' This function generates a plot for enrichment analysis of Canopus-predicted terms across multiple levels,
 #' showing fold enrichment, p-value, and subset count for each term level.
 #'
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param id_list A vector containing names of features to analyze
 #' @param pthr The threshold for adjusted p-value to be considered significant (default: 0.05)
 #' @param outdir The output file path for the enrichment plot
@@ -3087,7 +3087,7 @@ CanopusListEnrichmentPlot_2 <- function(mmo, id_list, pthr = 0.05, outdir, heigh
 #' This function generates a plot for enrichment analysis of Canopus-predicted terms at a specific level,
 #' showing fold enrichment, p-value, and subset count for each term.
 #'
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param comp.list A list to analyze, where each element is a vector of feature ids
 #' @param term_level The level of term to use for enrichment analysis.
 #'               Options are 'NPC_pathway', 'NPC_superclass', 'NPC_class',
@@ -3173,7 +3173,7 @@ CanopusLevelEnrichmentPlot <- function(mmo = mmo, comp.list, term_level = 'NPC_p
 #'
 #' This function generates a plot for enrichment analysis of Canopus-predicted terms across all levels,
 #' showing fold enrichment, p-value, and subset count for each term level.
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param comp.list A list to analyze, where each element is a vector of feature names
 #' @param terms The terms to analyze. Options are 'all_terms', 'NPC', 'ClassyFire', or 'custom' (default: 'all_terms')
 #' @param term_levels list of custom term levels to use
@@ -3281,7 +3281,7 @@ CanopusAllLevelEnrichmentPlot <- function(mmo = mmo, comp.list, terms = 'all_ter
 #' This function performs Metabolite Set Enrichment Analysis (MSEA) using the fgsea package.
 #' It takes a ranked list of feature scores and tests for enrichment of metabolite sets based on Canopus-predicted terms.
 #' The results are saved as a CSV file and a PDF plot.
-#' @param mmo The mmo object with sirius annotation and normalized data
+#' @param mmo The \code{mmo} with sirius annotation and normalized data
 #' @param feature_id A vector of feature ids corresponding to the feature scores
 #' @param feature_score A vector of feature scores (e.g., log2 fold changes)
 #' @param term_level The level of term to use for enrichment analysis.
@@ -3365,7 +3365,7 @@ MSEA <- function(mmo, feature_id, feature_score, term_level = 'NPC_class', pthr 
 #' It can use linear mixed models (LMM), simple linear regression (LM), or Pearson correlation.
 #' The default regression line of the plot uses linear model
 #'
-#' @param mmo The mmo object with feature data and metadata
+#' @param mmo The \code{mmo} with feature data and metadata
 #' @param feature_id The id of the feature to analyze
 #' @param phenotype The name of the phenotype  in the metadata
 #' @param groups A vector of group names from the metadata containing phenotype data
@@ -3428,7 +3428,7 @@ FeaturePhenotypeCorrelation <- function(mmo, feature_id, phenotype, groups, mode
 #' Use metadata-provided variables (any phenotypes or environmental variables) to screen feature-phenotype correlation
 #' linear model, linear mixed model (using groups as random effect), or correlation (Pearson, Spearman, Kendall) are supported
 #'
-#' @param mmo The mmo object with feature data and metadata
+#' @param mmo The \code{mmo} with feature data and metadata
 #' @param phenotype The name of the phenotype in the metadata
 #' @param groups A vector of group names from the metadata containing phenotype data
 #' @param model The type of regression model to use. Options are 'lmm' for linear mixed model, 'lm' for simple linear regression, or 'pearson', 'spearman', 'kendall' for correlation (default: 'lm')
@@ -3476,7 +3476,7 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
 #' GetPerformanceFeatureRegression
 #'
 #' This function performs linear regression analysis of all features against a phenotype performance in the metadata.
-#' @param mmo The mmo object with feature data and metadata
+#' @param mmo The \code{mmo} with feature data and metadata
 #' @param phenotype The name of the phenotype performance in the metadata
 #' @param groups A vector of group names from the metadata containing performance data
 #' @param DAM.list A list of DAMs to tag features
@@ -3528,7 +3528,7 @@ GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, co
 #'
 #' This function performs linear mixed model analysis of all features against a phenotype performance in the metadata.
 #'
-#' @param mmo The mmo object with feature data and metadata
+#' @param mmo The \code{mmo} with feature data and metadata
 #' @param phenotype The name of the phenotype performance in the metadata
 #' @param groups A vector of group names from the metadata containing performance data
 #' @param DAM.list A list of DAMs to tag features
@@ -3590,7 +3590,7 @@ GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, compariso
 #'
 #'
 #' This function calculates the Pearson correlation between each feature and a specified phenotype performance in the metadata.
-#' @param mmo The mmo object with feature data and metadata
+#' @param mmo The \code{mmo} with feature data and metadata
 #' @param phenotype The name of the phenotype performance in the metadata
 #' @param groups A vector of group names from the metadata containing performance data
 #' @param DAM.list A list of DAMs to tag features
@@ -3766,7 +3766,7 @@ PlotFoldchangeResistanceQuad <- function(performance_regression, fold_change, co
 #'
 #' This function generates bar plots for a specified feature across different groups in the metadata, performing ANOVA and Tukey's HSD test for post-hoc analysis.
 #'
-#' @param mmo The mmo object containing metadata and feature data
+#' @param mmo The \code{mmo} containing metadata and feature data
 #' @param ID_list A list of feature IDs to analyze. Use FeatureToID() to convert feature names to IDs.
 #' @param outdir The output directory to save the bar plots and ANOVA results
 #' @param normalization The normalization method to use for feature data. Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
@@ -3857,7 +3857,7 @@ AnovaBarPlot <- function(mmo, ID_list, outdir, normalization = 'None', filter_gr
 #'
 #' This function exports selected features, their annotations, and pairwise comparisons to a CSV file.
 #'
-#' @param mmo The mmo object containing feature data, annotations, and pairwise comparisons
+#' @param mmo The \code{mmo} containing feature data, annotations, and pairwise comparisons
 #' @param id_list A list of feature names to filter and export
 #' @param normalization The normalization method to use for feature data.
 #'        Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
@@ -3917,7 +3917,7 @@ GetRichness <- function(
 
 #' GetFunctionalHillNumber
 #'
-#' This function calculates the functional Hill number for a given mmo object, normalization method, and distance metric.
+#' This function calculates the functional Hill number for a given \code{mmo}, normalization method, and distance metric.
 #' See https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for details of the functional Hill number calculation.
 #'
 #' @param feature Feature table with columns: id, feature, then sample columns
@@ -4001,7 +4001,7 @@ GetFunctionalHillNumber <- function(
 
 #' GetHillNumbers
 #'
-#' This function calculates the Hill numbers for a given mmo object, normalization method, and order of the Hill number without considering feature dissimilarity.
+#' This function calculates the Hill numbers for a given \code{mmo}, normalization method, and order of the Hill number without considering feature dissimilarity.
 #'
 #'
 #' @param feature Feature table with columns: id, feature, then sample columns
@@ -4055,7 +4055,7 @@ GetHillNumbers <- function(
 
 #' GetFaithPD
 #'
-#' This function calculates the Faith's phylogenetic diversity for a given mmo object and distance metric,
+#' This function calculates the Faith's phylogenetic diversity for a given \code{mmo} and distance metric,
 #' to calculate chemically-informed richness
 #'
 #' @param feature Feature table with columns: id, feature, then sample columns
@@ -4087,7 +4087,7 @@ GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
 
 #' GetAlphaDiversity
 #'
-#' Calculate alpha diversity for an mmo object with flexible output modes.
+#' Calculate alpha diversity for a \code{mmo} with flexible output modes.
 #' Supported diversity modes:
 #' - 'weighted'   : functional Hill number (GetFunctionalHillNumber)
 #' - 'unweighted' : Hill numbers on abundances (GetHillNumbers)
@@ -4102,7 +4102,7 @@ GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
 #'
 #' NOTE: For outputs 3 and 4, pooling is performed by summing feature intensities across samples.
 #'
-#' @param mmo The mmo object containing feature data and metadata
+#' @param mmo The \code{mmo} containing feature data and metadata
 #' @param q The Hill number order controlling abundance sensitivity (default: 1).
 #'   Only applies to \code{mode = "weighted"} and \code{mode = "unweighted"};
 #'   ignored for \code{"richness"} and \code{"faith"}.
@@ -4536,9 +4536,9 @@ RarefactionAUC <- function(rarefied_richness, n_boot = 1000, seed = 513){
 
 #' GetSpecializationIndex
 #'
-#' This function calculates the specialization index for a given mmo object, normalization method, and optional filtering by groups and features.
+#' This function calculates the specialization index for a given \code{mmo}, normalization method, and optional filtering by groups and features.
 #'
-#' @param mmo The mmo object containing feature data and metadata
+#' @param mmo The \code{mmo} containing feature data and metadata
 #' @param normalization The normalization method to use for feature data.
 #'        Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 #' @param filter_group A boolean indicating whether to filter the feature data by a specific group list (default: FALSE)
@@ -4594,7 +4594,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 
 #' GetBetaDiversity
 #'
-#' Calculate beta diversity (sample-to-sample dissimilarity) for an mmo object.
+#' Calculate beta diversity (sample-to-sample dissimilarity) for a \code{mmo}.
 #' Four methods are supported, differing in how they handle feature abundance and
 #' structural relationships among compounds:
 #'
@@ -4633,7 +4633,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' }
 #' Access a specific matrix with e.g. \code{result[["d_0.5"]]}.
 #'
-#' @param mmo The mmo object containing feature data and metadata
+#' @param mmo The \code{mmo} containing feature data and metadata
 #' @param method Beta diversity method: 'Gen.Uni', 'bray', 'jaccard', or 'CSCS' (default: 'Gen.Uni')
 #' @param normalization Abundance table to use. Options: 'None', 'Log', 'Meancentered', 'Z', 'PA'
 #'   (default: 'None'). Ignored for 'jaccard', which always uses PA.
@@ -4754,7 +4754,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
 #'
 #' This function generates a Non-metric Multidimensional Scaling (NMDS) plot based on the provided beta diversity distance matrix.
 #' It also performs PERMANOVA analysis to assess the significance of group differences and saves the results to CSV files.
-#' @param mmo The mmo object containing metadata
+#' @param mmo The \code{mmo} containing metadata
 #' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity()
 #' @param outdir The outdir for the output files
 #' @param width The width of the output NMDS plot (default: 6)
@@ -4815,7 +4815,7 @@ NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, 
 #' This function generates a Principal Coordinates Analysis (PCoA) plot based on the provided beta diversity distance matrix.
 #' It also performs PERMANOVA analysis to assess the significance of group differences and saves the
 #' results to CSV files.
-#' @param mmo The mmo object containing metadata
+#' @param mmo The \code{mmo} containing metadata
 #' @param betadiv The beta diversity distance matrix, output of GetBetaDiversity
 #' @param outdir The prefix for the output files
 #' @param width The width of the output PCoA plot (default: 6
@@ -4865,7 +4865,7 @@ PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, 
 #'
 #' This function calculates the beta diversity distance between a reference group and other groups in the metadata.
 #'
-#' @param mmo The mmo object containing feature data and metadata
+#' @param mmo The \code{mmo} containing feature data and metadata
 #' @param beta_div The beta diversity distance matrix, output of GetBetaDiversity()
 #' @param reference_group The name of the reference group to compare against
 #' @param groups A vector of group names from the metadata to calculate distances for
@@ -4898,7 +4898,7 @@ CalculateGroupBetaDistance <- function(mmo, beta_div, reference_group, groups) {
 
 #' Save entire mmo object to a file (RDS)
 #'
-#' @param mmo The mmo object (list) to save
+#' @param mmo The \code{mmo} to save
 #' @param file File path to write (default: "mmo.rds")
 #' @param compress Compression type passed to saveRDS ("gzip", "bzip2", "xz", or logical) (default: "xz")
 #' @param include_session Logical; if TRUE attach sessionInfo() as an attribute to the saved object (default: TRUE)
@@ -4915,16 +4915,16 @@ SaveMMO <- function(mmo, file = "mmo.rds", compress = "xz", include_session = TR
 }
 
 
-#' Load an mmo object previously saved with SaveMMO
+#' Load a \code{mmo} previously saved with SaveMMO
 #'
-#' This function returns the loaded mmo object (visible return). By default it prints basic
+#' This function returns the loaded \code{mmo} (visible return). By default it prints basic
 #' information about the R version and recorded packages that were present when the object
 #' was saved.
 #'
 #' @param file Path to an RDS file created with SaveMMO
 #' @param check_session Logical; if TRUE and save-time session info is present, print a short summary (default: TRUE)
 #' @param verbose Logical; print messages about saved session info when available (default: TRUE)
-#' @return The loaded mmo object (list)
+#' @return The loaded \code{mmo}
 #' @export
 LoadMMO <- function(file, check_session = TRUE, verbose = TRUE) {
   if (!file.exists(file)) stop("File not found: ", file)
@@ -4941,7 +4941,7 @@ LoadMMO <- function(file, check_session = TRUE, verbose = TRUE) {
 }
 
 
-#' Print method for mmo objects
+#' Print method for \code{mmo}s
 #' Provides a clean, human-readable overview of an `mmo` list object instead of
 #' dumping the entire list when the object is printed in the console.
 #' @param x An `mmo` object (a list with components such as `feature_data`,
@@ -4975,9 +4975,9 @@ print.mmo <- function(x, ...) {
 #' HCplot
 #'
 #' Hierarchical clustering of samples from a precomputed beta-diversity matrix,
-#' plotted as a phylogram with tip labels colored by mmo$metadata$group.
+#' plotted as a phylogram with tip labels colored by \code{mmo$metadata$group}.
 #'
-#' @param mmo The mmo object
+#' @param mmo The \code{mmo}
 #' @param betadiv Beta diversity distance matrix, output of GetBetaDiversity()
 #' @param outdir Output file prefix (e.g., "output/HC"). PNG saved here if save_output=TRUE.
 #' @param hclust_method hclust linkage method (default: "average"; alternatives: "complete","ward.D2")
@@ -5049,7 +5049,7 @@ HCplot <- function(
 #' FeatureDendrogram
 #'
 #' Build a feature-to-feature dendrogram from a dissimilarity matrix stored in
-#' the mmo object. Optionally collapses within-group distances for ion identity
+#' the \code{mmo}. Optionally collapses within-group distances for ion identity
 #' or correlation groups so that adducts/isotopes of the same compound cluster
 #' together before chemical distance drives the higher-level topology.
 #'
@@ -5067,7 +5067,7 @@ HCplot <- function(
 #' In both grouped modes the constraint is applied symmetrically and the
 #' diagonal is forced to 0 after the assignment.
 #'
-#' @param mmo mmo object. Must contain the requested dissimilarity matrix
+#' @param mmo \code{mmo}. Must contain the requested dissimilarity matrix
 #'   (added via \code{AddChemDist()} or \code{AddCustomDist()}) and, for
 #'   ion identity modes, \code{mmo$feature_info}.
 #' @param distance Name of the dissimilarity matrix to use (default: \code{"dreams"}).
@@ -5251,7 +5251,7 @@ FeatureDendrogram <- function(
 #' clade of all members of that group.
 #'
 #' @param tree Output list from \code{FeatureDendrogram()}.
-#' @param mmo mmo object. Used for \code{mmo$sirius_annot} when
+#' @param mmo \code{mmo}. Used for \code{mmo$sirius_annot} when
 #'   \code{color_by} is not \code{NULL}.
 #' @param color_by Column name in \code{mmo$sirius_annot} to use for tip point
 #'   colors (default: \code{"NPC#pathway"}). Set to \code{NULL} to skip
@@ -5549,7 +5549,7 @@ PlotFeatureDendrogram <- function(
 #' it automatically.
 #'
 #' @param tree Output list from \code{FeatureDendrogram()}.
-#' @param mmo mmo object. Must contain \code{mmo$sirius_annot} (for colour
+#' @param mmo \code{mmo}. Must contain \code{mmo$sirius_annot} (for colour
 #'   strip) and \code{mmo$feature_presence} or \code{mmo$feature_data} (for
 #'   prevalence bar chart).
 #' @param outprefix File path prefix for output files (default:
@@ -5682,7 +5682,7 @@ ExportITOL <- function(
 
 #' ExportCytoscape
 #'
-#' Export an mmo object as a node table and edge table for visualisation in
+#' Export a \code{mmo} as a node table and edge table for visualisation in
 #' Cytoscape. Edges are derived from a stored feature dissimilarity matrix.
 #' Nodes carry abundance statistics and any annotation columns present in
 #' \code{mmo$sirius_annot} and \code{mmo$feature_info}.
@@ -5721,7 +5721,7 @@ ExportITOL <- function(
 #'     (e.g. \code{NPC_pathway}) to color nodes by compound class.
 #' }
 #'
-#' @param mmo mmo object. Must contain \code{mmo$feature_data} and
+#' @param mmo \code{mmo}. Must contain \code{mmo$feature_data} and
 #'   \code{mmo$metadata}. \code{mmo$feature_info} and
 #'   \code{mmo$sirius_annot} are used when present.
 #' @param distance Name of the dissimilarity matrix to use for edges
